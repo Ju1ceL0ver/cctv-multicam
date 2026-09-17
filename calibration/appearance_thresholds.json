@@ -1,0 +1,24 @@
+{
+ "within": {
+  "threshold": 0.228,
+  "kept_same": 0.437,
+  "same_median": 0.25,
+  "diff_median": 0.43,
+  "same_p90": 0.401,
+  "n_same": 709,
+  "n_diff": 1922
+ },
+ "cross": {
+  "threshold": 0.248,
+  "kept_same": 0.403,
+  "same_median": 0.271,
+  "diff_median": 0.436,
+  "same_p90": 0.433,
+  "n_same": 677,
+  "n_diff": 1945
+ },
+ "fpr": 0.02,
+ "clips": [
+  "c103700"
+ ]
+}

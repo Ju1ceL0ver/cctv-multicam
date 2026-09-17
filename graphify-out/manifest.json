@@ -1,0 +1,398 @@
+{
+  "calibration/appearance_thresholds.json": {
+    "mtime": 1789677224.399147,
+    "seen": 1789683784.142166,
+    "ast_hash": "d677bb27afd37cf78e9c003a1aa2dfa3",
+    "semantic_hash": "d677bb27afd37cf78e9c003a1aa2dfa3"
+  },
+  "calibration/calib_final.json": {
+    "mtime": 1789659779.183034,
+    "seen": 1789683784.142169,
+    "ast_hash": "2c83096de423da78b4cf3a883dbe4a2c",
+    "semantic_hash": "2c83096de423da78b4cf3a883dbe4a2c"
+  },
+  "calibration/calib_final_k0_backup.json": {
+    "mtime": 1789659779.1834009,
+    "seen": 1789683784.1421702,
+    "ast_hash": "f7c88464a8aa708dc36cedd9862c5e16",
+    "semantic_hash": "f7c88464a8aa708dc36cedd9862c5e16"
+  },
+  "calibration/calib_kfree.json": {
+    "mtime": 1789659779.183828,
+    "seen": 1789683784.142171,
+    "ast_hash": "2c83096de423da78b4cf3a883dbe4a2c",
+    "semantic_hash": "2c83096de423da78b4cf3a883dbe4a2c"
+  },
+  "calibration/cam1_to_cam2_affine.json": {
+    "mtime": 1789659779.1841652,
+    "seen": 1789683784.1421719,
+    "ast_hash": "fb511319f434af5320fcf1d11230bc43",
+    "semantic_hash": "fb511319f434af5320fcf1d11230bc43"
+  },
+  "calibration/cam_sync.json": {
+    "mtime": 1789662394.92268,
+    "seen": 1789683784.1421728,
+    "ast_hash": "165ce9474dea206764fe4b97511c032f",
+    "semantic_hash": "165ce9474dea206764fe4b97511c032f"
+  },
+  "calibration/plan_door.json": {
+    "mtime": 1789659779.1845012,
+    "seen": 1789683784.142174,
+    "ast_hash": "bc0df2acb0cd3dc2b150d5c5c6faf302",
+    "semantic_hash": "bc0df2acb0cd3dc2b150d5c5c6faf302"
+  },
+  "calibration/plan_geometry.json": {
+    "mtime": 1789659779.1849477,
+    "seen": 1789683784.1421828,
+    "ast_hash": "641171718dd1e1738ca3bcda08dc07f5",
+    "semantic_hash": "641171718dd1e1738ca3bcda08dc07f5"
+  },
+  "ground_truth/c103700/gt_identity_yolo26x-seg.json": {
+    "mtime": 1789676999.8183334,
+    "seen": 1789683784.142185,
+    "ast_hash": "74f129b335b71f0a22f0fda053bebfe8",
+    "semantic_hash": "74f129b335b71f0a22f0fda053bebfe8"
+  },
+  "ground_truth/c103700/gt_manual.json": {
+    "mtime": 1789676941.8667414,
+    "seen": 1789683784.142186,
+    "ast_hash": "96335d5a9e850bfc2db37c936445fafc",
+    "semantic_hash": "96335d5a9e850bfc2db37c936445fafc"
+  },
+  "ground_truth/c103700/pieces_yolo26x-seg.json": {
+    "mtime": 1789674125.8303204,
+    "seen": 1789683784.142187,
+    "ast_hash": "de7bb0b0980a9ab0ab27128d7fd08227",
+    "semantic_hash": "de7bb0b0980a9ab0ab27128d7fd08227"
+  },
+  "jobs/export_seg.py": {
+    "mtime": 1789577860.227156,
+    "seen": 1789683784.142188,
+    "ast_hash": "2f96ab67af9c3e7482d4902ecb6479dd",
+    "semantic_hash": "2f96ab67af9c3e7482d4902ecb6479dd"
+  },
+  "jobs/harvest_tracklets.py": {
+    "mtime": 1789578176.2795846,
+    "seen": 1789683784.142188,
+    "ast_hash": "1c4b7ace473122b0bb00da1b5b02fd1b",
+    "semantic_hash": "1c4b7ace473122b0bb00da1b5b02fd1b"
+  },
+  "jobs/harvest_val_raw.py": {
+    "mtime": 1789577860.9937215,
+    "seen": 1789683784.142189,
+    "ast_hash": "ce87dce2e1fc035de017e31385c6a04c",
+    "semantic_hash": "ce87dce2e1fc035de017e31385c6a04c"
+  },
+  "jobs/label_pairs.py": {
+    "mtime": 1789577949.9537702,
+    "seen": 1789683784.14219,
+    "ast_hash": "5ec82874cf44fd508f0d651b94503042",
+    "semantic_hash": "5ec82874cf44fd508f0d651b94503042"
+  },
+  "jobs/night_queue.py": {
+    "mtime": 1789578176.9566448,
+    "seen": 1789683784.14219,
+    "ast_hash": "a274b631d188f9a06d11c43a03cec3fc",
+    "semantic_hash": "a274b631d188f9a06d11c43a03cec3fc"
+  },
+  "jobs/nightly_collect.py": {
+    "mtime": 1789638168.45094,
+    "seen": 1789683784.1421912,
+    "ast_hash": "c55ab581babc93a0a3ffeef2866e1fba",
+    "semantic_hash": "c55ab581babc93a0a3ffeef2866e1fba"
+  },
+  "jobs/nightly_supervisor.py": {
+    "mtime": 1789635889.7426224,
+    "seen": 1789683784.1421921,
+    "ast_hash": "2874ed50694ad7ed7c1375472a4e814b",
+    "semantic_hash": "2874ed50694ad7ed7c1375472a4e814b"
+  },
+  "jobs/orchestrator.py": {
+    "mtime": 1789252238.3842564,
+    "seen": 1789683784.1421921,
+    "ast_hash": "0607da0ff349b044e5de9657afbe41f7",
+    "semantic_hash": "0607da0ff349b044e5de9657afbe41f7"
+  },
+  "jobs/raw_recorder.py": {
+    "mtime": 1789595392.2283542,
+    "seen": 1789683784.1421928,
+    "ast_hash": "7fe05188fbc85d470d7d2e4324f6cb50",
+    "semantic_hash": "7fe05188fbc85d470d7d2e4324f6cb50"
+  },
+  "jobs/serve_labelers.py": {
+    "mtime": 1789579158.3412335,
+    "seen": 1789683784.142194,
+    "ast_hash": "e1809bd78a4bfa94a1637088599b3f91",
+    "semantic_hash": "e1809bd78a4bfa94a1637088599b3f91"
+  },
+  "jobs/teacher_harvest.py": {
+    "mtime": 1789250319.5274272,
+    "seen": 1789683784.142195,
+    "ast_hash": "ca3f798ef1f51c6b9401a1f16d96223e",
+    "semantic_hash": "ca3f798ef1f51c6b9401a1f16d96223e"
+  },
+  "jobs/train_student.py": {
+    "mtime": 1789578079.984506,
+    "seen": 1789683784.142196,
+    "ast_hash": "d34d825f224547c0ada564dab679e4fa",
+    "semantic_hash": "d34d825f224547c0ada564dab679e4fa"
+  },
+  "multicam/bg.py": {
+    "mtime": 1789665028.0594144,
+    "seen": 1789683784.142196,
+    "ast_hash": "0eca793ced7239d0a1c8f74eb5fda850",
+    "semantic_hash": "0eca793ced7239d0a1c8f74eb5fda850"
+  },
+  "multicam/calib_final.py": {
+    "mtime": 1789659779.1555743,
+    "seen": 1789683784.142197,
+    "ast_hash": "ecb2cb589d581d9ec6149ffdbe13ae95",
+    "semantic_hash": "ecb2cb589d581d9ec6149ffdbe13ae95"
+  },
+  "multicam/calib_joint.py": {
+    "mtime": 1789659779.1561825,
+    "seen": 1789683784.142198,
+    "ast_hash": "fdcd3e8be686b3f8ad1964ab3e821d41",
+    "semantic_hash": "fdcd3e8be686b3f8ad1964ab3e821d41"
+  },
+  "multicam/calib_joint_k.py": {
+    "mtime": 1789659779.1566162,
+    "seen": 1789683784.142198,
+    "ast_hash": "4d130c8f1269bc290780d14b35924bce",
+    "semantic_hash": "4d130c8f1269bc290780d14b35924bce"
+  },
+  "multicam/calibrate_thresholds.py": {
+    "mtime": 1789677193.206012,
+    "seen": 1789683784.142199,
+    "ast_hash": "6b489c510e319a6f2cf9f1cb4bb81a51",
+    "semantic_hash": "6b489c510e319a6f2cf9f1cb4bb81a51"
+  },
+  "multicam/calibrate_tracker.py": {
+    "mtime": 1789670352.0799358,
+    "seen": 1789683784.1422,
+    "ast_hash": "d89bfef0c1f65954bb8904de9987c860",
+    "semantic_hash": "d89bfef0c1f65954bb8904de9987c860"
+  },
+  "multicam/clipdata.py": {
+    "mtime": 1789677190.9423687,
+    "seen": 1789683784.1422,
+    "ast_hash": "a22618f29c039cf1d16b4645ed301e45",
+    "semantic_hash": "a22618f29c039cf1d16b4645ed301e45"
+  },
+  "multicam/detect_raw.py": {
+    "mtime": 1789670443.6124465,
+    "seen": 1789683784.1422012,
+    "ast_hash": "743d7ac17999efaaa48d65fa321e8455",
+    "semantic_hash": "743d7ac17999efaaa48d65fa321e8455"
+  },
+  "multicam/diag_pieces.py": {
+    "mtime": 1789677193.8444388,
+    "seen": 1789683784.1422021,
+    "ast_hash": "0f5ea04bd4873a9986cadbf1974188a0",
+    "semantic_hash": "0f5ea04bd4873a9986cadbf1974188a0"
+  },
+  "multicam/embed_clip.py": {
+    "mtime": 1789669997.7499943,
+    "seen": 1789683784.1422021,
+    "ast_hash": "644cff74129400b7a412d2a5b8b5792b",
+    "semantic_hash": "644cff74129400b7a412d2a5b8b5792b"
+  },
+  "multicam/eval_ids.py": {
+    "mtime": 1789665445.228939,
+    "seen": 1789683784.1422029,
+    "ast_hash": "4047ac2dda0c39d38de6335a518c8383",
+    "semantic_hash": "4047ac2dda0c39d38de6335a518c8383"
+  },
+  "multicam/eval_reid.py": {
+    "mtime": 1789669994.6333628,
+    "seen": 1789683784.1422038,
+    "ast_hash": "19eabc63a3b1afd0fb3b6c9cc0c07ef6",
+    "semantic_hash": "19eabc63a3b1afd0fb3b6c9cc0c07ef6"
+  },
+  "multicam/export_pieces.py": {
+    "mtime": 1789677195.1473794,
+    "seen": 1789683784.1422038,
+    "ast_hash": "e9f061e7793dfa129aa49814625caf50",
+    "semantic_hash": "e9f061e7793dfa129aa49814625caf50"
+  },
+  "multicam/fit_floor_map.py": {
+    "mtime": 1789659779.162452,
+    "seen": 1789683784.142205,
+    "ast_hash": "df9824bbdbe7956237e51b4159096dc2",
+    "semantic_hash": "df9824bbdbe7956237e51b4159096dc2"
+  },
+  "multicam/fusion2.py": {
+    "mtime": 1789682083.0704193,
+    "seen": 1789683784.142206,
+    "ast_hash": "75117c6a0925c996445837443f195fb8",
+    "semantic_hash": "75117c6a0925c996445837443f195fb8"
+  },
+  "multicam/grow.py": {
+    "mtime": 1789659779.164719,
+    "seen": 1789683784.142206,
+    "ast_hash": "f12eab03bdb071383791fbb5d7c7fd4c",
+    "semantic_hash": "f12eab03bdb071383791fbb5d7c7fd4c"
+  },
+  "multicam/gt_from_manual.py": {
+    "mtime": 1789669918.3603847,
+    "seen": 1789683784.142207,
+    "ast_hash": "c915519cda1dfcc609cc55b642532b1e",
+    "semantic_hash": "c915519cda1dfcc609cc55b642532b1e"
+  },
+  "multicam/imtrack.py": {
+    "mtime": 1789682265.5610201,
+    "seen": 1789683784.142208,
+    "ast_hash": "d51cd15518560d31caaa250fa2e5fba2",
+    "semantic_hash": "d51cd15518560d31caaa250fa2e5fba2"
+  },
+  "multicam/label_pieces.py": {
+    "mtime": 1789676842.4606075,
+    "seen": 1789683784.142208,
+    "ast_hash": "f94b6dd065db1574c5359c157c4fbe1b",
+    "semantic_hash": "f94b6dd065db1574c5359c157c4fbe1b"
+  },
+  "multicam/lines.py": {
+    "mtime": 1789659779.1666229,
+    "seen": 1789683784.142209,
+    "ast_hash": "57b664b30e1d31ff900ebe359fd2f896",
+    "semantic_hash": "57b664b30e1d31ff900ebe359fd2f896"
+  },
+  "multicam/map_gt.py": {
+    "mtime": 1789662392.7130263,
+    "seen": 1789683784.14221,
+    "ast_hash": "d294a8cd66bc9ac87ee1a979eb00b3d6",
+    "semantic_hash": "d294a8cd66bc9ac87ee1a979eb00b3d6"
+  },
+  "multicam/person3d.py": {
+    "mtime": 1789659779.1699393,
+    "seen": 1789683784.142211,
+    "ast_hash": "f3b8a361d600c8ee733732d93929b80e",
+    "semantic_hash": "f3b8a361d600c8ee733732d93929b80e"
+  },
+  "multicam/piece_purity.py": {
+    "mtime": 1789677342.548701,
+    "seen": 1789683784.1422122,
+    "ast_hash": "c62526e13ed8d8a6377f368616033342",
+    "semantic_hash": "c62526e13ed8d8a6377f368616033342"
+  },
+  "multicam/plumb.py": {
+    "mtime": 1789659779.1704648,
+    "seen": 1789683784.1422122,
+    "ast_hash": "68328494eff24183c1a6d12993e56016",
+    "semantic_hash": "68328494eff24183c1a6d12993e56016"
+  },
+  "multicam/polys_pass.py": {
+    "mtime": 1789669997.1150763,
+    "seen": 1789683784.142213,
+    "ast_hash": "c4fd89a1cd90651404c773181023efa4",
+    "semantic_hash": "c4fd89a1cd90651404c773181023efa4"
+  },
+  "multicam/queue_detect.py": {
+    "mtime": 1789661783.5648932,
+    "seen": 1789683784.1422138,
+    "ast_hash": "bf97098857aea02e720503a74e0f5823",
+    "semantic_hash": "bf97098857aea02e720503a74e0f5823"
+  },
+  "multicam/rawsource.py": {
+    "mtime": 1789661782.0869474,
+    "seen": 1789683784.1422138,
+    "ast_hash": "68d8dafb981ea655a73dc09414ebae44",
+    "semantic_hash": "68d8dafb981ea655a73dc09414ebae44"
+  },
+  "multicam/reg_appearance.py": {
+    "mtime": 1789659779.173108,
+    "seen": 1789683784.142215,
+    "ast_hash": "54356fc55a04aea952052be06c03f0c5",
+    "semantic_hash": "54356fc55a04aea952052be06c03f0c5"
+  },
+  "multicam/render_raw.py": {
+    "mtime": 1789682266.329253,
+    "seen": 1789683784.142216,
+    "ast_hash": "da4bec196ab14244dbabc6549219c356",
+    "semantic_hash": "da4bec196ab14244dbabc6549219c356"
+  },
+  "multicam/rooms.py": {
+    "mtime": 1789659779.1759713,
+    "seen": 1789683784.142216,
+    "ast_hash": "83097cf92a26b39e26596d9a9136f014",
+    "semantic_hash": "83097cf92a26b39e26596d9a9136f014"
+  },
+  "multicam/run_clip.py": {
+    "mtime": 1789677192.530408,
+    "seen": 1789683784.142217,
+    "ast_hash": "345baf9e875370bdcc0ffa2ce426b939",
+    "semantic_hash": "345baf9e875370bdcc0ffa2ce426b939"
+  },
+  "multicam/score_config.py": {
+    "mtime": 1789682084.5168889,
+    "seen": 1789683784.1422179,
+    "ast_hash": "1e26ddce3b509c86e60bc53429f4c954",
+    "semantic_hash": "1e26ddce3b509c86e60bc53429f4c954"
+  },
+  "multicam/seams.py": {
+    "mtime": 1789659779.1763508,
+    "seen": 1789683784.1422179,
+    "ast_hash": "df2d6d573c5de03669e8b063ef7229a7",
+    "semantic_hash": "df2d6d573c5de03669e8b063ef7229a7"
+  },
+  "multicam/sweep_gate.py": {
+    "mtime": 1789678275.6881685,
+    "seen": 1789683784.142219,
+    "ast_hash": "513c5562a9f768af896f63f4ff7240d5",
+    "semantic_hash": "513c5562a9f768af896f63f4ff7240d5"
+  },
+  "multicam/sync_estimate.py": {
+    "mtime": 1789677195.9276476,
+    "seen": 1789683784.14222,
+    "ast_hash": "f5952afa966538d089113c7b81c0d198",
+    "semantic_hash": "f5952afa966538d089113c7b81c0d198"
+  },
+  "multicam/timeline.py": {
+    "mtime": 1789677194.4561074,
+    "seen": 1789683784.14222,
+    "ast_hash": "11bc5cce6ea0de5d02ee95f8c5e86973",
+    "semantic_hash": "11bc5cce6ea0de5d02ee95f8c5e86973"
+  },
+  "multicam/topview.py": {
+    "mtime": 1789659779.177543,
+    "seen": 1789683784.142221,
+    "ast_hash": "c07b6235d4c4bb5c068a9f69e56f5e09",
+    "semantic_hash": "c07b6235d4c4bb5c068a9f69e56f5e09"
+  },
+  "multicam/validate_people.py": {
+    "mtime": 1789659779.177958,
+    "seen": 1789683784.1422222,
+    "ast_hash": "5269931d46260ab69815073fa4b1d6a6",
+    "semantic_hash": "5269931d46260ab69815073fa4b1d6a6"
+  },
+  "multicam/wrapfit.py": {
+    "mtime": 1789659779.178875,
+    "seen": 1789683784.1422222,
+    "ast_hash": "96ca1af65120be3b08e21b039de43d97",
+    "semantic_hash": "96ca1af65120be3b08e21b039de43d97"
+  },
+  "tools/jctl.py": {
+    "mtime": 1789682860.9742892,
+    "seen": 1789683784.1422231,
+    "ast_hash": "aef756cd161c28d402c0f924bb7ec8ec",
+    "semantic_hash": "aef756cd161c28d402c0f924bb7ec8ec"
+  },
+  "AGENTS.md": {
+    "mtime": 1789682991.916203,
+    "seen": 1789683784.1422231,
+    "ast_hash": "744ad1157c59ffb3bec77069022bcf4c",
+    "semantic_hash": "744ad1157c59ffb3bec77069022bcf4c"
+  },
+  "README.md": {
+    "mtime": 1789682920.1554139,
+    "seen": 1789683784.1422238,
+    "ast_hash": "e3b2f96308e98ff1833c342e7451c6e0",
+    "semantic_hash": "e3b2f96308e98ff1833c342e7451c6e0"
+  },
+  "docs/PIPELINE.md": {
+    "mtime": 1789682920.1649365,
+    "seen": 1789683784.1422248,
+    "ast_hash": "49bdd1b90aa2a483e12e4e3e2d4ea95b",
+    "semantic_hash": "49bdd1b90aa2a483e12e4e3e2d4ea95b"
+  }
+}

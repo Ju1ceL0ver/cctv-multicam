@@ -1,0 +1,15 @@
+{
+ "door_a": [
+  0.3188514308664911,
+  5.30374106116374
+ ],
+ "door_b": [
+  1.8426127762646731,
+  5.208600864813169
+ ],
+ "inside": [
+  0.9496146414899935,
+  4.375212014854467
+ ],
+ "source": "retail_analytics configs/default.yaml door line (cam1 pixels) -> cam1 floor -> affine to cam2 frame"
+}

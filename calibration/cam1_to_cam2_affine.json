@@ -1,0 +1,25 @@
+{
+ "model": "affine",
+ "M": [
+  [
+   0.7693861719031938,
+   0.012495272000039364,
+   -0.3063789052286527
+  ],
+  [
+   -0.04407579402764619,
+   0.5421095268421154,
+   3.516146530491251
+  ]
+ ],
+ "pairs": 1917,
+ "heldout_median_m": 0.1858904725723271,
+ "heldout_p90_m": 0.44244525704923565,
+ "calib": "calib_final.json = calib_kfree (k1 from plumb lines)",
+ "method": "LMEDS affine from ground-truth identity pairs, clip 2026-09-17 15:52:36",
+ "rotation_deg": 0,
+ "T_m": [
+  -0.3063789052286527,
+  3.516146530491251
+ ]
+}

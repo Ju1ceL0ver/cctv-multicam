@@ -1,0 +1,7 @@
+{
+ "20260917": {
+  "cam1_to_cam2_s": 4.24,
+  "method": "frame-level box alignment of raw teacher detections to the synced 15:52:36 clip (cam1 +204, cam2 +98 frames); people-only estimator agrees: +4.28..+4.52 s",
+  "session": "recorders started 2026-09-17 10:00, ended by reboot 19:10"
+ }
+}

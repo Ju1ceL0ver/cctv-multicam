@@ -1,0 +1,26 @@
+data/
+*.npz
+*.mp4
+*.avi
+*.jpg
+!graphify-out/**
+*.jpeg
+*.png
+*.pt
+*.onnx
+*.engine
+.env
+*_key.txt
+__pycache__/
+*.pyc
+.DS_Store
+
+# graphify: keep the index, drop caches and interpreter pins
+graphify-out/cache/
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+
+!graphify-out/graph.html
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/cost.json
