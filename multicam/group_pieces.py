@@ -40,12 +40,12 @@ for pid, person in enumerate(people):
     groups.append({'person': pid, 'pieces': mine,
                    't0': round(min(p['t0'] for p in ps), 1), 't1': round(max(p['t1'] for p in ps), 1),
                    'cams': sorted({p['cam'] for p in ps}),
-                   'dets': int(sum(p['n_dets'] for p in ps))})
+                   'dets': int(sum(p.get('n_dets', len(p['dets'])) for p in ps))})
 placed = {i for g in groups for i in g['pieces']}
 for p in pieces:
     if p['piece'] not in placed:      # a piece the clustering left alone is a person of one piece
         groups.append({'person': None, 'pieces': [p['piece']], 't0': p['t0'], 't1': p['t1'],
-                       'cams': [p['cam']], 'dets': p['n_dets']})
+                       'cams': [p['cam']], 'dets': p.get('n_dets', len(p['dets']))})
 groups.sort(key=lambda g: g['t0'])
 out = os.path.join(d, 'groups_%s.json' % tag)
 json.dump(groups, open(out, 'w'), indent=1)

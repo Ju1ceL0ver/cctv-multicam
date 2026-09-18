@@ -30,6 +30,7 @@ NIGHT_START = os.environ.get('RA_NIGHT_START', '21:00')
 NIGHT_STOP = os.environ.get('RA_NIGHT_STOP', '09:45')
 MINUTES = int(os.environ.get('RA_WINDOW', '10'))
 WORKERS = [('_am', '00:00-14:30'), ('_pm', '14:30-23:59')]   # two passes fill the card better than one
+TRAIN_FROM = os.environ.get('RA_TRAIN_FROM', '05:00')   # the night's last hours go to the student
 KEEP_DAYS = int(os.environ.get('RA_KEEP_DAYS', '14'))        # raw footage older than this may go
 FREE_FLOOR_GB = float(os.environ.get('RA_FREE_GB', '150'))
 
@@ -233,6 +234,14 @@ def clear_stale(tag):
     os.remove(hb)
 
 
+def training_hours(now):
+    """The tail of the night: teachers stop labelling and the student learns from what
+    the owner reviewed during the day."""
+    a = datetime.strptime(TRAIN_FROM, '%H:%M').time()
+    b = datetime.strptime(NIGHT_STOP, '%H:%M').time()
+    return a <= now.time() < b
+
+
 def in_night(now):
     a = datetime.strptime(NIGHT_START, '%H:%M').time()
     b = datetime.strptime(NIGHT_STOP, '%H:%M').time()
@@ -296,7 +305,13 @@ def main():
             read_urls()
 
             now = datetime.now()
-            if in_night(now):
+            if training_hours(now):
+                stop_teachers()
+                if not running('train_student_seg.py'):
+                    log('student training hours: starting')
+                    spawn('train_student', ['train_student_seg.py'])
+                    time.sleep(30)
+            elif in_night(now):
                 day, done, total = next_day()
                 if day:
                     for tag, rng in WORKERS:
@@ -309,6 +324,9 @@ def main():
                         time.sleep(20)
             else:
                 stop_teachers()
+                for l in running('train_student_seg.py'):
+                    os.system('taskkill /PID %s /F /T > nul 2>&1' % l.split('|')[0].strip())
+                    log('shop hours: student training stopped')
 
             if time.time() - last_disk > 1800:
                 prune_raw(); last_disk = time.time()
