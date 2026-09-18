@@ -65,12 +65,13 @@ def next_day():
     return None, 0, 0
 
 
-def pass_alive():
+WORKERS = [('_am', '00:00-14:30'), ('_pm', '14:30-23:59')]   # two passes fill the card better than one (+30%)
+
+
+def pass_alive(tag):
     """A pass is running if its heartbeat is fresh; process names lie after execv."""
-    hb = os.path.join(ROOT, 'data', 'logs', 'autolabel.heartbeat')
-    if os.path.exists(hb) and time.time() - os.path.getmtime(hb) < 3600:
-        return True
-    return bool(running('auto_label.py')) or bool(running('detect_raw.py'))
+    hb = os.path.join(ROOT, 'data', 'logs', 'autolabel%s.heartbeat' % tag)
+    return os.path.exists(hb) and time.time() - os.path.getmtime(hb) < 2700
 
 
 def in_night(now):
@@ -88,21 +89,27 @@ def main():
                 spawn('labeler', ['label_pieces.py'])
                 log('review site was down, restarted')
             now = datetime.now()
-            job = running('auto_label.py')
             if in_night(now):
-                if not pass_alive():
-                    day, done, total = next_day()
-                    if day:
-                        log('night work on %s (%d/%d windows covered)' % (day, done, total))
-                        spawn('autolabel_%s' % day, ['auto_label.py', day, str(MINUTES), NIGHT_STOP])
-                    else:
-                        log('every recorded day is covered, nothing to label')
-                        time.sleep(1800)
-            elif job:
-                for l in job:
-                    pid = l.split('|')[0].strip()
-                    os.system('taskkill /PID %s /F /T > nul 2>&1' % pid)
-                log('shop hours: stopped the teachers, GPU is free')
+                day, done, total = next_day()
+                if not day:
+                    log('every recorded day is covered, nothing to label')
+                    time.sleep(1800)
+                else:
+                    for tag, rng in WORKERS:
+                        if pass_alive(tag):
+                            continue
+                        log('night work on %s%s (%d/%d windows covered)' % (day, tag, done, total))
+                        spawn('autolabel%s' % tag, ['auto_label.py', day, str(MINUTES), NIGHT_STOP],
+                              env={'RA_RANGE': rng, 'RA_WORKER': tag})
+                        time.sleep(20)
+            else:
+                stopped = False
+                for pat in ('auto_label.py', 'detect_raw.py', '_check_and_go.py'):
+                    for l in running(pat):
+                        os.system('taskkill /PID %s /F /T > nul 2>&1' % l.split('|')[0].strip())
+                        stopped = True
+                if stopped:
+                    log('shop hours: stopped the teachers, GPU is free')
         except Exception as e:
             log('supervisor error:', repr(e))
         time.sleep(120)

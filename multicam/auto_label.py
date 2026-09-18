@@ -26,7 +26,7 @@ STRIDE = int(os.environ.get('RA_STRIDE', '3'))     # 8.3 fps: measured as good a
 LIVE = r'C:\Users\ArykovAA\cctv_ai\retail_analytics\runs\live\entrance_events.jsonl'
 
 
-HEARTBEAT = os.path.join(ROOT, 'data', 'logs', 'autolabel.heartbeat')
+HEARTBEAT = os.path.join(ROOT, 'data', 'logs', 'autolabel%s.heartbeat' % os.environ.get('RA_WORKER', ''))
 
 
 def beat(text=''):
@@ -93,6 +93,11 @@ def main():
     log('teacher %s @%d, every %d-th frame (%.1f fps), empty stretches skipped'
         % (os.path.basename(WEIGHTS), IMGSZ, STRIDE, 25.0 / STRIDE))
     todo = windows(day, minutes)
+    rng = os.environ.get('RA_RANGE')      # 'HH:MM-HH:MM': lets a second worker take another part of the day
+    if rng:
+        a, b = [datetime.strptime(x, '%H:%M').time() for x in rng.split('-')]
+        todo = [t for t in todo if a <= t.time() < b]
+        log('worker limited to %s: %d windows' % (rng, len(todo)))
     events = door_events(day)
     log('windows to cover: %d (%s .. %s), door events that day: %d'
         % (len(todo), todo[0].strftime('%H:%M') if todo else '-', todo[-1].strftime('%H:%M') if todo else '-', len(events)))

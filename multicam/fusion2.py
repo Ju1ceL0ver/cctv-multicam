@@ -232,6 +232,32 @@ def pair_state(a, b):
     return True, ad, co
 
 
+GAP_FREE = float(os.environ.get('RA_GAPFREE', '30'))    # seconds of absence that cost nothing
+GAP_PEN = float(os.environ.get('RA_GAPPEN', '0.0075'))  # added to the appearance distance per further minute apart.
+#   Measured on four labelled clips (wrong detections, then one-id):
+#     c112000 14.0% -> 6.9%   c155236 0.1% -> 0.0%   c183400 0.5% -> 0.4% (held out)
+#     c103700 3.3% -> 4.0%, but its one-id rose 0.705 -> 0.736
+#   Without it a single identity swallowed seven strangers of that clip.
+
+
+def gap_between(a, b):
+    """Seconds between two pieces, 0 if they overlap in time."""
+    if b['t'][0] > a['t'][-1]:
+        return b['t'][0] - a['t'][-1]
+    if a['t'][0] > b['t'][-1]:
+        return a['t'][0] - b['t'][-1]
+    return 0.0
+
+
+def gap_cost(a, b):
+    """An old memory is weaker evidence: the longer two pieces are apart, the closer
+    their appearance has to be before they may be called the same person. Without this
+    one identity swallows every stranger of the day who happens to wear dark clothes."""
+    if GAP_PEN <= 0:
+        return 0.0
+    return GAP_PEN * max(0.0, gap_between(a, b) - GAP_FREE) / 60.0
+
+
 def cluster_distance(A, B):
     """Average linkage under hard constraints.
 
@@ -251,7 +277,7 @@ def cluster_distance(A, B):
                 continue
             if ad is None or not strong:
                 continue                        # no usable appearance evidence from this pair
-            vals.append(ad)
+            vals.append(ad + gap_cost(a, b))
     if not vals:
         return None
     return float(np.mean(vals))
@@ -270,7 +296,7 @@ def identity_distance(piece, members):
         if co:
             vals.append(0.5 * GATE_CROSS)
         elif ad is not None and m.get('strong') and piece.get('strong'):
-            vals.append(ad)
+            vals.append(ad + gap_cost(piece, m))
     return float(np.mean(vals)) if vals else None
 
 
