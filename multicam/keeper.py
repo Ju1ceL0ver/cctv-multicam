@@ -94,6 +94,29 @@ def start_live():
           cwd=os.path.join(HOME, 'cctv_ai', 'retail_analytics'))
 
 
+def ensure_jupyter():
+    """The way this box is reached from outside. Nothing else starts it, so after a
+    reboot it has to come back on its own -- together with its tunnel."""
+    if running('jupyter-lab') or running('jupyter.exe'):
+        return
+    tf = os.path.join(HOME, '_jupyter_token.txt')
+    token = open(tf).read().strip() if os.path.exists(tf) else ''
+    args = [os.path.join(os.path.dirname(PY), 'Scripts', 'jupyter-lab.exe'),
+            '--ip=127.0.0.1', '--port=8888', '--no-browser',
+            '--ServerApp.allow_remote_access=True', '--ServerApp.trust_xheaders=True']
+    if token:
+        args.append('--IdentityProvider.token=%s' % token)
+    subprocess.Popen(['powershell', '-NoProfile', '-Command',
+                      "Start-Process -FilePath '%s' -ArgumentList %s -WorkingDirectory '%s' "
+                      "-RedirectStandardOutput '%s' -RedirectStandardError '%s' -WindowStyle Hidden"
+                      % (args[0], ','.join("'%s'" % a for a in args[1:]), HOME,
+                         os.path.join(LOGS, 'jupyter.log'), os.path.join(LOGS, 'jupyter.log.err'))],
+                     close_fds=True, stdin=subprocess.DEVNULL,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    log('jupyter was not running, started it')
+    time.sleep(10)
+
+
 def start_labeler():
     spawn('labeler', ['label_pieces.py'])
 
@@ -194,6 +217,22 @@ def pass_alive(tag):
     return os.path.exists(hb) and time.time() - os.path.getmtime(hb) < 2700
 
 
+def clear_stale(tag):
+    """A pass that stopped reporting is killed with its children before a new one starts:
+    two workers grinding the same window would waste the night and race on its files."""
+    hb = os.path.join(LOGS, 'autolabel%s.heartbeat' % tag)
+    if not os.path.exists(hb):
+        return
+    try:
+        pid = int(open(hb).read().split()[0])
+    except Exception:
+        pid = 0
+    if pid and pid_alive(pid):
+        os.system('taskkill /PID %d /F /T > nul 2>&1' % pid)
+        log('pass%s stopped reporting, killed it (pid %d) before starting a new one' % (tag, pid))
+    os.remove(hb)
+
+
 def in_night(now):
     a = datetime.strptime(NIGHT_START, '%H:%M').time()
     b = datetime.strptime(NIGHT_STOP, '%H:%M').time()
@@ -251,6 +290,7 @@ def main():
             ensure_recorders()
             ensure('live counter', 'run_live.py', start_live)
             ensure('review site', 'label_pieces.py', start_labeler)
+            ensure_jupyter()
             tunnel_up(5070, 'labeler')
             tunnel_up(8888, 'jupyter')
             read_urls()
@@ -262,6 +302,7 @@ def main():
                     for tag, rng in WORKERS:
                         if pass_alive(tag):
                             continue
+                        clear_stale(tag)
                         log('night work on %s%s (%d/%d windows covered)' % (day, tag, done, total))
                         spawn('autolabel%s' % tag, ['auto_label.py', day, str(MINUTES), NIGHT_STOP],
                               env={'RA_RANGE': rng, 'RA_WORKER': tag})
