@@ -42,6 +42,11 @@ def unit(v):
 
 
 GATES = {'high': 1.2, 'low': 0.9, 'split': 1.1}     # overwritten from data/appearance_thresholds.json
+IOU_SURE = float(_os_env('RA_IOUSURE', '1.1'))     # 1.1 = off; below 1 lets a strong overlap match on its own
+DUP_APP = float(_os_env('RA_DUPAPP', '0.35'))      # the clothes must agree before two tracks are called one person.
+#   Without it, two shoppers walking shoulder to shoulder get folded together: on the
+#   busiest labelled clip one-id 0.740 -> 0.791 with the same 4.3 % wrong detections.
+#   Anything under 0.25 starts refusing honest merges again (0.744).
 DUP_IOU = float(_os_env('RA_DUPIOU', '0.85'))      # two live tracks on the same box are one person.
 #   Measured on the four labelled clips: pieces 107 -> 73 and 94 -> 76, one-id on the
 #   evening clip 0.866 -> 0.904, nothing else moved. At 0.7 two people standing close
@@ -99,7 +104,11 @@ def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=Non
             # wide window, which is what keeps one person from becoming ten pieces.
             lost = np.array([f - tracks[a]['last'] for a in unmatched_t]) > 0.3 * fps
             reacquire = (lost[:, None] & (app < 0.7 * g) & (cdist < 2.0)) if reacq_on else np.zeros_like(iou, bool)
-            ok = (((iou > 0.15) | (cdist < 0.35)) & (app < g)) | reacquire
+            # Appearance flickers when a person turns, blurs or is half hidden, and the
+            # track then dies with the person still in plain sight -- measured as 98 %
+            # of all breaks. Where the boxes overlap this much there is no ambiguity
+            # about who it is, so geometry is allowed to decide alone.
+            ok = (((iou > 0.15) | (cdist < 0.35)) & (app < g)) | reacquire | (iou > IOU_SURE)
             cost = np.where(ok, cost, 1e6)
             r, c = linear_sum_assignment(cost)
             done_t, done_d = set(), set()
@@ -139,6 +148,12 @@ def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=Non
                     a, b = active[i], active[j]
                     if a in drop or b in drop:
                         continue
+                    if DUP_APP > 0:
+                        # Two shoppers walking shoulder to shoulder overlap just as much
+                        # as one person tracked twice; only their clothes tell them apart.
+                        dab = float(app_matrix(np.array([tracks[a]['app']]), np.array([tracks[b]['app']]))[0, 0])
+                        if dab > DUP_APP:
+                            continue
                     keep, gone = (a, b) if len(tracks[a]['idx']) >= len(tracks[b]['idx']) else (b, a)
                     tracks[keep]['idx'].extend(tracks[gone]['idx'])
                     tracks[keep]['last'] = max(tracks[keep]['last'], tracks[gone]['last'])

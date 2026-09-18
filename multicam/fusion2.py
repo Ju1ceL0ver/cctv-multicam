@@ -122,7 +122,8 @@ def build(cams, dets, feats, embs=None, clean=None):
         from imtrack import split_on_appearance_change, unit
         E = embs[cam][k] if embs is not None else None
         local = track_camera(d[k], feats[cam][k], emb=E)
-        local = [piece for tr in local for piece in split_on_appearance_change(d[k], feats[cam][k], tr, emb=E)]
+        if os.environ.get('RA_SPLIT', '1') == '1':   # cutting a track where the clothing changes
+            local = [piece for tr in local for piece in split_on_appearance_change(d[k], feats[cam][k], tr, emb=E)]
         trs = [{'i': list(tr)} for tr in local]
         out = []
         for tr in trs:
