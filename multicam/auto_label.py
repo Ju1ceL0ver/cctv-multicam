@@ -122,6 +122,7 @@ def main():
         run(['sync_estimate.py', clip])
         run(['run_clip.py', clip])
         run(['export_pieces.py', clip])
+        run(['group_pieces.py', clip])      # what the system thinks is one person: review is per person, not per piece
         done += 1
         log('window %s ready for review' % start.strftime('%H:%M'))
     log('AUTO LABEL DONE, %d new windows' % done)
