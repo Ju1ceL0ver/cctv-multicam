@@ -1,10 +1,43 @@
-"""Run a shell-less command detached, stdout+stderr to a log; survives tunnel drops.
-usage (from jctl): bg.py LOGNAME script.py args..."""
-import sys, os, subprocess
+"""Start a long job that outlives the Jupyter kernel we talk to the box through.
+
+The tunnel drops a call after 100 s and a kernel restart takes its children with it,
+so every pass longer than a minute goes through here: Start-Process hands the job to
+the system, and we do not wait for powershell to answer. Output lands in
+data/logs/NAME.log."""
+import os, subprocess, sys, time
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
-PY = r'C:\Users\ArykovAA\AppData\Local\miniconda3\envs\cctv_base\python.exe'
-log = os.path.join(ROOT, 'data', 'logs', sys.argv[1] + '.log')
-os.makedirs(os.path.dirname(log), exist_ok=True)
-p = subprocess.Popen([PY] + sys.argv[2:], cwd=ROOT, stdout=open(log, 'w'), stderr=subprocess.STDOUT,
-                     creationflags=0x00000200 | 0x00000008 | 0x01000000)
-print('started', p.pid, '->', log)
+LOGS = os.path.join(ROOT, 'data', 'logs')
+
+
+def _q(s):
+    return "'" + str(s).replace("'", "''") + "'"
+
+
+def spawn(name, args, env=None, cwd=ROOT, wait=6):
+    os.makedirs(LOGS, exist_ok=True)
+    log = os.path.join(LOGS, name + '.log')
+    err = log + '.err'
+    for f in (log, err):
+        open(f, 'w').close()
+    pre = ''.join('$env:%s=%s; ' % (k, _q(v)) for k, v in (env or {}).items())
+    cmd = (pre + 'Start-Process -FilePath %s -ArgumentList %s -WorkingDirectory %s '
+           '-RedirectStandardOutput %s -RedirectStandardError %s -WindowStyle Hidden'
+           % (_q(sys.executable), ','.join(_q(a) for a in args), _q(cwd), _q(log), _q(err)))
+    subprocess.Popen(['powershell', '-NoProfile', '-Command', cmd], cwd=cwd, close_fds=True,
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(wait)
+    return log
+
+
+def running(pattern):
+    """Command lines of live python processes containing pattern, so nothing starts twice."""
+    out = subprocess.run(['powershell', '-NoProfile', '-Command',
+                          "Get-CimInstance Win32_Process -Filter \"name like '%python%'\" | "
+                          "%{ '{0}|{1}' -f $_.ProcessId, ($_.CommandLine -replace '\\s+',' ') }"],
+                         capture_output=True, text=True).stdout
+    return [l.strip() for l in out.split('\n') if pattern in l]
+
+
+if __name__ == '__main__':
+    print('started ->', spawn(sys.argv[1], sys.argv[2:]))

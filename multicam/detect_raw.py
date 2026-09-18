@@ -41,22 +41,73 @@ def describe(frame, poly, box):
 
 
 MAXPTS = 64
+REID = os.environ.get('RA_REID', 'osnet_ain_x1_0_msmt17.pt')   # '' turns the appearance pass off
+MOTION = float(os.environ.get('RA_MOTION', '0.0015'))   # share of changed pixels that counts as movement
+HOLD = float(os.environ.get('RA_HOLD', '20'))           # gate stays open this long after the last sign of a person
+BATCH = int(os.environ.get('RA_BATCH', '3'))            # timesteps per forward pass: the card idles on pairs alone
+
+
+def gray(fr):
+    return cv2.resize(cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY), (320, 180))
 
 
 def main():
     clip, day, hms, seconds = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
     weights = sys.argv[5] if len(sys.argv) > 5 else r'C:\Users\ArykovAA\cctv_ai\retail_analytics\models\yolo26x-seg.pt'
     imgsz = int(sys.argv[6]) if len(sys.argv) > 6 else 1536
-    tag = os.path.splitext(os.path.basename(weights))[0]
+    stride = int(sys.argv[7]) if len(sys.argv) > 7 else int(os.environ.get('RA_STRIDE', '1'))
+    tag = os.path.splitext(os.path.basename(weights))[0].split('_')[0]
     start = datetime.strptime(day + hms, '%Y%m%d%H:%M:%S')
     odir = os.path.join(OUT, clip); os.makedirs(odir, exist_ok=True)
     log = open(os.path.join(odir, 'detect_%s.log' % tag), 'a')
     model = YOLO(weights, task='segment')
+    net = None
+    if REID:
+        from boxmot.reid.core.reid import ReID
+        net = ReID(os.path.join(ROOT, 'data', 'weights', REID), device='cuda:0', half=True)
+    embs = {c: [] for c in ('cam1', 'cam2')}
     streams = {c: Stream(c, day) for c in ('cam1', 'cam2')}
     for s in streams.values():
         s.seek(start)
     rows = {c: [] for c in streams}; feats = {c: [] for c in streams}; polys = {c: [] for c in streams}
     n = int(round(seconds * FPS)); t0 = time.time()
+    prev = {c: None for c in streams}
+    seen = -1e9        # last time anything alive was observed
+    kept = []          # frame indices the model actually ran on
+    pend = []          # frames waiting to be looked at together
+    k = 0
+
+    def flush(batch, seen):
+        imgs = [b[1][c] for b in batch for c in ('cam1', 'cam2')]
+        res = model.predict(source=imgs, imgsz=imgsz, conf=0.25, classes=[0], half=True,
+                            retina_masks=False, verbose=False)
+        alive = None
+        if net is not None:
+            crops = [(i, imgs[i], r.boxes.xyxy.cpu().numpy().astype(np.float32))
+                     for i, r in enumerate(res) if r.boxes is not None and len(r.boxes)]
+            vecs = {i: np.asarray(net(im, b), np.float32) for i, im, b in crops}
+        for j, (kk, fr) in enumerate(batch):
+            for ci, c in enumerate(('cam1', 'cam2')):
+                r = res[2 * j + ci]
+                if r.boxes is None or not len(r.boxes):
+                    continue
+                alive = kk / FPS
+                B = r.boxes.xyxy.cpu().numpy(); S = r.boxes.conf.cpu().numpy()
+                if net is not None:
+                    embs[c].append(vecs[2 * j + ci])
+                mxy = r.masks.xy if r.masks is not None else [None] * len(B)
+                for i, (x1, y1, x2, y2) in enumerate(B):
+                    p = mxy[i] if i < len(mxy) else None
+                    if p is None or len(p) < 4:
+                        p = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], np.float32)
+                    ymax, ymin = p[:, 1].max(), p[:, 1].min()
+                    band = 0.05 * (ymax - ymin)
+                    foot = p[p[:, 1] >= ymax - band].mean(0); head = p[p[:, 1] <= ymin + band].mean(0)
+                    rows[c].append((kk / FPS, x1, y1, x2, y2, S[i], foot[0], ymax, head[0], ymin))
+                    feats[c].append(describe(fr[c], p, (x1, y1, x2, y2)))
+                    step = max(1, len(p) // MAXPTS)
+                    polys[c].append(np.asarray(p[::step], np.float32))
+        return alive
     for k in range(n):
         frames = {}
         for c, s in streams.items():
@@ -66,31 +117,40 @@ def main():
             frames[c] = fr
         if len(frames) < 2:
             break
-        res = model.predict(source=[frames['cam1'], frames['cam2']], imgsz=imgsz, conf=0.25, classes=[0], half=True,
-                            retina_masks=False, verbose=False)
-        for c, r in zip(('cam1', 'cam2'), res):
-            if r.boxes is None or not len(r.boxes):
-                continue
-            B = r.boxes.xyxy.cpu().numpy(); S = r.boxes.conf.cpu().numpy()
-            polys = r.masks.xy if r.masks is not None else [None] * len(B)
-            for i, (x1, y1, x2, y2) in enumerate(B):
-                p = polys[i] if i < len(polys) else None
-                if p is None or len(p) < 4:
-                    p = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], np.float32)
-                ymax, ymin = p[:, 1].max(), p[:, 1].min()
-                band = 0.05 * (ymax - ymin)
-                foot = p[p[:, 1] >= ymax - band].mean(0); head = p[p[:, 1] <= ymin + band].mean(0)
-                rows[c].append((k / FPS, x1, y1, x2, y2, S[i], foot[0], ymax, head[0], ymin))
-                feats[c].append(describe(frames[c], p, (x1, y1, x2, y2)))
-                step = max(1, len(p) // MAXPTS)
-                polys[c].append(np.asarray(p[::step], np.float32))
-        if k % 500 == 0:
-            log.write('%s frame %d/%d  %.1f fps\n' % (time.strftime('%H:%M:%S'), k, n, (k + 1) / (time.time() - t0))); log.flush()
+        if k % stride:
+            continue
+        moved = False
+        for c, fr in frames.items():
+            g = gray(fr)
+            if prev[c] is not None and float((cv2.absdiff(g, prev[c]) > 24).mean()) > MOTION:
+                moved = True
+            prev[c] = g
+        tk = k / FPS
+        if moved:
+            seen = tk
+        if k % 2500 < stride:
+            log.write('%s frame %d/%d  looked at %d  %.1f frames/s\n'
+                      % (time.strftime('%H:%M:%S'), k, n, len(kept), (k + 1) / (time.time() - t0))); log.flush()
+        if tk - seen > HOLD:            # empty hall: decoding only, the teacher is not spent here
+            continue
+        kept.append(k)
+        pend.append((k, frames))
+        if len(pend) < BATCH:
+            continue
+        seen = flush(pend, seen) or seen
+        pend = []
+    if pend:
+        flush(pend, seen)
     out = {}
     for c in streams:
         out[c] = np.array(rows[c], np.float32).reshape(-1, 10)
         out[c + '_feat'] = np.array(feats[c], np.float32).reshape(-1, 18)
     np.savez(os.path.join(odir, 'dets_%s.npz' % tag), **out)
+    if net is not None:
+        e = {}
+        for c in streams:
+            e[c] = np.concatenate(embs[c]) if embs[c] else np.zeros((0, 512), np.float32)
+        np.savez(os.path.join(odir, 'emb_%s.npz' % os.path.splitext(REID)[0]), **e)
     pout = {}
     for c in streams:
         off = np.zeros(len(polys[c]) + 1, np.int64)
@@ -99,10 +159,14 @@ def main():
         pout[c + '_pts'] = np.concatenate(polys[c]) if polys[c] else np.zeros((0, 2), np.float32)
         pout[c + '_off'] = off
     np.savez_compressed(os.path.join(odir, 'polys_%s.npz' % tag), **pout)
-    json.dump({'clip': clip, 'day': day, 'start': start.isoformat(), 'seconds': seconds, 'weights': weights, 'imgsz': imgsz,
-               'frames': k + 1, 'detections': {c: int(len(out[c])) for c in streams}},
+    np.savez_compressed(os.path.join(odir, 'grid_%s.npz' % tag), t=np.array(kept, np.float32) / FPS)
+    json.dump({'clip': clip, 'day': day, 'start': start.isoformat(), 'seconds': seconds, 'weights': weights,
+               'imgsz': imgsz, 'stride': stride, 'frames': k + 1, 'looked_at': len(kept),
+               'detections': {c: int(len(out[c])) for c in streams}},
               open(os.path.join(odir, 'meta_%s.json' % tag), 'w'), indent=1)
-    log.write('%s DONE %s\n' % (time.strftime('%H:%M:%S'), {c: len(out[c]) for c in streams})); log.close()
+    log.write('%s DONE %s  looked at %d/%d frames in %.0f s\n'
+              % (time.strftime('%H:%M:%S'), {c: len(out[c]) for c in streams}, len(kept), k + 1, time.time() - t0))
+    log.close()
 
 
 if __name__ == '__main__':
