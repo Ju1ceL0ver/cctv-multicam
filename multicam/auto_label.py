@@ -22,7 +22,8 @@ PY = sys.executable
 MODELS = r'C:\Users\ArykovAA\cctv_ai\retail_analytics\models'
 IMGSZ = int(os.environ.get('RA_IMGSZ', '1536'))
 WEIGHTS = os.path.join(MODELS, 'yolo26x-seg.pt')   # a TensorRT build of it measured slower, not faster
-STRIDE = int(os.environ.get('RA_STRIDE', '3'))     # 8.3 fps: measured as good as 25 fps for identity, three times cheaper
+STRIDE = int(os.environ.get('RA_STRIDE', '3'))
+MARGIN = int(os.environ.get('RA_MARGIN', '45'))    # a 10-minute window takes about this long; do not start one to throw it away     # 8.3 fps: measured as good as 25 fps for identity, three times cheaper
 LIVE = r'C:\Users\ArykovAA\cctv_ai\retail_analytics\runs\live\entrance_events.jsonl'
 
 
@@ -105,8 +106,9 @@ def main():
     beat('start')
     for start in todo:
         n = sum(1 for e in events if start <= e < start + timedelta(minutes=minutes))
-        if datetime.now() >= deadline - timedelta(minutes=5):
-            log('deadline approaching, stopping'); break
+        if datetime.now() >= deadline - timedelta(minutes=MARGIN):
+            log('less than %d minutes left before %s: a window would not finish, stopping'
+                % (MARGIN, deadline.strftime('%H:%M'))); break
         clip = 'c%s' % start.strftime('%H%M%S')
         d = os.path.join('data', 'raw_clips', clip)
         if os.path.exists(os.path.join(d, 'people_yolo26x-seg.json')):
