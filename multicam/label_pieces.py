@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request, send_file, abort, redirect, make_resp
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CLIPS = os.path.join(ROOT, 'data', 'raw_clips')
-KEY_FILE = os.path.join(os.path.expanduser('~'), '_labelers_key.txt')
+KEY_FILE = os.path.join(os.path.dirname(os.path.dirname(ROOT)), '_labelers_key.txt')
 KEY = open(KEY_FILE).read().strip() if os.path.exists(KEY_FILE) else 'cctv'
 app = Flask(__name__)
 
@@ -107,12 +107,12 @@ def groups(clip):
         abort(404)
     pieces = json.load(open(p[0]))
     data = json.load(open(g[0])) if g else [{'person': None, 'pieces': [x['piece']], 't0': x['t0'],
-                                             't1': x['t1'], 'cams': [x['cam']], 'dets': x['n_dets']} for x in pieces]
+                                             't1': x['t1'], 'cams': [x['cam']], 'dets': x.get('n_dets', len(x['dets']))} for x in pieces]
     labels = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
     by_id = {x['piece']: x for x in pieces}
     for grp in data:
         grp['detail'] = [{'piece': i, 'cam': by_id[i]['cam'], 't0': by_id[i]['t0'], 't1': by_id[i]['t1'],
-                          'n_dets': by_id[i]['n_dets']} for i in grp['pieces'] if i in by_id]
+                          'n_dets': by_id[i].get('n_dets', len(by_id[i]['dets']))} for i in grp['pieces'] if i in by_id]
     return jsonify({'groups': data, 'labels': labels, 'pieces': len(pieces)})
 
 
@@ -389,6 +389,21 @@ loadClips();
 @app.get('/people')
 def people_page():
     return PEOPLE_PAGE
+
+
+@app.get('/urls')
+def urls():
+    """Where this box can be reached right now. Quick tunnels get a new address every
+    restart, so after a reboot this page is how the new one is found."""
+    p = os.path.join(ROOT, 'data', 'logs', 'urls.json')
+    data = json.load(open(p)) if os.path.exists(p) else {}
+    rows = ''.join('<tr><td style="padding:6px 12px">%s</td><td style="padding:6px 12px">'
+                   '<a style="color:#8ab4f8" href="%s">%s</a></td></tr>' % (k, v, v) for k, v in data.items())
+    return ('<meta charset="utf-8"><title>Адреса</title>'
+            '<body style="font:15px system-ui;background:#15171a;color:#eee;padding:24px">'
+            '<h2>Адреса этой машины</h2><table>%s</table>'
+            '<p style="color:#9aa4b2">Адрес туннеля меняется при каждом перезапуске. '
+            'Если Jupyter переехал — пришлите ссылку отсюда.</p>' % (rows or '<tr><td>пока пусто</td></tr>'))
 
 
 @app.get('/')
