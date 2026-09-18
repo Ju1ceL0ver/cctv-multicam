@@ -250,7 +250,7 @@ def in_night(now):
 
 def stop_teachers():
     stopped = []
-    for pat in ('auto_label.py', 'detect_raw.py', 'export_pieces.py', 'group_pieces.py'):
+    for pat in ('auto_label.py', 'detect_raw.py'):   # only what holds the card; cutting pictures is free
         for l in running(pat):
             os.system('taskkill /PID %s /F /T > nul 2>&1' % l.split('|')[0].strip())
             stopped.append(pat)
