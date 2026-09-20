@@ -111,6 +111,18 @@ def test_empty_window_no_longer_crashes_the_floor_projection():
     assert cam.rays(np.array([[0.1, 0.2]])).shape == (1, 3)   # ordinary input is unchanged
 
 
+def test_nobody_in_the_window_still_gives_a_boolean_visibility_mask(monkeypatch):
+    """place() builds `vis` from a list comprehension: empty makes it float64, and the
+    `vis & isfinite(h)` in fusion2.filter_people then raises instead of returning nothing."""
+    cam = person3d.Camera.__new__(person3d.Camera)
+    cam.name = 'cam2'
+    cam.K, cam.dist, cam.R, cam.C = np.eye(3), np.zeros(5), np.eye(3), np.array([0, 0, 5.0])
+    placed = person3d.place({'cam2': cam}, {'rotation_deg': 0, 'T_m': [0, 0]},
+                            {'cam2': np.zeros((0, 10), np.float32)})['cam2']
+    assert placed['vis'].dtype == np.bool_ and len(placed['vis']) == 0
+    assert (placed['vis'] & np.isfinite(placed['h'])).shape == (0,)
+
+
 @pytest.fixture
 def worker(tmp_path, monkeypatch):
     """auto_label with its steps faked: one window whose synchronisation fails."""

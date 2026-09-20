@@ -83,7 +83,7 @@ def place(cams, reg, dets, prior_h=1.68):
     for cam, d in dets.items():
         c = cams[cam]
         foot, head = d[:, 6:8], d[:, 8:10]
-        vis = np.array([c.foot_visible(f, b) for f, b in zip(foot, d[:, 1:5])])
+        vis = np.array([c.foot_visible(f, b) for f, b in zip(foot, d[:, 1:5])], bool)   # empty -> float array, and `vis & ...` then fails
         xy_foot = c.on_plane(foot) * UNIT
         h = np.where(vis, c.height(foot, head), np.nan)
         xy_head = c.on_plane(head, z=prior_h / UNIT) * UNIT
