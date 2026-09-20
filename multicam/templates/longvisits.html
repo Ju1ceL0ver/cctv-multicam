@@ -1,0 +1,13 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Визиты, которые стоит проверить</title><link rel="stylesheet" href="/static/review.css"></head><body>
+<header><div class="top"><strong>Визиты, которые стоит проверить</strong>
+<select id="day" aria-label="День"></select>
+<label>от <select id="minimum" aria-label="Наименьшая длительность визита"><option value="60" selected>60 с</option><option value="120">2 мин</option><option value="300">5 мин</option><option value="30">30 с</option></select></label>
+<a href="/people" style="color:var(--accent)">К разметке людей</a>
+<a href="/visits" style="color:var(--accent)">К связям</a>
+<button id="undo">Отменить</button></div></header>
+<main>
+<p>Здесь только люди, пробывшие в зале дольше выбранного времени. Короткие прохожие галереи система собирает правильно и сюда не попадают. Два вопроса задаются отдельно: не подмешан ли чужой человек и весь ли визит собран. Время — UTC+7.</p>
+<div id="notice" role="status"></div>
+<div id="summary"></div>
+<section id="content">Загрузка…</section>
+</main><script src="/static/longvisits.js"></script></body></html>

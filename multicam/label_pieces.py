@@ -501,6 +501,28 @@ def people_page():
     return render_template('people.html')
 
 
+@app.get('/longvisits')
+def long_visits_page():
+    return render_template('longvisits.html')
+
+
+@app.route('/api/day/<day>/visits', methods=['GET', 'POST'])
+def long_visits_api(day):
+    """The people who stayed. Reviewing clips in order spends most of a session on
+    passers-by the machine already gets right; these are the visits worth an answer."""
+    if not re.fullmatch(r'\d{8}', day): abort(400)
+    from long_visits import queue, judge, MINIMUM_SECONDS
+    try:
+        seconds = float(request.args.get('seconds', MINIMUM_SECONDS))
+    except ValueError:
+        abort(400)
+    try:
+        return jsonify(queue(day, seconds, ROOT) if request.method == 'GET'
+                       else judge(day, request.get_json(force=True), ROOT))
+    except (ValueError, KeyError, TypeError) as e:
+        return jsonify({'error': str(e)}), 409
+
+
 @app.get('/urls')
 def urls():
     """Where this box can be reached right now. Quick tunnels get a new address every
