@@ -117,11 +117,11 @@ def main():
         for it in api("GET", f"/api/contents/{quote(path)}")["content"]:
             print(f"{it['type']:9} {it['size'] or 0:>10}  {it['path']}")
     elif cmd == "cat":
-        m = api("GET", f"/api/contents/{quote(args[0])}?content=1")
+        m = api("GET", f"/api/contents/{quote(args[0])}?type=file&content=1")
         print(m["content"] if m["format"] == "text" else json.dumps(m["content"], indent=1, ensure_ascii=False))
     elif cmd == "get":
         remote, local = args[0], args[1]
-        meta = api("GET", f"/api/contents/{quote(remote)}?content=1")
+        meta = api("GET", f"/api/contents/{quote(remote)}?type=file&content=1")
         import base64
 
         if meta["format"] == "base64":

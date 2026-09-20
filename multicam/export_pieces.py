@@ -29,7 +29,8 @@ if os.path.exists(pp):
 pieces_file = os.path.join('data', 'raw_clips', clip, 'pieces_%s.json' % tag)
 if os.path.exists(pieces_file):
     # Keep the pieces already being labelled; only their pictures are redrawn.
-    old = json.load(open(pieces_file))
+    from review_store import read_state
+    old = read_state(os.path.dirname(pieces_file))['pieces']
     items = [{'cam': p['cam'], 't': dets[p['cam']][p['dets'], 0], 'xy': np.zeros((len(p['dets']), 2)),
               'det': np.array(p['dets']), 'keep_meta': p} for p in old]
 else:
@@ -43,7 +44,10 @@ for n, it in enumerate(items):
     d = it['det']
     sel = np.unique(np.linspace(0, len(d) - 1, N).astype(int))
     heights = raw_dets[it['cam']][d, 4] - raw_dets[it['cam']][d, 2]
-    best = int(np.argmax(heights))
+    clean = meta.get('clean', {}).get(it['cam'], np.ones(len(raw_dets[it['cam']]), bool))[d]
+    candidates = np.flatnonzero(clean)
+    if not len(candidates): candidates = np.arange(len(d))
+    best = int(candidates[np.argmax(heights[candidates])])
     for slot, pos in enumerate(sel):
         di = int(d[int(pos)])
         k = int(round(raw_dets[it['cam']][di, 0] * 25))

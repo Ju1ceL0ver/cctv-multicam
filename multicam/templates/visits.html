@@ -1,0 +1,10 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Связи между записями</title><link rel="stylesheet" href="/static/review.css"></head><body><header><div class="top"><strong>Связи между записями</strong><select id="day" aria-label="День"></select><a href="/people" style="color:var(--accent)">К разметке людей</a><button id="undo">Отменить связь</button></div></header><main><p>Подтверждайте продолжения визита между клипами. Предложения по внешности остаются непроверенными до вашего ответа.</p><div id="notice" role="status"></div><div id="summary"></div>
+<section class="panel" aria-labelledby="manualPairTitle">
+<h2 id="manualPairTitle">Выбрать два фрагмента вручную</h2>
+<p class="muted">Здесь есть и люди, добавленные на видео. Выберите фрагменты, посмотрите их рядом и дайте ответ. Время — UTC+7.</p>
+<div class="actions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));align-items:end">
+<label style="min-width:0">Первый фрагмент <select id="nodeA" aria-label="Первый фрагмент" style="display:block;width:100%;max-width:100%"><option value="">Загрузка…</option></select></label>
+<label style="min-width:0">Второй фрагмент <select id="nodeB" aria-label="Второй фрагмент" style="display:block;width:100%;max-width:100%"><option value="">Загрузка…</option></select></label>
+<button id="compareNodes" disabled>Посмотреть рядом</button>
+</div></section>
+<section id="content">Загрузка…</section></main><script src="/static/visits.js"></script></body></html>

@@ -4,13 +4,14 @@ import sys, os, json
 ROOT = os.path.dirname(os.path.abspath(__file__)); os.chdir(ROOT)
 clip = sys.argv[1]; tag = sys.argv[2] if len(sys.argv) > 2 else 'yolo26x-seg'
 d = os.path.join('data', 'raw_clips', clip)
-pieces = json.load(open(os.path.join(d, 'pieces_%s.json' % tag)))
-man = json.load(open(os.path.join(d, 'gt_manual.json')))
+from review_store import read_state
+state = read_state(d)
+pieces, man = state['pieces'], state['labels']
 gt = {'cam1': {}, 'cam2': {}}
 used = 0
 for p in pieces:
     lab = man.get(str(p['piece']))
-    if not lab or lab == '?':
+    if not lab or lab == '?' or state['quality'].get(str(p['piece'])) in ('false_positive', 'mixed'):
         continue
     used += 1
     for di in p['dets']:

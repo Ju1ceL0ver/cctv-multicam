@@ -25,7 +25,10 @@ class Camera:
         self.floor = cv2.erode(m, np.ones((25, 25), np.uint8))
 
     def rays(self, px):
-        n = cv2.undistortPoints(np.asarray(px, np.float64).reshape(-1, 1, 2), self.K, self.dist).reshape(-1, 2)
+        px = np.asarray(px, np.float64).reshape(-1, 2)
+        if not len(px):                 # OpenCV returns None for no points: an empty window crashed sync
+            return np.zeros((0, 3))
+        n = cv2.undistortPoints(px.reshape(-1, 1, 2), self.K, self.dist).reshape(-1, 2)
         d = np.c_[n, np.ones(len(n))] @ self.R            # world directions
         return d
 

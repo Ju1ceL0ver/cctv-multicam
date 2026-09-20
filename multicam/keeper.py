@@ -16,6 +16,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__)); os.chdir(ROOT); sys.path.inse
 from bg import spawn, running
 from rawsource import RAW
 from auto_label import windows
+from clip_registry import clip_key, clip_ready, load_failures, set_aside
+from storage import atomic_json, file_lock
 
 HOME = os.path.dirname(os.path.dirname(ROOT))   # the box's own home: as SYSTEM, expanduser points at system32
 PY = sys.executable
@@ -31,6 +33,8 @@ NIGHT_STOP = os.environ.get('RA_NIGHT_STOP', '09:45')
 MINUTES = int(os.environ.get('RA_WINDOW', '10'))
 WORKERS = [('_am', '00:00-14:30'), ('_pm', '14:30-23:59')]   # two passes fill the card better than one
 TRAIN_FROM = os.environ.get('RA_TRAIN_FROM', '05:00')   # the night's last hours go to the student
+MARGIN = int(os.environ.get('RA_MARGIN', '45'))          # auto_label will not start a window it cannot finish before that
+RESPAWN_GAP = 300                                        # seconds; a pass that dies at once is not restarted every minute
 KEEP_DAYS = int(os.environ.get('RA_KEEP_DAYS', '14'))        # raw footage older than this may go
 FREE_FLOOR_GB = float(os.environ.get('RA_FREE_GB', '150'))
 
@@ -40,14 +44,6 @@ def log(*a):
     os.makedirs(LOGS, exist_ok=True)   # stdout already lands in this same file
     with open(LOG, 'a', encoding='utf-8') as f:
         f.write(line + '\n')
-
-
-def alone():
-    """Only one keeper: the watchdog task fires every 15 minutes whether or not one runs."""
-    if os.path.exists(LOCK) and time.time() - os.path.getmtime(LOCK) < 300:
-        return False
-    open(LOCK, 'w').write(str(os.getpid()))
-    return True
 
 
 def beat():
@@ -84,7 +80,8 @@ def ensure_recorders():
         if pid and pid_alive(pid):
             continue
         spawn('raw_%s' % cam, [os.path.join(HOME, '_raw_recorder.py')],
-              env={'RA_RAW_CAMERA': cam, 'RA_RAW_DAYS': '3650'}, cwd=HOME)
+              env={'RA_RAW_CAMERA': cam, 'RA_RAW_DAYS': '3650', 'RA_RAW_MANAGED': '1',
+                   'RA_RAW_FREE_GB': str(FREE_FLOOR_GB)}, cwd=HOME)
         log('recorder %s was not running, started it' % cam)
         time.sleep(3)
 
@@ -155,7 +152,7 @@ def read_urls():
     for name, port, extra in (('labeler', 5070, ('cf_label.log', '_cf_pairs.log', '_cf_annotate.log')),
                               ('jupyter', 8888, ('cf_jupyter.log',))):
         cands, seen = [], set()
-        for c in [os.path.join(LOGS, 'cf_%s.log' % name)] + [os.path.join(HOME, e) for e in extra]:
+        for c in [os.path.join(LOGS, 'cf_%s.log' % name)] + [os.path.join(base, e) for base in (LOGS, HOME) for e in extra]:
             if not os.path.exists(c):
                 continue
             for u in re.findall(r'https://[a-z0-9-]+\.trycloudflare\.com',
@@ -168,9 +165,10 @@ def read_urls():
                 break
     if found:
         old = json.load(open(URLS)) if os.path.exists(URLS) else {}
-        if found != old:
-            json.dump(found, open(URLS, 'w'), indent=1)
-            log('addresses now:', json.dumps(found))
+        updated = {**old, **found}
+        if updated != old:
+            atomic_json(URLS, updated)
+            log('addresses now:', json.dumps(updated))
 
 
 # ---------------------------------------------------------------- night work
@@ -185,14 +183,26 @@ def recorded_days():
     return sorted(days)
 
 
-def coverage(day):
+def coverage(day, rng=None):
+    """(windows ready, windows of the day or of one worker's part of it, windows set aside).
+    A set-aside window is one that failed again and again: it must not hold the queue."""
     try:
         todo = windows(day, MINUTES)
     except Exception:
-        return 0, 0
-    done = sum(os.path.exists(os.path.join(ROOT, 'data', 'raw_clips', 'c%s' % t.strftime('%H%M%S'),
-                                           'pieces_yolo26x-seg.json')) for t in todo)
-    return done, len(todo)
+        return 0, 0, 0
+    if rng:
+        a, b = [datetime.strptime(x, '%H:%M').time() for x in rng.split('-')]
+        todo = [t for t in todo if a <= t.time() < b]
+    clips = os.path.join(ROOT, 'data', 'raw_clips')
+    failures = load_failures(ROOT)
+    done = held = 0
+    for t in todo:
+        key = clip_key(day, t, clips)
+        if clip_ready(os.path.join(clips, key)):
+            done += 1
+        elif set_aside(failures.get(key)):
+            held += 1
+    return done, len(todo), held
 
 
 def still_recording(day):
@@ -203,19 +213,38 @@ def still_recording(day):
     return last and (time.time() - last) < 3600
 
 
-def next_day():
+def next_day(rng=None):
+    """Oldest day that still has windows to label in this worker's part of it."""
     for day in recorded_days():
         if still_recording(day):
             continue
-        done, total = coverage(day)
-        if total and done < total:
-            return day, done, total
-    return None, 0, 0
+        done, total, held = coverage(day, rng)
+        if total and done + held < total:
+            return day, done, total, held
+    return None, 0, 0, 0
 
 
 def pass_alive(tag):
+    """Fresh heartbeat AND a live process: a pass that finished used to keep its slot for
+    45 minutes, so the next day started an hour late and the card sat idle."""
     hb = os.path.join(LOGS, 'autolabel%s.heartbeat' % tag)
-    return os.path.exists(hb) and time.time() - os.path.getmtime(hb) < 2700
+    if not os.path.exists(hb) or time.time() - os.path.getmtime(hb) >= 2700:
+        return False
+    try:
+        pid = int(open(hb).read().split()[0])
+    except Exception:
+        return True                    # cannot tell whose it is: keep the patient rule
+    return pid_alive(pid)
+
+
+def window_fits(now):
+    """auto_label refuses to start a window it cannot finish before the student's hours;
+    do not launch a pass only to hear that."""
+    end = datetime.strptime(TRAIN_FROM, '%H:%M').time()
+    stop = datetime.combine(now.date(), end)
+    if stop <= now:
+        stop += timedelta(days=1)
+    return now + timedelta(minutes=MARGIN) < stop
 
 
 def clear_stale(tag):
@@ -264,8 +293,7 @@ def stop_teachers():
 
 
 def prune_raw():
-    """Footage already labelled and older than KEEP_DAYS goes first; if the volume is
-    still tight, the oldest goes regardless, loudly."""
+    """Only remove fully labelled days older than KEEP_DAYS when disk space is low."""
     free = shutil.disk_usage(ROOT).free / 2**30
     if free > FREE_FLOOR_GB:
         return
@@ -273,9 +301,9 @@ def prune_raw():
     for day in recorded_days():
         if free > FREE_FLOOR_GB:
             return
-        done, total = coverage(day)
+        done, total, _ = coverage(day)       # strict: a set-aside window was never labelled
         covered = total and done >= total
-        if day >= cutoff and not covered:
+        if day >= cutoff or not covered:
             continue
         for cam in ('cam1', 'cam2'):
             d = os.path.join(RAW, cam, day)
@@ -289,10 +317,14 @@ def prune_raw():
 
 
 def main():
-    if not alone():
-        print('another keeper is alive'); return
+    try:
+        singleton = file_lock(os.path.join(LOGS, 'keeper.instance.lock'), timeout=0)
+        singleton.__enter__()
+    except TimeoutError:
+        return
     log('keeper up: nights %s-%s, %d-minute windows, two teachers' % (NIGHT_START, NIGHT_STOP, MINUTES))
     last_disk = 0
+    last_spawn = {}
     while True:
         try:
             beat()
@@ -307,20 +339,25 @@ def main():
             now = datetime.now()
             if training_hours(now):
                 stop_teachers()
-                if not running('train_student_seg.py'):
+                from train_student_seg import should_train
+                if not running('train_student_seg.py') and should_train(now):
                     log('student training hours: starting')
                     spawn('train_student', ['train_student_seg.py'])
                     time.sleep(30)
             elif in_night(now):
-                day, done, total = next_day()
-                if day:
-                    for tag, rng in WORKERS:
-                        if pass_alive(tag):
+                if window_fits(now):
+                    for tag, rng in WORKERS:      # each worker takes the oldest day with work left in its own half
+                        if pass_alive(tag) or time.time() - last_spawn.get(tag, 0) < RESPAWN_GAP:
+                            continue
+                        day, done, total, held = next_day(rng)
+                        if not day:
                             continue
                         clear_stale(tag)
-                        log('night work on %s%s (%d/%d windows covered)' % (day, tag, done, total))
-                        spawn('autolabel%s' % tag, ['auto_label.py', day, str(MINUTES), NIGHT_STOP],
+                        log('night work on %s%s (%d/%d windows covered%s)' % (
+                            day, tag, done, total, ', %d set aside after repeated failures' % held if held else ''))
+                        spawn('autolabel%s' % tag, ['auto_label.py', day, str(MINUTES), TRAIN_FROM],
                               env={'RA_RANGE': rng, 'RA_WORKER': tag})
+                        last_spawn[tag] = time.time()
                         time.sleep(20)
             else:
                 stop_teachers()

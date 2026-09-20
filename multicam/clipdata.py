@@ -2,6 +2,7 @@
 import os, json, numpy as np
 from datetime import datetime, timedelta
 from rawsource import Stream, FPS
+from storage import read_json
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,12 +14,19 @@ def load(clip, tag='yolo26x-seg', apply_sync=True):
     z = dict(np.load(os.path.join(d, 'dets_%s.npz' % tag)))
     meta = json.load(open(os.path.join(d, 'meta_%s.json' % tag)))
     dets = {c: z[c].copy() for c in ('cam1', 'cam2')}
-    sync_path = os.path.join(ROOT, 'data', 'cam_sync.json')
-    if apply_sync and os.path.exists(sync_path):
-        off = json.load(open(sync_path)).get(meta['day'])
+    if apply_sync:
+        table = read_json(os.path.join(ROOT, 'data', 'cam_sync.json'), {})
+        local = read_json(os.path.join(d, 'sync_estimate.json'), {})
+        off = (local if local.get('status') == 'accepted' else
+               table.get('clips', {}).get(clip) or table.get(meta['day']))
+        override = os.environ.get('RA_SYNC_OFFSET')
+        if override is not None:
+            off = {'cam1_to_cam2_s': float(override)}
         if off is not None:
-            dets['cam1'][:, 0] = np.round((dets['cam1'][:, 0] + off['cam1_to_cam2_s']) * FPS) / FPS
-            meta['cam1_offset_s'] = off['cam1_to_cam2_s']
+            seconds = float(off['cam1_to_cam2_s'])
+            dets['cam1'][:, 0] = np.round((dets['cam1'][:, 0] + seconds) * FPS) / FPS
+            meta['cam1_offset_s'] = seconds
+        meta['sync_status'] = 'accepted' if local.get('status') == 'accepted' else 'fallback'
     feats = {c: z[c + '_feat'] for c in ('cam1', 'cam2')}
     # cleanliness: a detection whose box is largely its own silhouette and is not
     # overlapped by another person is the only kind worth trusting for appearance

@@ -13,7 +13,8 @@ from clipdata import load
 clip = sys.argv[1]
 tag = sys.argv[2] if len(sys.argv) > 2 else 'yolo26x-seg'
 d = os.path.join('data', 'raw_clips', clip)
-pieces = json.load(open(os.path.join(d, 'pieces_%s.json' % tag)))
+from review_store import read_state
+pieces = read_state(d)['pieces']
 dets, feats, meta, embs = load(clip, tag)
 cams = {c: Camera(c, json.load(open('data/calib_final.json'))) for c in ('cam1', 'cam2')}
 per_cam, _ = build(cams, dets, feats, embs, meta.get('clean'))
@@ -36,7 +37,7 @@ for pid, person in enumerate(people):
     if not mine:
         continue
     mine = sorted(set(mine))
-    ps = [pieces[i] for i in mine]
+    ps = [p for p in pieces if p['piece'] in mine]
     groups.append({'person': pid, 'pieces': mine,
                    't0': round(min(p['t0'] for p in ps), 1), 't1': round(max(p['t1'] for p in ps), 1),
                    'cams': sorted({p['cam'] for p in ps}),

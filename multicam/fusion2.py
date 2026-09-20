@@ -41,6 +41,8 @@ def inside_shop(xy, margin=0.6):
 
 
 def expected_px_height(cam, xy_common, h=1.7):
+    if not len(xy_common):
+        return np.zeros(0)      # cv2.projectPoints returns None for no points: a camera that saw nobody crashed the window
     A = np.eye(2)
     own = xy_common.copy()
     if cam.name == 'cam1':
@@ -121,7 +123,7 @@ def build(cams, dets, feats, embs=None, clean=None):
         from imtrack import track_camera
         from imtrack import split_on_appearance_change, unit
         E = embs[cam][k] if embs is not None else None
-        local = track_camera(d[k], feats[cam][k], emb=E)
+        local = track_camera(d[k], feats[cam][k], emb=E, clean=clean[cam][k] if clean is not None else None)
         if os.environ.get('RA_SPLIT', '1') == '1':   # cutting a track where the clothing changes
             local = [piece for tr in local for piece in split_on_appearance_change(d[k], feats[cam][k], tr, emb=E)]
         trs = [{'i': list(tr)} for tr in local]
@@ -146,7 +148,7 @@ def build(cams, dets, feats, embs=None, clean=None):
             # away is 60 px tall and their embedding is close to everyone else's.
             box_h = float(np.median(d[ii, 4] - d[ii, 2]))
             item = {'cam': cam, 't': d[ii, 0], 'xy': xy, 'det': ii, 'h': h_own,
-                    'app': feats[cam][ii].mean(0), 'box_h': box_h}
+                    'app': feats[cam][ii].mean(0), 'box_h': box_h, 'boxes': d[ii, 1:5]}
             if embs is not None:
                 # Prototypes are built only from CLEAN frames -- where the box is mostly
                 # this person's own silhouette and no one else overlaps it. A crop holding
@@ -210,6 +212,12 @@ def distinct_people(a, b, apart=0.8, frames=8, cross_apart=1.4):
     one-id share when it was tried."""
     if a['cam'] != b['cam']:
         return False
+    if os.environ.get('RA_PIXEL_DISTINCT', '0') == '1' and 'boxes' in a and 'boxes' in b:
+        _, ia, ib = np.intersect1d(np.round(a['t'], 2), np.round(b['t'], 2), return_indices=True)
+        A, B = a['boxes'][ia], b['boxes'][ib]
+        separated = (np.minimum(A[:, 2], B[:, 2]) <= np.maximum(A[:, 0], B[:, 0])) | (np.minimum(A[:, 3], B[:, 3]) <= np.maximum(A[:, 1], B[:, 1]))
+        if int(separated.sum()) >= frames:
+            return True
     d = co_distances(a, b)
     return int((d > apart).sum()) >= frames
 
@@ -230,6 +238,8 @@ def pair_state(a, b):
     ad = None
     if a.get('protos') is not None and b.get('protos') is not None:
         ad = float((1 - a['protos'] @ b['protos'].T).min())
+    if os.environ.get('RA_CO_APP', '0') == '1' and ad is not None and ad > GATE_CROSS:
+        co = False  # geometry must not bypass the same appearance gate used in stage 1
     return True, ad, co
 
 

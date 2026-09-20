@@ -62,11 +62,13 @@ def load_gates(path='data/appearance_thresholds.json'):
     return GATES
 
 
-def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=None):
+def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=None, clean=None):
     """d: (N, 10) t, x1, y1, x2, y2, score, fx, fy, hx, hy. Returns list of index arrays."""
     import os as _os
     if max_age_s is None:
         max_age_s = float(_os.environ.get('RA_MAXAGE', '1.5'))
+    clean_update = _os.environ.get('RA_CLEAN_UPDATE', '0') == '1'
+    gates_cached = load_gates().copy() if emb is not None else {'high': 1.2, 'low': 0.9}
     reacq_on = _os.environ.get('RA_REACQ', '0') == '1'   # measured: re-acquisition adds errors faster than it saves pieces
     if emb is not None and len(emb):
         feat = unit(emb.astype(np.float32))
@@ -97,7 +99,7 @@ def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=Non
             crowd = (iou_matrix(P, P) > 0.15).sum(1) > 1
             w_app = np.where(crowd, 0.8, 0.35)[:, None]
             cost = (1 - iou) + w_app * app + 0.3 * cdist
-            gates = load_gates() if emb is not None else {'high': 1.2, 'low': 0.9}
+            gates = gates_cached
             g = gates['high'] if stage == 'high' else gates['low']
             # A shopper who walked behind a display stand comes back out somewhere
             # else: after a gap, appearance alone may re-acquire the track inside a
@@ -121,7 +123,8 @@ def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=Non
                 nb = boxes[jj]
                 tr['v'] = 0.7 * tr['v'] + 0.3 * np.clip((nb - tr['box']) / gap, -40, 40)
                 tr['box'] = nb; tr['last'] = f; tr['idx'].append(int(idx[jj]))
-                tr['app'] = 0.9 * tr['app'] + 0.1 * feat[idx[jj]]
+                if not clean_update or clean is None or clean[idx[jj]]:
+                    tr['app'] = 0.9 * tr['app'] + 0.1 * feat[idx[jj]]
                 if feat.shape[1] > 32:
                     tr['app'] = tr['app'] / max(np.linalg.norm(tr['app']), 1e-9)
                 done_t.add(a); done_d.add(jj)
@@ -155,6 +158,9 @@ def track_camera(d, feat, fps=25.0, high=0.5, max_age_s=None, min_len=8, emb=Non
                         if dab > DUP_APP:
                             continue
                     keep, gone = (a, b) if len(tracks[a]['idx']) >= len(tracks[b]['idx']) else (b, a)
+                    if _os.environ.get('RA_DUP_STATE', '0') == '1' and tracks[gone]['last'] > tracks[keep]['last']:
+                        for key in ('box', 'v', 'app'):
+                            tracks[keep][key] = tracks[gone][key].copy()
                     tracks[keep]['idx'].extend(tracks[gone]['idx'])
                     tracks[keep]['last'] = max(tracks[keep]['last'], tracks[gone]['last'])
                     tracks[gone]['idx'] = []

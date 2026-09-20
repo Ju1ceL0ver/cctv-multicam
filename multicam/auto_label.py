@@ -12,11 +12,13 @@ of the room where only cam2 sees anyone. Each run continues where the last one s
 and halts at a deadline so the GPU is free when the shop opens.
 
 usage: auto_label.py DAY [window_minutes] [deadline HH:MM]"""
-import os, sys, json, subprocess, time
+import os, sys, json, subprocess, time, tempfile
 from collections import Counter
 from datetime import datetime, timedelta
 ROOT = os.path.dirname(os.path.abspath(__file__)); os.chdir(ROOT); sys.path.insert(0, ROOT)
 from rawsource import segments
+from clip_registry import (clip_key, clip_ready, load_failures, record_failure, clear_failure,
+                           set_aside, MAX_FAILURES)
 
 PY = sys.executable
 MODELS = r'C:\Users\ArykovAA\cctv_ai\retail_analytics\models'
@@ -28,6 +30,7 @@ LIVE = r'C:\Users\ArykovAA\cctv_ai\retail_analytics\runs\live\entrance_events.js
 
 
 HEARTBEAT = os.path.join(ROOT, 'data', 'logs', 'autolabel%s.heartbeat' % os.environ.get('RA_WORKER', ''))
+LAST_ERROR = ['']      # tail of stderr of the step that failed last; goes into the failure book
 
 
 def beat(text=''):
@@ -74,10 +77,20 @@ def door_events(day):
 
 def run(args, timeout=None):
     t0 = time.time()
-    r = subprocess.run([PY] + args, cwd=ROOT, capture_output=True, text=True, timeout=timeout)
+    with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as stdout, tempfile.TemporaryFile(mode='w+', encoding='utf-8') as stderr:
+        proc = subprocess.Popen([PY] + args, cwd=ROOT, stdout=stdout, stderr=stderr)
+        while proc.poll() is None:
+            beat(args[0])
+            if timeout and time.time() - t0 > timeout:
+                proc.kill(); proc.wait()
+                raise subprocess.TimeoutExpired(args, timeout)
+            time.sleep(15)
+        stdout.seek(0); stderr.seek(0)
+        r = subprocess.CompletedProcess(args, proc.returncode, stdout.read(), stderr.read())
     tail = (r.stdout or '').strip().splitlines()
     log('   ', args[0], '%.0f s' % (time.time() - t0), (tail[-1][:120] if tail else ''))
     if r.returncode:
+        LAST_ERROR[0] = (r.stderr or '')[-600:]
         log('    FAILED rc=%d:' % r.returncode, (r.stderr or '')[-700:].replace('\n', ' | '))
     return r.returncode
 
@@ -109,22 +122,33 @@ def main():
         if datetime.now() >= deadline - timedelta(minutes=MARGIN):
             log('less than %d minutes left before %s: a window would not finish, stopping'
                 % (MARGIN, deadline.strftime('%H:%M'))); break
-        clip = 'c%s' % start.strftime('%H%M%S')
+        clip = clip_key(day, start, os.path.join(ROOT, 'data', 'raw_clips'))
         d = os.path.join('data', 'raw_clips', clip)
-        if os.path.exists(os.path.join(d, 'people_yolo26x-seg.json')):
+        if clip_ready(d):
+            continue
+        if set_aside(load_failures(ROOT).get(clip)):
+            log('window %s keeps failing, set aside until tomorrow night' % start.strftime('%H:%M'))
             continue
         log('window %s (%d door events in it)' % (start.strftime('%H:%M'), n))
         beat(clip)
+
+        def failed(stage):
+            tries = record_failure(ROOT, clip, day, stage, LAST_ERROR[0])
+            log('    %s failed, attempt %d of %d before the window is set aside' % (stage, tries, MAX_FAILURES))
+
         if not os.path.exists(os.path.join(d, 'dets_yolo26x-seg.npz')):
             if run(['detect_raw.py', clip, day, start.strftime('%H:%M:%S'), str(minutes * 60),
                     WEIGHTS, str(IMGSZ), str(STRIDE)]):
-                log('    segmentation failed, skipping'); continue
+                log('    segmentation failed, skipping'); failed('detect_raw.py'); continue
         if not os.path.exists(os.path.join(d, 'emb_osnet_ain_x1_0_msmt17.npz')):
             run(['embed_clip.py', clip, 'osnet_ain_x1_0_msmt17.pt'])   # only if the pass above was run without it
-        run(['sync_estimate.py', clip])
-        run(['run_clip.py', clip])
-        run(['export_pieces.py', clip])
-        run(['group_pieces.py', clip])      # what the system thinks is one person: review is per person, not per piece
+        if run(['sync_estimate.py', clip, '--write', '--accept-consistent']):
+            log('    synchronization failed; review required'); failed('sync_estimate.py'); continue
+        if run(['run_clip.py', clip]): failed('run_clip.py'); continue
+        if run(['export_pieces.py', clip]): failed('export_pieces.py'); continue
+        if run(['group_pieces.py', clip]): failed('group_pieces.py'); continue      # what the system thinks is one person: review is per person, not per piece
+        clear_failure(ROOT, clip)
+        run(['day_visits.py', day])
         done += 1
         log('window %s ready for review' % start.strftime('%H:%M'))
     log('AUTO LABEL DONE, %d new windows' % done)

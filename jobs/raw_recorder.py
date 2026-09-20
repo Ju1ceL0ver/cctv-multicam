@@ -35,6 +35,31 @@ SEGMENT_SECONDS = 900         # 15-minute files: small enough to copy/inspect
 RECORD_DAYS = int(os.environ.get('RA_RAW_DAYS', '5'))
 MAX_GIGABYTES = 120.0         # per camera; oldest segments are dropped first
 DISK_FREE_FLOOR_GB = 200.0    # never let the volume get tighter than this
+MANAGED_RETENTION = os.environ.get('RA_RAW_MANAGED', '1') == '1'
+# Keeper owns retention in the multicamera service. Preserve footage awaiting
+# annotation; if it cannot free enough space, pause raw capture before the live
+# counter runs out of disk. Standalone legacy experiments can opt out explicitly.
+MANAGED_FREE_FLOOR_GB = float(os.environ.get('RA_RAW_FREE_GB', '150'))
+
+
+def acquire_camera_lock():
+    """One recorder per camera, including starts from concurrent watchdog tasks."""
+    f = open(PIDFILE + '.lock', 'a+b')
+    f.seek(0, 2)
+    if not f.tell():
+        f.write(b'0'); f.flush()
+    f.seek(0)
+    try:
+        if os.name == 'nt':
+            import msvcrt
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        f.close()
+        return None
+    return f
 
 
 def log(*a):
@@ -58,7 +83,7 @@ def enforce_disk_cap():
     """Drop oldest segments first. Today's own files are fair game here --
     unlike the pipeline's retention, this is scratch data for one experiment,
     and running the volume dry would take the live service down with it."""
-    if not os.path.isdir(OUT):
+    if MANAGED_RETENTION or not os.path.isdir(OUT):
         return
     files = []
     for dp, _, fn in os.walk(OUT):
@@ -87,6 +112,10 @@ def enforce_disk_cap():
         log('disk cap: freed %.1f GB' % (freed / 1e9))
 
 
+def capture_has_space():
+    return not MANAGED_RETENTION or shutil.disk_usage(OUT).free / 2**30 >= MANAGED_FREE_FLOOR_GB
+
+
 def within_hours(now=None):
     now = now or datetime.now()
     return HOURS[0] <= now.hour < HOURS[1]
@@ -105,7 +134,17 @@ def record_one_day(ff, url, day_end):
     day_dir = os.path.join(OUT, datetime.now().strftime('%Y%m%d'))
     os.makedirs(day_dir, exist_ok=True)
     attempt = 0
+    disk_paused = False
     while datetime.now() < day_end:
+        if not capture_has_space():
+            if not disk_paused:
+                log('RAW PAUSED: less than %.0f GiB free; preserving unprocessed footage and live counter' % MANAGED_FREE_FLOOR_GB)
+                disk_paused = True
+            time.sleep(30)
+            continue
+        if disk_paused:
+            log('raw capture resumed: disk space available')
+            disk_paused = False
         remaining = int((day_end - datetime.now()).total_seconds())
         if remaining < 30:
             break
@@ -122,8 +161,8 @@ def record_one_day(ff, url, day_end):
         last_check = time.time()
         while proc.poll() is None:
             time.sleep(5)
-            if datetime.now() >= day_end:
-                log('window closed; stopping ffmpeg')
+            if datetime.now() >= day_end or not capture_has_space():
+                log('window closed or disk reserve reached; stopping ffmpeg cleanly')
                 proc.terminate()
                 try:
                     proc.wait(timeout=20)
@@ -148,6 +187,10 @@ def record_one_day(ff, url, day_end):
 
 
 def main():
+    camera_lock = acquire_camera_lock()
+    if camera_lock is None:
+        log('another recorder for this camera is already running')
+        return
     sys.path.insert(0, ROOT)
     os.chdir(ROOT)
     import imageio_ffmpeg
@@ -174,6 +217,7 @@ def main():
     log('raw recorder %s up (pid %d); window %02d:00-%02d:00, %d day(s), cap %.0f GB'
         % (CAMERA, os.getpid(), HOURS[0], HOURS[1], RECORD_DAYS, MAX_GIGABYTES))
     log('ffmpeg:', ff)
+    log('retention:', 'keeper managed; reserve %.0f GiB' % MANAGED_FREE_FLOOR_GB if MANAGED_RETENTION else 'legacy per-camera cap')
 
     for day in range(RECORD_DAYS):
         if not within_hours():
@@ -199,6 +243,9 @@ if __name__ == '__main__':
         log('FATAL\n' + traceback.format_exc())
     finally:
         try:
-            os.remove(PIDFILE)
+            with open(PIDFILE) as f:
+                own_pid = f.read().strip() == str(os.getpid())
+            if own_pid:
+                os.remove(PIDFILE)
         except OSError:
             pass

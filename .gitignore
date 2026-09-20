@@ -3,6 +3,7 @@ data/
 *.mp4
 *.avi
 *.jpg
+!docs/media/*.jpg
 !graphify-out/**
 *.jpeg
 *.png
@@ -13,6 +14,7 @@ data/
 *_key.txt
 __pycache__/
 *.pyc
+tools/.jctl_kernel
 .DS_Store
 
 # graphify: keep the index, drop caches and interpreter pins

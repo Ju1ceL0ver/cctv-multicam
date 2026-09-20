@@ -4,11 +4,14 @@ Each piece is one continuous track fragment from one camera, shown as a strip of
 8 crops cut by the person's mask. The answer is a person label; the labels
 already used in this clip are offered as buttons, so 'the same person as before'
 is one click, and a new person is one key."""
-import os, json, glob, secrets
-from flask import Flask, jsonify, request, send_file, abort, redirect, make_response
+import os, json, glob, secrets, re
+from pathlib import Path
+from review_store import read_state, transact, review_groups, Conflict
+from storage import read_json
+from flask import Flask, jsonify, request, send_file, abort, redirect, make_response, render_template
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-CLIPS = os.path.join(ROOT, 'data', 'raw_clips')
+CLIPS = os.environ.get('RA_CLIPS_ROOT', os.path.join(ROOT, 'data', 'raw_clips'))
 KEY_FILE = os.path.join(os.path.dirname(os.path.dirname(ROOT)), '_labelers_key.txt')
 KEY = open(KEY_FILE).read().strip() if os.path.exists(KEY_FILE) else 'cctv'
 app = Flask(__name__)
@@ -34,46 +37,42 @@ def labels_path(clip):
 @app.get('/api/clips')
 def clips():
     out = []
-    for d in sorted(glob.glob(os.path.join(CLIPS, '*'))):
-        c = os.path.basename(d)
-        pieces = glob.glob(os.path.join(d, 'pieces_*.json'))
-        if not pieces:
-            continue
-        done = len(json.load(open(labels_path(c)))) if os.path.exists(labels_path(c)) else 0
-        meta = json.load(open(glob.glob(os.path.join(d, 'meta_*.json'))[0]))
-        out.append({'clip': c, 'pieces': len(json.load(open(pieces[0]))), 'done': done,
+    for folder in sorted(Path(CLIPS).glob('c*')):
+        state = read_state(folder)
+        if not state['pieces']: continue
+        metas = list(folder.glob('meta_*.json'))
+        if not metas: continue
+        meta = read_json(metas[0])
+        out.append({'clip': folder.name, 'pieces': len(state['pieces']),
+                    'done': sum(str(p['piece']) in state['labels'] or state['quality'].get(str(p['piece']))=='false_positive' for p in state['pieces']),
                     'start': meta['start'], 'seconds': meta['seconds']})
-    return jsonify(out)
+    return jsonify(sorted(out, key=lambda c:c['start']))
 
 
 @app.get('/api/pieces/<clip>')
 def pieces(clip):
-    p = glob.glob(os.path.join(CLIPS, clip, 'pieces_*.json'))
-    if not p:
-        abort(404)
-    data = json.load(open(p[0]))
-    labels = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
-    return jsonify({'pieces': data, 'labels': labels})
+    folder = clip_folder(clip)
+    state = read_state(folder)
+    if not state['pieces']: abort(404)
+    import numpy as np
+    with np.load(folder / 'dets_yolo26x-seg.npz') as archive:
+        z={cam:archive[cam] for cam in ('cam1','cam2')}
+        for p in state['pieces']:
+            t = z[p['cam']][p['dets'], 0]
+            p['raw_t0'], p['raw_t1'] = float(t.min()), float(t.max())
+    return jsonify(state)
 
 
 @app.post('/api/label/<clip>')
 def label(clip):
     body = request.get_json(force=True)
-    cur = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
-    if body.get('label'):
-        cur[str(body['piece'])] = body['label']
-    else:
-        cur.pop(str(body['piece']), None)
-    tmp = labels_path(clip) + '.tmp'
-    json.dump(cur, open(tmp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    os.replace(tmp, labels_path(clip))
-    return jsonify({'ok': True, 'done': len(cur)})
+    return save_review(clip, {**body, 'action':'label', 'pieces':[body['piece']]})
 
 
 @app.get('/ref/<clip>/<label>')
 def ref(clip, label):
     """A sample picture of a person already labelled, so 'the same one' is recognisable."""
-    labels = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
+    labels = read_state(clip_folder(clip))['labels']
     for piece, lab in sorted(labels.items(), key=lambda kv: int(kv[0])):
         if lab != label:
             continue
@@ -86,58 +85,41 @@ def ref(clip, label):
 
 @app.post('/api/merge/<clip>')
 def merge(clip):
-    """Two labels turn out to be one person: relabel every piece of `from` as `to`."""
-    body = request.get_json(force=True)
-    src, dst = body['from'], body['to']
-    cur = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
-    n = 0
-    for k, v in list(cur.items()):
-        if v == src:
-            cur[k] = dst; n += 1
-    tmp = labels_path(clip) + '.tmp'
-    json.dump(cur, open(tmp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    os.replace(tmp, labels_path(clip))
-    return jsonify({'ok': True, 'moved': n})
+    return save_review(clip, {**request.get_json(force=True), 'action':'merge'})
 
 
 @app.get('/api/groups/<clip>')
 def groups(clip):
-    """What the system thinks is one person, so a whole person can be confirmed at once."""
-    g = glob.glob(os.path.join(CLIPS, clip, 'groups_*.json'))
-    p = glob.glob(os.path.join(CLIPS, clip, 'pieces_*.json'))
-    if not p:
-        abort(404)
-    pieces = json.load(open(p[0]))
-    data = json.load(open(g[0])) if g else [{'person': None, 'pieces': [x['piece']], 't0': x['t0'],
-                                             't1': x['t1'], 'cams': [x['cam']], 'dets': x.get('n_dets', len(x['dets']))} for x in pieces]
-    labels = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
-    by_id = {x['piece']: x for x in pieces}
-    for grp in data:
-        grp['detail'] = [{'piece': i, 'cam': by_id[i]['cam'], 't0': by_id[i]['t0'], 't1': by_id[i]['t1'],
-                          'n_dets': by_id[i].get('n_dets', len(by_id[i]['dets']))} for i in grp['pieces'] if i in by_id]
-    return jsonify({'groups': data, 'labels': labels, 'pieces': len(pieces)})
+    folder = clip_folder(clip); state = read_state(folder)
+    if not state['pieces']: abort(404)
+    data = review_groups(folder, state)
+    # Video and split controls use raw timestamps, independent of sync revisions.
+    import numpy as np
+    with np.load(folder / 'dets_yolo26x-seg.npz') as archive:
+        z={cam:archive[cam] for cam in ('cam1','cam2')}
+        for g in data:
+            for p in g['detail']:
+                t = z[p['cam']][p['dets'], 0]
+                p['raw_t0'], p['raw_t1'] = float(t.min()), float(t.max())
+                p.pop('dets', None)
+    return jsonify({'groups':data, 'labels':state['labels'], 'quality':state['quality'],
+                    'revision':state['revision'], 'can_undo':state.get('undo_revision') is not None,
+                    'pieces':len(state['pieces']), 'sync':read_json(folder/'sync_estimate.json', {}),
+                    'seconds_reviewing':state.get('seconds_reviewing', 0)})
 
 
 @app.post('/api/label_many/<clip>')
 def label_many(clip):
-    """One answer for every piece of one person."""
-    body = request.get_json(force=True)
-    cur = json.load(open(labels_path(clip))) if os.path.exists(labels_path(clip)) else {}
-    for i in body['pieces']:
-        if body.get('label'):
-            cur[str(i)] = body['label']
-        else:
-            cur.pop(str(i), None)
-    tmp = labels_path(clip) + '.tmp'
-    json.dump(cur, open(tmp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    os.replace(tmp, labels_path(clip))
-    return jsonify({'ok': True, 'done': len(cur)})
+    return save_review(clip, {**request.get_json(force=True), 'action':'label'})
 
 
 @app.get('/portrait/<clip>/<int:piece>')
 def portrait(clip, piece):
     """The frame where this person was biggest: what the eye actually judges."""
-    p = os.path.join(CLIPS, clip, 'portraits', '%04d.jpg' % piece)
+    folder = clip_folder(clip)
+    state = read_state(folder)
+    item = next((p for p in state['pieces'] if p['piece']==piece), {})
+    p = os.path.join(folder, 'portraits', '%04d.jpg' % item.get('origin_piece', piece))
     if not os.path.exists(p):
         abort(404)
     return send_file(p)
@@ -149,6 +131,56 @@ def crop(clip, piece):
     if not os.path.exists(p):
         abort(404)
     return send_file(p)
+
+
+def clip_folder(clip):
+    if not re.fullmatch(r'c[A-Za-z0-9_-]+', clip): abort(400)
+    folder = Path(CLIPS) / clip
+    if not folder.is_dir(): abort(404)
+    return folder
+
+
+def save_review(clip, body):
+    try:
+        state = transact(clip_folder(clip), body, body.get('revision'))
+        return jsonify({'ok':True, 'revision':state['revision'], 'labels':state['labels'],
+                        'quality':state['quality'], 'done':len(state['labels'])})
+    except Conflict as e:
+        return jsonify({'error':str(e)}), 409
+    except (ValueError, KeyError, TypeError) as e:
+        return jsonify({'error':str(e)}), 400
+
+
+@app.post('/api/review/<clip>')
+def review_action(clip):
+    return save_review(clip, request.get_json(force=True))
+
+
+@app.get('/api/suggestions/<clip>')
+def suggested_people(clip):
+    from review_suggestions import suggestions
+    folder = clip_folder(clip)
+    ids = [int(i) for i in request.args.get('pieces', '').split(',') if i.isdigit()]
+    return jsonify(suggestions(folder, read_state(folder), ids))
+
+
+@app.get('/api/preview/<clip>/<int:piece>')
+def video_preview(clip, piece):
+    from review_media import preview
+    folder = clip_folder(clip)
+    item = next((p for p in read_state(folder)['pieces'] if p['piece']==piece), None)
+    if item is None: abort(404)
+    try:
+        name, start = preview(folder, item, request.args.get('at'))
+        return jsonify({'url':'/media/%s/%s' % (clip,name), 'start':start})
+    except (ValueError, RuntimeError, OSError) as e:
+        return jsonify({'error':'Не удалось подготовить видео: '+str(e)}), 422
+
+
+@app.get('/media/<clip>/<name>')
+def video_file(clip, name):
+    if not re.fullmatch(r'[0-9a-f]{20}\.mp4', name): abort(404)
+    return send_file(clip_folder(clip)/'review_media'/name, conditional=True)
 
 
 PAGE = r'''<!doctype html><meta charset="utf-8"><title>Кто это?</title>
@@ -444,9 +476,29 @@ loadClips();
 </script>"""
 
 
+@app.get('/favicon.ico')
+def favicon():
+    return '', 204
+
+
+@app.get('/visits')
+def visits_page():
+    return render_template('visits.html')
+
+
+@app.route('/api/day/<day>', methods=['GET', 'POST'])
+def day_api(day):
+    if not re.fullmatch(r'\d{8}', day): abort(400)
+    from day_visits import build_day, decide
+    try:
+        return jsonify(build_day(day) if request.method=='GET' else decide(day, request.get_json(force=True)))
+    except (ValueError, KeyError, TypeError) as e:
+        return jsonify({'error':str(e)}), 409
+
+
 @app.get('/people')
 def people_page():
-    return PEOPLE_PAGE
+    return render_template('people.html')
 
 
 @app.get('/urls')
@@ -466,7 +518,16 @@ def urls():
 
 @app.get('/')
 def index():
+    return redirect('/video')
+
+
+@app.get('/pieces')
+def legacy_pieces():
     return PAGE
+
+
+from video_api import register as register_video_api
+register_video_api(app, clip_folder, ROOT)
 
 
 if __name__ == '__main__':
