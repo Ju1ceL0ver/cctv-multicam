@@ -79,12 +79,23 @@ if __name__ == '__main__':
     automatic = os.environ.get('RA_WORKER') in ('_am', '_pm')
     parser.add_argument('--write', action='store_true', default=automatic)
     parser.add_argument('--accept-consistent', action='store_true', default=automatic)
+    parser.add_argument('--true-time', action='store_true',
+                        help='take each frame\'s time from the recording instead of counting 25 a second')
     args = parser.parse_args()
-    dets, feats, meta, embs = load(args.clip, args.tag, apply_sync=False)
+    dets, feats, meta, embs = load(args.clip, args.tag, apply_sync=False, true_times=args.true_time)
+    if meta.get('true_t'):
+        # Both cameras on one true timeline, so a difference between them is the cameras'
+        # offset and not the frames each of them happened to drop.
+        origin = min(t.min() for t in meta['true_t'].values() if len(t))
+        dets = {cam: d.copy() for cam, d in dets.items()}
+        for cam, d in dets.items():
+            if len(d):
+                d[:, 0] = meta['true_t'][cam] - origin
     result, evidence = estimate(dets, feats, embs, meta.get('clean'), details=True)
     s, peak, base, n, shifts, scores = result
     record = {'clip': args.clip, 'day': meta['day'], 'estimated_offset_s': round(float(s), 4),
-              'evidence': evidence, 'status': 'candidate', 'method': 'moving floor trajectories'}
+              'evidence': evidence, 'status': 'candidate', 'method': 'moving floor trajectories',
+              'time_source': meta.get('time_source', 'index')}
     if args.accept_consistent and evidence['consistent']:
         record.update(status='accepted', cam1_to_cam2_s=round(float(s), 4))
     if args.write:

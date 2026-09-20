@@ -7,7 +7,7 @@ from storage import read_json
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-def load(clip, tag='yolo26x-seg', apply_sync=True):
+def load(clip, tag='yolo26x-seg', apply_sync=True, true_times=False):
     """Detections of a clip. With apply_sync, cam1's times are moved onto cam2's
     timeline using data/cam_sync.json (offset per recording session, keyed by day)."""
     d = os.path.join(ROOT, 'data', 'raw_clips', clip)
@@ -62,6 +62,13 @@ def load(clip, tag='yolo26x-seg', apply_sync=True):
                         ov[g] = frac.max(1)
                     start = k
             meta['clean'][c] = (fill > 0.30) & (ov < 0.20)
+    if true_times:
+        # Read from the recording, before any sync shift and without touching column 0:
+        # that column is a frame index, and every frame lookup downstream relies on it.
+        from frame_times import detection_times
+        table = detection_times(meta, {c: z[c] for c in ('cam1', 'cam2')})
+        meta['true_t'] = table
+        meta['time_source'] = 'container' if table else 'index'
     embs = None
     for name in ('osnet_ain_x1_0_msmt17_masked', 'osnet_ain_x1_0_msmt17'):
         ep = os.path.join(d, 'emb_%s.npz' % name)
