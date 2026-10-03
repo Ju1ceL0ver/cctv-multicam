@@ -1,0 +1,124 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Оценка черновиков</title><link rel="stylesheet" href="/static/review.css">
+<style>
+#stage{position:relative;margin-top:8px;background:#0b0f13;border-radius:10px;overflow:hidden}
+#stage img{width:100%;display:block}
+#tag{position:absolute;left:10px;top:10px;background:#000a;color:#fff;padding:4px 10px;border-radius:6px;font:600 14px system-ui}
+#score{position:absolute;right:10px;top:10px;background:#f5c542;color:#000;padding:4px 12px;border-radius:6px;font:800 20px system-ui;display:none}
+.scale{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.scale button{flex:1 1 150px;text-align:left;padding:6px 8px}
+.scale b{font-size:20px;margin-right:6px}
+#hist{font-variant-numeric:tabular-nums}
+</style></head>
+<body class="labeller">
+<header><div class="top"><strong>Оценка черновиков</strong><span id="progress" class="counter muted"></span>
+<span class="spacer"></span><span id="hist" class="muted"></span></div>
+<div class="scale" id="scale">
+  <button onclick="give(5)"><b>5</b>идеально: все люди, контуры точные</button>
+  <button onclick="give(4)"><b>4</b>мелкие огрехи контура</button>
+  <button onclick="give(3)"><b>3</b>заметно кривой контур у кого-то</button>
+  <button onclick="give(2)"><b>2</b>пропущен или лишний человек</button>
+  <button onclick="give(1)"><b>1</b>много ошибок</button>
+  <button onclick="give(0)"><b>0</b>негодно</button>
+</div>
+<div id="notice" role="status"></div></header>
+<main>
+  <div id="stage"><img id="img" alt=""><span id="tag"></span><span id="score"></span></div>
+</main>
+<div class="keybar">
+  <button onclick="give(5)"><kbd>5</kbd>…<kbd>0</kbd>оценка</button>
+  <button onclick="raw()"><kbd>H</kbd>без разметки</button>
+  <button onclick="undo()"><kbd>Z</kbd>отменить</button>
+  <button onclick="back()"><kbd>←</kbd>назад</button><button onclick="fwd()"><kbd>→</kbd>дальше</button>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+let todo = [], recent = [], scores = {}, cur = null, viewing = null, showRaw = false, total = 0, rated = 0, hist = [0, 0, 0, 0, 0, 0];
+const outbox = [];
+let sending = false, loaded = false;
+
+async function refill() {
+  const j = await (await fetch('/api/rate?n=200')).json();
+  const seen = new Set([...recent, ...todo, cur].filter(Boolean));
+  todo = todo.concat(j.todo.filter(i => !seen.has(i) && scores[i] === undefined));
+  if (!recent.length) { recent = j.recent; Object.assign(scores, j.ratings); }
+  total = j.total;
+  if (!loaded) { rated = j.rated; hist = j.hist; loaded = true; }   // afterwards counted here: a refill can overtake our last answers
+  if (!cur) next();
+  counters();
+}
+function counters() {
+  $('#progress').textContent = `оценено ${rated} из ${total}`;
+  $('#hist').textContent = hist.map((n, k) => `${k}: ${n}`).join(' · ');
+}
+function src(id) { return `/rate-img/${id}/${showRaw ? 'raw' : 'drawn'}`; }
+function show(id) {
+  viewing = id;
+  $('#img').src = src(id);
+  $('#tag').textContent = id.replace(/_/g, ' ');
+  const s = scores[id];
+  $('#score').style.display = s === undefined ? 'none' : 'block';
+  $('#score').textContent = s === undefined ? '' : 'оценка ' + s;
+  for (const n of todo.slice(0, 3)) new Image().src = `/rate-img/${n}/drawn`;
+}
+function next() {
+  cur = todo.shift() || null;
+  if (!cur) { $('#tag').textContent = 'Все черновики оценены — новые появятся сами'; $('#img').removeAttribute('src'); viewing = null; return; }
+  show(cur);
+  if (todo.length < 20) refill();
+}
+async function pump() {
+  if (sending) return;
+  sending = true;
+  while (outbox.length) {
+    const a = outbox[0];
+    try {
+      const r = await fetch('/api/rate', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(a)});
+      if (r.status >= 400 && r.status < 500) { $('#notice').textContent = 'Не принято: ' + a.id; outbox.shift(); continue; }
+      if (!r.ok) throw new Error(r.status);
+      outbox.shift(); $('#notice').textContent = '';
+    } catch (e) { $('#notice').textContent = 'Нет связи, повторю…'; await new Promise(z => setTimeout(z, 3000)); }
+  }
+  sending = false;
+}
+window.give = s => {
+  const id = viewing; if (!id) return;
+  const was = scores[id];
+  if (was === undefined) rated++; else hist[was]--;
+  hist[s]++; scores[id] = s;
+  recent = recent.filter(x => x !== id).concat([id]);
+  outbox.push({id, score: s}); pump();
+  counters();
+  if (id === cur) next(); else show(cur || id);
+};
+window.undo = () => {
+  const id = recent[recent.length - 1]; if (!id) return;
+  hist[scores[id]]--; rated--; delete scores[id];
+  recent.pop();
+  outbox.push({id, score: null}); pump();
+  if (cur) todo.unshift(cur);
+  cur = id; show(id); counters();
+};
+window.back = () => {
+  const k = recent.indexOf(viewing);
+  const id = k > 0 ? recent[k - 1] : (k < 0 ? recent[recent.length - 1] : null);
+  if (id) show(id);
+};
+window.fwd = () => {
+  const k = recent.indexOf(viewing);
+  if (k >= 0 && k < recent.length - 1) show(recent[k + 1]); else if (cur) show(cur);
+};
+window.raw = () => { showRaw = !showRaw; if (viewing) $('#img').src = src(viewing); };
+addEventListener('beforeunload', e => { if (outbox.length) { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('keydown', ev => {
+  const code = ev.code || '', k = /^Digit\d$/.test(code) ? code.slice(5) : /^Numpad\d$/.test(code) ? code.slice(6) : ev.key;
+  if (/^[0-5]$/.test(k)) { give(+k); ev.preventDefault(); }
+  else if (code === 'KeyH' || /^[hр]$/i.test(ev.key)) raw();
+  else if (code === 'KeyZ' || /^[zя]$/i.test(ev.key)) undo();
+  else if (ev.key === 'ArrowLeft') back();
+  else if (ev.key === 'ArrowRight') fwd();
+});
+refill();
+</script>
+</body></html>

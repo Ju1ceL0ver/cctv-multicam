@@ -17,7 +17,8 @@ from storage import atomic_json, read_json
 import argparse
 
 
-def estimate(dets, feats, embs=None, clean=None, span=8.0, step=0.04, radius=0.4, min_speed=0.5, details=False):
+def estimate(dets, feats, embs=None, clean=None, span=8.0, step=0.04, radius=0.4, min_speed=0.5,
+             details=False, tolerance=0):
     calib = json.load(open('data/calib_final.json'))
     cams = {c: Camera(c, calib) for c in ('cam1', 'cam2')}
     per_cam, _ = build(cams, dets, feats, embs, clean)
@@ -47,7 +48,11 @@ def estimate(dets, feats, embs=None, clean=None, span=8.0, step=0.04, radius=0.4
         hit = 0
         bh = np.zeros(3, int)
         for j, kk in enumerate(q):
-            idx = by.get(kk)
+            # Counted times sit exactly on the 1/25 s grid, so the same instant lands in the
+            # same bin on both cameras and tolerance 0 is right. Times read from the recording
+            # do not, and a genuine pair then falls either side of a bin edge.
+            idx = by.get(kk) if not tolerance else \
+                [i for d in range(-tolerance, tolerance + 1) for i in by.get(kk + d, ())]
             if idx and np.min(np.linalg.norm(T1[idx, 1:] - M[j, 1:], axis=1)) < radius:
                 hit += 1
                 bh[blocks[j]] += 1

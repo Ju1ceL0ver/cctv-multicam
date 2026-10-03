@@ -123,3 +123,34 @@ def test_manual_pair_uses_current_evidence_and_refuses_stale_answer(day_project)
             'revision': 0, 'evidence_a': by['c_a:P8']['evidence'],
             'evidence_b': by['c_b:P2']['evidence']}, day_project)
     assert not (day_project / 'data/day_review/20260918.json').exists()
+
+
+def test_the_day_is_built_once_until_something_actually_changes(day_project):
+    """Every answer used to rebuild the whole day twice, and a page that only read it
+    rebuilt it again. The cache is keyed on node evidence, so an edit still invalidates."""
+    first = build_day('20260918', day_project)
+    assert build_day('20260918', day_project) is first
+    video_transact(day_project / 'data/raw_clips/c_a',
+                   {'action': 'label_interval', 'piece': 0, 'start_frame': 15,
+                    'end_frame': 30, 'label': 'P9'}, 0)
+    second = build_day('20260918', day_project)
+    assert second is not first and len(second['nodes']) == 3
+    by = {n['key']: n for n in second['nodes']}
+    decide('20260918', {'a': 'c_a:P1', 'b': 'c_b:P2', 'decision': 'different', 'revision': 0,
+                        'evidence_a': by['c_a:P1']['evidence'],
+                        'evidence_b': by['c_b:P2']['evidence']}, day_project)
+    assert build_day('20260918', day_project) is not second
+
+
+def test_two_machine_groups_in_one_clip_are_neighbours_even_though_nothing_links_them(day_project):
+    """The measured main cause of a broken long visit is a person split inside a single
+    ten-minute window, where the automatic rules never propose anything at all."""
+    from day_visits import neighbours
+    video_transact(day_project / 'data/raw_clips/c_a',
+                   {'action': 'label_interval', 'piece': 0, 'start_frame': 15,
+                    'end_frame': 30, 'label': 'P9'}, 0)
+    day = build_day('20260918', day_project)
+    pair = ('c_a:P1', 'c_a:P9')
+    assert not any((r['a'], r['b']) == pair for r in day['proposals'])
+    row = next(r for r in neighbours('20260918', day_project) if (r['a'], r['b']) == pair)
+    assert row['same_clip'] and row['decision'] is None and row['gap_s'] >= 0

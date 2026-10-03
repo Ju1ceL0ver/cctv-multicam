@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rate-local",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-aleksejzagorskij-cctv-multicam/46003fba-6c91-4352-9255-f348e69974a2/scratchpad/rate_srv.py"
+      ],
+      "port": 5091
+    },
+    {
+      "name": "train-dash",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-aleksejzagorskij-cctv-multicam/8d300d27-fc58-421b-8dfd-b48e7a18b0ab/scratchpad/fake/app.py"
+      ],
+      "port": 8765
+    }
+  ]
+}

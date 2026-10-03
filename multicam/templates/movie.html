@@ -1,0 +1,66 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Кино дня</title><link rel="stylesheet" href="/static/review.css"><link rel="stylesheet" href="/static/movie.css"></head>
+<body class="movie">
+<header><div class="top">
+<strong>Кино дня</strong>
+<select id="day" aria-label="День"></select>
+<span id="progress" class="counter muted"></span>
+<span class="spacer"></span>
+<button id="undo" disabled>Отменить · Z</button>
+<button id="help">Как размечать · ?</button>
+<a href="/day" style="color:var(--accent)">Треки</a>
+</div>
+<div class="howto"><b>1</b> Смотрите на скорости. <b>2</b> Человек не обведён — щёлкните по нему, машина обведёт сама.
+  <b>3</b> Обведён неправильно — щёлкните по нему и выберите, что не так. Всё просмотренное без правок считается проверенным.</div>
+<div id="notice" role="status" aria-live="polite"></div>
+</header>
+<main class="mv">
+  <section class="screens">
+    <div class="screen" data-cam="cam1"><b class="cam-badge">КАМЕРА 1</b>
+      <video id="v1" muted playsinline preload="auto"></video><canvas id="o1"></canvas>
+      <div class="nofootage" id="n1"></div></div>
+    <div class="screen" data-cam="cam2"><b class="cam-badge">КАМЕРА 2</b>
+      <video id="v2" muted playsinline preload="auto"></video><canvas id="o2"></canvas>
+      <div class="nofootage" id="n2"></div></div>
+    <div id="menu" class="menu" hidden></div>
+  </section>
+  <div id="info" class="info muted">&nbsp;</div>
+  <section class="transport">
+    <button id="play" class="primary">▶ Пуск · пробел</button>
+    <span id="clock" class="clock">—</span>
+    <span id="rates" class="rates" title="Скорость: цифры 1…6"></span>
+    <span id="rateNow" class="muted"></span>
+    <label class="muted"><input type="checkbox" id="skipEmpty" checked> пропускать пустой зал</label>
+    <label class="muted"><input type="checkbox" id="slowDoubts" checked> тормозить, где машина не уверена</label>
+    <label class="muted"><input type="checkbox" id="passers" checked> прохожие за стеклом</label>
+  </section>
+  <section class="people">
+    <div class="row"><span class="label">В кадре</span><div id="now" class="cards"></div></div>
+    <div class="row"><span class="label">Недавно ушли</span><div id="gone" class="cards"></div></div>
+  </section>
+  <canvas id="lane" class="lane" title="Кто был в зале вокруг этого момента. Щелчок — к началу куска."></canvas>
+  <canvas id="dayline" class="dayline" title="Весь день. Зелёное — просмотрено, жёлтые штрихи — где машина не уверена, красные — ваши отметки. Щелчок — перейти."></canvas>
+</main>
+<dialog id="helpBox"><div class="top"><strong>Как размечать</strong><button data-close>Закрыть</button></div>
+<p>Машина уже обвела всех и сама решила, кто есть кто: у каждого номер и цвет, у прохожих за стеклом — серая обводка.
+Ваше дело — смотреть и поправлять, где она ошиблась. <b>Щёлкните по человеку</b> — рядом откроется меню с тем, что может быть не так.</p>
+<table class="keys-table"><tbody>
+<tr><th colspan="2">Что может быть не так</th></tr>
+<tr><td>цвет сменился, а человек тот же</td><td>щёлкните его → выберите фото, кто это на самом деле (или щёлкните того же человека на видео)</td></tr>
+<tr><td>под одним цветом стал другой человек</td><td><kbd>S</kbd> «дальше это другой человек» — точный кадр машина найдёт сама</td></tr>
+<tr><td>обведено то, что не человек</td><td><kbd>X</kbd> «это не человек» (ещё раз — вернуть)</td></tr>
+<tr><td>человек есть, а обводки нет</td><td>щёлкните по нему — машина обведёт за секунду-две. Не всё захватила — щёлкните по пропущенной части; лишнее — <kbd>Shift</kbd>+щелчок или правая кнопка. <kbd>Enter</kbd> — сохранить: дальше машина сама ведёт его по фильму вперёд и назад, пока его не подхватит обычный трек</td></tr>
+<tr><td>обводка кривая: полчеловека, двое в одной, кусок стойки</td><td><kbd>E</kbd> «поправить обводку» — те же щелчки, сохраняется на этом кадре. Не хочется возиться — <kbd>B</kbd>: эти кадры не пойдут в обучение, а ночью их переделают</td></tr>
+<tr><td>это сотрудник / прохожий / покупатель</td><td><kbd>W</kbd> · <kbd>P</kbd> · <kbd>C</kbd> — на всего человека</td></tr>
+<tr><td>ошиблись</td><td><kbd>Z</kbd> — отменить последнюю правку</td></tr>
+<tr><th colspan="2">Просмотр</th></tr>
+<tr><td><kbd>пробел</kbd></td><td>пуск / пауза (и закрыть меню)</td></tr>
+<tr><td><kbd>1</kbd>…<kbd>6</kbd></td><td>скорость 1× 2× 4× 8× 12× 16×</td></tr>
+<tr><td><kbd>←</kbd> <kbd>→</kbd> · <kbd>,</kbd> <kbd>.</kbd></td><td>на 2 секунды (с <kbd>Shift</kbd> — на 10) · на один кадр</td></tr>
+<tr><td><kbd>G</kbd></td><td>показать / скрыть прохожих за стеклом</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>закрыть меню или отменить обводку</td></tr>
+<tr><td>значок ✎</td><td>обводка сделана вами, а не детектором</td></tr>
+</tbody></table>
+<p class="muted">Клавиши работают на человеке под мышкой, раскладка не важна. Пустой зал фильм пропускает сам, там где машина не уверена — сам притормаживает.</p>
+</dialog>
+<script src="/static/movie.js"></script></body></html>

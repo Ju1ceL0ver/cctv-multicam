@@ -1,0 +1,17 @@
+.door .howto{font-size:14px;margin-top:6px}
+.door-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px;align-items:start}
+.door-video{position:relative;aspect-ratio:16/9;overflow:hidden;background:#000;border-radius:10px;border:1px solid var(--line)}
+.door-video video{position:absolute;max-height:none}
+.door-tick{position:absolute;left:10px;top:10px;padding:3px 9px;border-radius:6px;background:#000a;font:600 14px system-ui;color:#fff}
+.door-tick.now{background:#c0392b}
+.nofilm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim)}
+.door-shots{display:flex;flex-direction:column;gap:10px}
+.door-shots img{width:100%;max-height:44vh;object-fit:contain;background:#000;border-radius:8px}
+.door-shots #crop{max-height:26vh}
+.strip figure.done{opacity:.55}
+.strip figure.cur{border-color:var(--accent)}
+.strip .lab{display:block;color:var(--accent)}
+#pairing .strip figure{cursor:pointer;border-color:#3c4b57}
+@media(max-width:800px){.door-grid{grid-template-columns:1fr}}
+.door header{position:static}
+.door .ask{margin-top:6px}

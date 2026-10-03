@@ -37,6 +37,20 @@ MARGIN = int(os.environ.get('RA_MARGIN', '45'))          # auto_label will not s
 RESPAWN_GAP = 300                                        # seconds; a pass that dies at once is not restarted every minute
 KEEP_DAYS = int(os.environ.get('RA_KEEP_DAYS', '14'))        # raw footage older than this may go
 FREE_FLOOR_GB = float(os.environ.get('RA_FREE_GB', '150'))
+PLAN = os.path.join(ROOT, 'data', 'keeper_plan.json')
+# What the nights are for, read every minute so it changes without a restart. On 23.09 the
+# owner stopped the teachers' whole-day labelling and the nightly student: the ground truth
+# now comes from his own door labels, and the nights go to ReID and the live system.
+# 25.09: 'raw': false stops the raw recording of both cameras; the live counter keeps running.
+PLAN_DEFAULT = {'teachers': True, 'student_seg': True, 'raw': True}
+
+
+def plan():
+    try:
+        with open(PLAN, encoding='utf-8') as f:
+            return dict(PLAN_DEFAULT, **json.load(f))
+    except (OSError, ValueError):
+        return dict(PLAN_DEFAULT)
 
 
 def log(*a):
@@ -84,6 +98,40 @@ def ensure_recorders():
                    'RA_RAW_FREE_GB': str(FREE_FLOOR_GB)}, cwd=HOME)
         log('recorder %s was not running, started it' % cam)
         time.sleep(3)
+
+
+def stop_recorders():
+    """The plan switched raw recording off: end both recorders, found by their pid files,
+    and only after checking that the pid really is a recorder."""
+    for cam in ('cam1', 'cam2'):
+        pf = os.path.join(HOME, '_raw_recorder_%s.pid' % cam)
+        try:
+            pid = int(open(pf).read().strip())
+        except Exception:
+            continue
+        if not any(l.split('|')[0].strip() == str(pid) for l in running('_raw_recorder.py')):
+            continue
+        os.system('taskkill /PID %d /F > nul 2>&1' % pid)
+        log('plan: raw recording switched off, stopped recorder %s (pid %d)' % (cam, pid))
+
+
+CAMERA1 = (os.environ.get('RA_CAM_CAM1_IP', '192.168.99.241'), 554)
+_camera_was = [None]
+
+
+def camera_up(addr=CAMERA1, timeout=3):
+    """Does camera 1 answer on its RTSP port? From 24.09 both cameras were off the network, and the
+    live counter crashed and was restarted every 2-5 minutes all day for nothing (25.09)."""
+    import socket
+    try:
+        socket.create_connection(addr, timeout).close()
+        up = True
+    except OSError:
+        up = False
+    if up != _camera_was[0]:
+        log('camera 1 %s: %s' % ('answers' if up else 'does not answer', '%s:%d' % addr))
+        _camera_was[0] = up
+    return up
 
 
 def start_live():
@@ -303,7 +351,8 @@ def prune_raw():
             return
         done, total, _ = coverage(day)       # strict: a set-aside window was never labelled
         covered = total and done >= total
-        if day >= cutoff or not covered:
+        # with the teachers off no day ever becomes covered: then age alone decides
+        if day >= cutoff or (not covered and plan()['teachers']):
             continue
         for cam in ('cam1', 'cam2'):
             d = os.path.join(RAW, cam, day)
@@ -328,8 +377,13 @@ def main():
     while True:
         try:
             beat()
-            ensure_recorders()
-            ensure('live counter', 'run_live.py', start_live)
+            p = plan()
+            if p['raw']:
+                ensure_recorders()
+            else:
+                stop_recorders()
+            if camera_up():             # the counter's own RetailAnalytics task restarts it anyway; do not fight it
+                ensure('live counter', 'run_live.py', start_live)
             ensure('review site', 'label_pieces.py', start_labeler)
             ensure_jupyter()
             tunnel_up(5070, 'labeler')
@@ -337,15 +391,22 @@ def main():
             read_urls()
 
             now = datetime.now()
+            p = plan()
+            if not p['teachers']:
+                stop_teachers()
+            if not p['student_seg']:
+                for l in running('train_student_seg.py'):
+                    os.system('taskkill /PID %s /F /T > nul 2>&1' % l.split('|')[0].strip())
+                    log('plan: student training switched off, stopped')
             if training_hours(now):
                 stop_teachers()
                 from train_student_seg import should_train
-                if not running('train_student_seg.py') and should_train(now):
+                if p['student_seg'] and not running('train_student_seg.py') and should_train(now):
                     log('student training hours: starting')
                     spawn('train_student', ['train_student_seg.py'])
                     time.sleep(30)
             elif in_night(now):
-                if window_fits(now):
+                if p['teachers'] and window_fits(now):
                     for tag, rng in WORKERS:      # each worker takes the oldest day with work left in its own half
                         if pass_alive(tag) or time.time() - last_spawn.get(tag, 0) < RESPAWN_GAP:
                             continue

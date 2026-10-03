@@ -1,0 +1,87 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Разметка дня</title><link rel="stylesheet" href="/static/review.css"><link rel="stylesheet" href="/static/day.css"></head>
+<body class="dayplayer">
+<header><div class="top">
+<strong>День</strong>
+<select id="day" aria-label="День"></select>
+<span id="progress" class="counter muted"></span>
+<span class="spacer"></span>
+<button id="undo" disabled>Отменить · Z</button>
+<button id="help">Клавиши · ?</button>
+<a href="/movie" style="color:var(--accent)">Кино дня</a>
+<a href="/longvisits" style="color:var(--accent)">Визиты</a>
+</div>
+<div id="notice" role="status" aria-live="polite"></div>
+</header>
+<main class="dp">
+  <section class="screens">
+    <div class="screen" data-cam="cam1"><b class="cam-badge">КАМЕРА 1</b>
+      <video id="v1" muted playsinline preload="auto"></video><canvas id="o1"></canvas>
+      <div class="nofootage" id="n1"></div></div>
+    <div class="screen" data-cam="cam2"><b class="cam-badge">КАМЕРА 2</b>
+      <video id="v2" muted playsinline preload="auto"></video><canvas id="o2"></canvas>
+      <div class="nofootage" id="n2"></div></div>
+  </section>
+  <aside class="side">
+    <div id="selected" class="selected muted">Нажмите <kbd>Tab</kbd> — перейду к первому неразобранному человеку.</div>
+    <div class="keys-row">
+      <button id="newPerson">Новый · N</button><button id="passer">Прохожий · P</button>
+      <button id="falsePos">Не человек · X</button><button id="cut">Разрезать · C</button>
+    </div>
+    <h3>Люди дня</h3>
+    <ol id="roster" class="roster"></ol>
+  </aside>
+  <section class="transport">
+    <button id="play">▶ Пуск · Space</button>
+    <span id="clock" class="clock">—</span>
+    <span id="rate" class="muted">1×</span>
+    <button id="next" class="primary">Следующий неразобранный · Tab</button>
+    <label class="muted"><input type="checkbox" id="longOnly"> сначала только от 10 с</label>
+    <button id="sweep">Галерея за стеклом · G</button>
+  </section>
+  <canvas id="timeline" class="timeline"></canvas>
+</main>
+
+<dialog id="nameBox"><form method="dialog" id="nameForm">
+  <h3 style="margin-top:0">Новый человек</h3>
+  <p class="muted">Коротко, чтобы узнать глазами: «синяя олимпийка», «блондинка с салатовым пакетом».</p>
+  <input id="personName" autocomplete="off" maxlength="60" style="width:100%;padding:9px;font:inherit" required>
+  <p><label><input type="radio" name="kind" value="customer" checked> покупатель</label>
+     <label style="margin-left:14px"><input type="radio" name="kind" value="staff"> сотрудник</label></p>
+  <div class="actions"><button value="ok" class="primary">Создать и назначить · Enter</button><button value="cancel" formnovalidate>Отмена · Esc</button></div>
+</form></dialog>
+
+<dialog id="sweepBox"><div class="top"><strong>Галерея за стеклом</strong><button data-close>Закрыть</button></div>
+  <p class="muted" id="sweepWhat"></p>
+  <div id="sweepGrid" class="sweep-grid"></div>
+  <div class="actions"><button id="sweepGo" class="primary">Отметить всех прохожими</button><button data-close>Не надо</button></div>
+</dialog>
+
+<dialog id="gridBox"><div class="top"><strong id="gridWho">Остальные треки этого человека</strong><button data-close>Закрыть</button></div>
+  <p class="muted">Отмечены те, кого машина считает тем же человеком. Щёлкните, чтобы снять или поставить галочку. Перечёркнутые — он не мог там быть: его в этот момент видела та же камера в другом месте.</p>
+  <div id="gridGrid" class="sweep-grid"></div>
+  <div class="actions"><button id="gridGo" class="primary">Это он — записать · Enter</button><button data-close>Никого · Esc</button></div>
+</dialog>
+
+<dialog id="helpBox"><div class="top"><strong>Клавиши</strong><button data-close>Закрыть</button></div>
+<table class="keys-table"><tbody>
+<tr><td><kbd>Tab</kbd></td><td>к следующему неразобранному треку (<kbd>Shift</kbd>+<kbd>Tab</kbd> — к предыдущему)</td></tr>
+<tr><td>щелчок по рамке</td><td>выбрать этого человека: выбирается весь его трек</td></tr>
+<tr><td><kbd>1</kbd>…<kbd>9</kbd></td><td>это человек из списка под этим номером — и дальше</td></tr>
+<tr><td><kbd>N</kbd></td><td>новый человек (покупатель или сотрудник)</td></tr>
+<tr><td><kbd>P</kbd> · <kbd>X</kbd></td><td>прохожий за стеклом · не человек</td></tr>
+<tr><td><kbd>Backspace</kbd></td><td>снять ответ с выбранного трека</td></tr>
+<tr><td><kbd>C</kbd></td><td>разрезать выбранный трек в этот момент — если в нём сменился человек</td></tr>
+<tr><td><kbd>G</kbd></td><td>снять всю галерею за стеклом одной кнопкой</td></tr>
+<tr><td><kbd>S</kbd></td><td>показать остальные треки выбранного человека</td></tr>
+<tr><td><kbd>Space</kbd></td><td>пуск / пауза</td></tr>
+<tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>на 2 секунды (с <kbd>Shift</kbd> — на 10)</td></tr>
+<tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>на 0.2 секунды</td></tr>
+<tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>медленнее / быстрее</td></tr>
+<tr><td><kbd>Z</kbd></td><td>отменить последнее</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>снять выбор</td></tr>
+</tbody></table>
+<p class="muted">Рамки нарисовал детектор, треки сшил трекер — обводить ничего не нужно. Ответ ложится на весь трек. Эта разметка ваша: подсказок здесь нет, и ночные проходы её не трогают.</p>
+<p class="muted">Время — по камере 1. Камера 2 видит тот же момент на несколько секунд позже, плеер это учитывает.</p>
+</dialog>
+<script src="/static/day.js"></script></body></html>

@@ -1,0 +1,47 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дверь</title><link rel="stylesheet" href="/static/review.css"><link rel="stylesheet" href="/static/door.css"></head>
+<body class="labeller door">
+<header><div class="top">
+<strong>Дверь</strong>
+<select id="day" aria-label="День"></select>
+<span id="progress" class="counter muted"></span>
+<span class="spacer"></span>
+<button id="undo" disabled>Отменить · Z</button>
+<button id="help">Как размечать · ?</button>
+<a href="/movie" style="color:var(--accent)">Кино дня</a>
+</div>
+<div class="howto muted">Счётчик у двери отметил, что человек в рамке вошёл или вышел. Скажите, что было на самом деле.
+  Видео крутится вокруг момента события; смотрите на человека в рамке на снимке справа.</div>
+<div id="notice" role="status" aria-live="polite"></div>
+</header>
+<main>
+  <p class="ask" id="ask">Загружаю…</p>
+  <section class="door-grid">
+    <div class="door-video" id="vbox"><video id="video" muted playsinline preload="auto"></video>
+      <div class="door-tick" id="tick"></div><div class="nofilm" id="nofilm" hidden>Фильма за этот день нет — смотрите на снимки</div></div>
+    <div class="door-shots"><img id="zoom" alt="Снимок счётчика вокруг человека"><img id="crop" alt="Человек в рамке"></div>
+  </section>
+  <section id="pairing" hidden>
+    <p class="ask"></p>
+    <div class="strip" id="cands"></div>
+  </section>
+  <p class="hint">Соседние события — видно, где счётчик «дребезжит» у стенда:</p>
+  <div class="strip small" id="near"></div>
+</main>
+<div class="keybar" id="keys"></div>
+<dialog id="helpbox"><div class="top"><strong>Как размечать</strong><button onclick="helpbox.close()">Закрыть</button></div>
+<table class="keys-table">
+<tr><td><kbd>1</kbd></td><td><b>Покупатель вошёл</b> — пришёл из галереи в магазин. Если кто-то недавно вышел, спросит «это кто-то вернулся?»: цифра — он, <kbd>Enter</kbd> — новый человек.</td></tr>
+<tr><td><kbd>2</kbd></td><td><b>Покупатель вышел</b> — ушёл в галерею. Потом цифрой — кто это из тех, кто внутри (каждый человек показан один раз), или <kbd>0</kbd>, если его входа нет. Выход всегда закрывает <b>последний</b> вход этого человека; если он отмечен вышедшим дважды, концом визита считается <b>более поздний</b> выход.</td></tr>
+<tr><td><kbd>3</kbd></td><td><b>Никто не прошёл</b> — стоит у стенда, качнулся через линию, прошёл вдоль, прохожий за стеклом.</td></tr>
+<tr><td><kbd>4</kbd></td><td><b>Сотрудник</b> — тоже человек со своими входами и выходами: затем <kbd>1</kbd> вошёл или <kbd>2</kbd> вышел, и кто это из сотрудников (цифра). Первый вход за день — <kbd>Enter</kbd>, новый сотрудник. Сотрудники в список покупателей не попадают, и наоборот.</td></tr>
+<tr><td><kbd>5</kbd></td><td><b>Повтор</b> — этот же проход этого же человека уже отмечен в соседнем событии.</td></tr>
+<tr><td><kbd>6</kbd></td><td><b>Не разобрать</b>.</td></tr>
+<tr><td><kbd>пробел</kbd></td><td>Видео заново.</td></tr>
+<tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Предыдущее / следующее событие без ответа.</td></tr>
+<tr><td><kbd>Z</kbd></td><td>Отменить последний ответ.</td></tr>
+</table>
+<p class="muted">Всё сохраняется сразу. Из этих ответов впервые получится честное число визитов за день и пары «вход — выход».</p>
+</dialog>
+<script src="/static/door.js"></script>
+</body></html>

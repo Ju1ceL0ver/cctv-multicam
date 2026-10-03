@@ -8,3 +8,68 @@ body{padding-bottom:88px}
 @media(max-width:600px){.decision-actions{padding:10px;gap:6px}.decision-actions button{flex:1;min-width:0;font-size:12px;padding:8px 6px}}
 
 @media(max-width:600px){.top select{flex:1 0 100%;width:100%}}
+
+/* ---- The owner's labelling queue (/longvisits).
+   One visit per screen; every step offers the same three keys, and the keybar at the
+   bottom is built from the same list the keyboard dispatches, so they cannot disagree. */
+body.labeller{padding-bottom:116px}
+.labeller header{padding-top:10px;padding-bottom:10px}
+.labeller .spacer{flex:1;min-width:0}
+.labeller main{padding-top:10px}
+.counter{font-variant-numeric:tabular-nums;font-size:14px}
+.ask{font-size:20px;margin:18px 0 10px;line-height:1.3}
+.hint{color:var(--dim);font-size:13px;margin:6px 0 0}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px}
+.strip figure{margin:0;flex:0 0 auto;width:134px;border:2px solid transparent;border-radius:9px;padding:4px;background:#12181e}
+.strip img{display:block;width:100%;height:152px;object-fit:contain;background:#000;border-radius:5px}
+.strip figcaption{font-size:12px;color:var(--dim);padding-top:4px;line-height:1.35}
+.strip.small figure{width:82px;padding:3px}
+.strip.small img{height:82px}
+.strip.small figcaption{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .num{display:inline-block;min-width:19px;text-align:center;border-radius:4px;background:#2c3b46;color:var(--ink);padding:0 4px;margin-right:5px}
+.marking .strip figure{cursor:pointer;border-color:#3c4b57}
+.strip figure.foreign{border-color:#ff9a91;background:#2b1a19}
+.strip figure.foreign .num{background:#8d3129}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start;margin-top:4px}
+.pair .col{background:#12181e;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+.pair .col h3{margin:0 0 8px;font-size:15px;font-weight:600}
+.pair .frames{display:flex;gap:8px;overflow-x:auto}
+.pair .frames img{height:246px;max-width:100%;object-fit:contain;background:#000;border-radius:6px;flex:0 0 auto}
+.num-time{font-variant-numeric:tabular-nums}
+.verdict{margin:14px 0 0;padding:12px 14px;border-radius:10px;background:#12181e;border:1px solid var(--line)}
+.verdict.ok{border-color:#3f8f6b}
+.verdict.open{border-color:#93702f}
+.verdict p{margin:4px 0}
+.rest{display:flex;gap:8px;overflow-x:auto;margin-top:10px}
+.rest button{flex:0 0 auto;width:122px;display:block;padding:5px;text-align:left;font-size:12px;min-height:0}
+.rest img{display:block;width:100%;height:104px;object-fit:contain;background:#000;border-radius:4px;margin-bottom:4px}
+.keybar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  padding:10px 14px;background:#192027;border-top:1px solid var(--line);z-index:6;box-shadow:0 -7px 26px #0005}
+.keybar button{display:inline-flex;align-items:center;gap:8px;max-width:100%}
+.keybar kbd{background:#0e1419;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font:13px ui-monospace,SFMono-Regular,monospace}
+.keybar .primary kbd{background:#0d3a2b;border-color:#439d79}
+.keys-table{border-collapse:collapse}
+.keys-table td{padding:4px 12px 4px 0;vertical-align:top}
+.keys-table kbd{background:#0e1419;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font:13px ui-monospace,monospace}
+@media(max-width:600px){
+  body.labeller{padding-bottom:132px}
+  .strip figure{width:106px}.strip img{height:120px}
+  .pair .frames img{height:184px}
+  .ask{font-size:17px}
+  .keybar{gap:6px;padding:8px}
+  .keybar button{flex:1 1 40%;min-width:0;padding:11px 6px;font-size:14px;justify-content:center}
+  .keybar kbd{display:none}
+}
+
+/* Which camera: the same colours as the review sheets (blue = camera 1, orange = camera 2). */
+.shot-wrap{position:relative;display:inline-block;line-height:0;flex:0 0 auto;border-radius:6px}
+.strip .shot-wrap,.rest .shot-wrap{display:block}
+.shot-wrap.cam1{box-shadow:0 0 0 3px #2f7de1}
+.shot-wrap.cam2{box-shadow:0 0 0 3px #e67a1c}
+.cam-badge{position:absolute;left:4px;top:4px;z-index:1;font:700 12px/1.2 system-ui,sans-serif;color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:.02em}
+.cam1 .cam-badge{background:#2f7de1}
+.cam2 .cam-badge{background:#e67a1c}
+.strip.small .cam-badge,.rest .cam-badge{font-size:10px;padding:1px 4px}
+.warn{margin:8px 0;padding:8px 12px;border-radius:8px;background:#2b2412;border:1px solid #93702f;font-size:14px;line-height:1.45}
+.proposal{margin:10px 0;padding:10px 14px;border-radius:10px;background:#14263a;border:1px solid #3d6fa8;line-height:1.45}
+.proposal .hint{margin-top:4px}
