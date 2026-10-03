@@ -49,6 +49,21 @@ def window_cams(exclude=()):
     return out
 
 
+_STAND = {}
+
+
+def _stand_hit(cam, m):
+    """RA_V2_NOPOSTER=1: does this window mask lie on the advertising stand (poster.npz of the camera, IoU >= 0.4)?"""
+    if os.environ.get('RA_V2_NOPOSTER', '') != '1':
+        return False
+    if not _STAND:
+        _STAND.update(dict(np.load(POSTER)) if POSTER.exists() else {'-': None})
+    p = _STAND.get(cam)
+    if p is None:
+        return False
+    return (m & p).sum() / max(1, (m | p).sum()) >= 0.4
+
+
 class Window:
     """One camera of one window: targets in memory, masks and frames read on demand."""
 
@@ -142,6 +157,8 @@ class Window:
             small[gy1:gy2, gx1:gx2] = cv2.resize(crop, (gx2 - gx1, gy2 - gy1), interpolation=cv2.INTER_AREA)
             small = small >= 0.5
             if small.sum() < MIN_PX:
+                continue
+            if _stand_hit(self.cam, small):                  # RA_V2_NOPOSTER: the advertising stand is not a person
                 continue
             masks.append(small)
             keep.append(i)
@@ -251,11 +268,36 @@ DRAFT_DIRS = ('pseudo_20260925', 'pseudo_20260925_more', 'pseudo_20260925_random
 POSTER = V2 / 'poster.npz'
 
 
+SAM31_STILLS = ROOT / 'data' / 'sam31_stills' / 'drafts'
+SAM31_CLEAN = ROOT / 'data' / os.environ.get('RA_V2_CLEAN_DIR', 'sam31_stills_clean')          # decide.py: the keep/delete network's cleaning of the same maps
+
+
+def sam31_drafts():
+    """RA_V2_DRAFTS=sam31: the same frames with SAM 3.1's labels (sam31_stills.py) instead of yolo26x + SAM 2.1 L."""
+    return os.environ.get('RA_V2_DRAFTS', '') in ('sam31', 'sam31clean')
+
+
+def sam31_clean():
+    """RA_V2_DRAFTS=sam31clean: SAM 3.1 maps cleaned by decide.py (the stand and other not-people are background). A frame that still holds
+    an ignored person (value 254) is left out whole until the loss can ignore a place."""
+    return os.environ.get('RA_V2_DRAFTS', '') == 'sam31clean'
+
+
+def _ignore_frames():
+    p = SAM31_CLEAN / '_ignore_frames.json'
+    return set(json.load(open(p))) if p.exists() else set()
+
+
 def draft_list(exclude_days=('20260918', '20260923')):
     """(label png, image jpg, day, cam, segment) of every draft, the exam day and the held-out day left out."""
     out = []
+    skip = _ignore_frames() if sam31_clean() else set()
     for d in DRAFT_DIRS:
         for p in sorted((DSETS / d / 'drafts').glob('*.png')):
+            if sam31_drafts():
+                p = (SAM31_CLEAN if sam31_clean() else SAM31_STILLS) / p.name
+                if not p.exists() or p.stem in skip:
+                    continue
             parts = p.stem.split('_')
             if parts[0] in exclude_days:
                 continue
@@ -336,6 +378,38 @@ class Drafts:
         self.rng = random.Random(seed)
         self.poster = dict(np.load(POSTER)) if POSTER.exists() else {}
         self._bg = collections.OrderedDict()
+        # the owner's corrected training frames (/fix, taken): this share of the draft frames (RA_V2_GOLD, 0 = none)
+        self.gold_share = float(os.environ.get('RA_V2_GOLD', '0') or 0)
+        self.gold, self._win = [], collections.OrderedDict()
+        if self.gold_share > 0:
+            import v2_teacher_test as TT
+            self.gold = [(it, str(p)) for it, p in TT.fix_items('take', 'train')]
+
+    def gold_one(self):
+        it, lab_p = self.rng.choice(self.gold)
+        if it.get('src') == 'still':                     # a single varied frame (live.py): its file's background
+            img = cv2.imread(str(Path(lab_p).parent / ('%s.jpg' % it['id'])))
+            lab = cv2.imread(lab_p, cv2.IMREAD_UNCHANGED)
+            parts = it['id'].split('_')
+            bg = self.bg(parts[0], parts[1], '_'.join(parts[2:4]))
+            if img is None or lab is None or bg is None:
+                return None
+            lab = lab[:, :, 0] if lab.ndim == 3 else lab
+            return it['cam'], {'img': img, 'bg_long': bg, 'bg_now': bg, 'tg': draft_targets(lab, it['cam'], None)}
+        k = (it['tag'], it['cam'])
+        if k not in self._win:
+            self._win[k] = Window(*k)
+            while len(self._win) > 8:
+                self._win.popitem(last=False)
+        w = self._win[k]
+        img = cv2.imread(str(Path(lab_p).parent / ('%s.jpg' % it['id'])))
+        lab = cv2.imread(lab_p, cv2.IMREAD_UNCHANGED)
+        if img is None or lab is None:
+            return None
+        if lab.ndim == 3:
+            lab = lab[:, :, 0]
+        return it['cam'], {'img': img, 'bg_long': w.bg_long(it['tick']), 'bg_now': np.array(w.bg_now(it['tick'])),
+                           'tg': draft_targets(lab, it['cam'], None)}
 
     def bg(self, day, cam, seg):
         k = (day, cam, seg)
@@ -346,13 +420,16 @@ class Drafts:
         return self._bg[k]
 
     def one(self):
+        if self.gold and self.rng.random() < self.gold_share:
+            return self.gold_one()
         lab_p, img_p, day, cam, seg = self.rng.choice(self.items)
         img = cv2.imread(img_p)
         lab = cv2.imread(lab_p, cv2.IMREAD_UNCHANGED)
         bg = self.bg(day, cam, seg)
         if img is None or lab is None or bg is None:
             return None
-        return cam, {'img': img, 'bg_long': bg, 'bg_now': bg, 'tg': draft_targets(lab, cam, self.poster.get(cam))}
+        poster = None if sam31_drafts() else self.poster.get(cam)        # SAM 3.1 outlines the stand itself
+        return cam, {'img': img, 'bg_long': bg, 'bg_now': bg, 'tg': draft_targets(lab, cam, poster)}
 
     def sample(self, k=2):
         out = []

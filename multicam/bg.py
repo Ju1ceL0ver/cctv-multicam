@@ -14,6 +14,17 @@ def _q(s):
     return "'" + str(s).replace("'", "''") + "'"
 
 
+def _python():
+    """python.exe even when called from the review site, which runs under pythonw: a job started
+    with pythonw has no console streams, and its log would stay empty."""
+    exe = sys.executable
+    if os.path.basename(exe).lower() == 'pythonw.exe':
+        sibling = os.path.join(os.path.dirname(exe), 'python.exe')
+        if os.path.exists(sibling):
+            return sibling
+    return exe
+
+
 def spawn(name, args, env=None, cwd=ROOT, wait=6):
     os.makedirs(LOGS, exist_ok=True)
     log = os.path.join(LOGS, name + '.log')
@@ -23,7 +34,7 @@ def spawn(name, args, env=None, cwd=ROOT, wait=6):
     pre = ''.join('$env:%s=%s; ' % (k, _q(v)) for k, v in (env or {}).items())
     cmd = (pre + 'Start-Process -FilePath %s -ArgumentList %s -WorkingDirectory %s '
            '-RedirectStandardOutput %s -RedirectStandardError %s -WindowStyle Hidden'
-           % (_q(sys.executable), ','.join(_q(a) for a in args), _q(cwd), _q(log), _q(err)))
+           % (_q(_python()), ','.join(_q(a) for a in args), _q(cwd), _q(log), _q(err)))
     subprocess.Popen(['powershell', '-NoProfile', '-Command', cmd], cwd=cwd, close_fds=True,
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(wait)

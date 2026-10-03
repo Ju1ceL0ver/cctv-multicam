@@ -159,9 +159,9 @@ function animateNumbers() { for (const o of NUMS) { if (o.tgt == null) continue;
 // ---- build the page --------------------------------------------------------------------------------------------
 const NAMES = { obj: 'уверенность', l1: 'рамка L1', giou: 'рамка GIoU', bce: 'маска BCE', dice: 'маска Dice', cen: 'центры людей', size: 'размеры людей', bnd: 'границы между людьми',
   state: 'состояние', place: 'положение', zone: 'зона', reid: 'ReID (учителя)', supcon: 'ReID (сравнение)', rel: 'связь треков', same: '«тот же человек»',
-  dn_obj: 'DN уверенность', dn_l1: 'DN рамка L1', dn_giou: 'DN GIoU', dn_bce: 'DN маска BCE', dn_dice: 'DN маска Dice' };
+  box_loss: 'YOLO рамки', seg_loss: 'YOLO маски', cls_loss: 'YOLO класс', sem_loss: 'YOLO семантика', dn_obj: 'DN уверенность', dn_l1: 'DN рамка L1', dn_giou: 'DN GIoU', dn_bce: 'DN маска BCE', dn_dice: 'DN маска Dice' };
 const GROUPS = [['Детекция: рамки', ['obj', 'l1', 'giou']], ['Маски', ['bce', 'dice']], ['Люди на карте', ['cen', 'size', 'bnd']],
-  ['Состояние, положение, зона', ['state', 'place', 'zone']], ['ReID и память', ['reid', 'supcon', 'rel', 'same']], ['Подсказки DN', ['dn_obj', 'dn_l1', 'dn_giou', 'dn_bce', 'dn_dice']]];
+  ['Состояние, положение, зона', ['state', 'place', 'zone']], ['YOLO (мерка)', ['box_loss', 'seg_loss', 'cls_loss', 'sem_loss']], ['ReID и память', ['reid', 'supcon', 'rel', 'same']], ['Подсказки DN', ['dn_obj', 'dn_l1', 'dn_giou', 'dn_bce', 'dn_dice']]];
 const QUAL = [{ k: 'recall', label: 'найдено', color: C.acc }, { k: 'precision', label: 'точность', color: C.ok }, { k: 'f1', label: 'F1', color: '#ffffff' },
   { k: 'hall', label: 'найдено в зале', color: C.pink }, { k: 'small', label: 'мелкие', color: C.warn }, { k: 'mask', label: 'маска IoU', color: C.vio },
   { k: 'idf1', label: 'IDF1 (трекинг)', color: C.cy }, { k: 'owner', label: 'экзамен владельца', color: C.dim },

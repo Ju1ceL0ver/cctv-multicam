@@ -1,13 +1,42 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Визиты, которые стоит проверить</title><link rel="stylesheet" href="/static/review.css"></head><body>
-<header><div class="top"><strong>Визиты, которые стоит проверить</strong>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Разметка визитов</title><link rel="stylesheet" href="/static/review.css"></head><body class="labeller">
+<header><div class="top">
+<strong>Визиты</strong>
 <select id="day" aria-label="День"></select>
-<label>от <select id="minimum" aria-label="Наименьшая длительность визита"><option value="60" selected>60 с</option><option value="120">2 мин</option><option value="300">5 мин</option><option value="30">30 с</option></select></label>
-<a href="/people" style="color:var(--accent)">К разметке людей</a>
-<a href="/visits" style="color:var(--accent)">К связям</a>
-<button id="undo">Отменить</button></div></header>
-<main>
-<p>Здесь только люди, пробывшие в зале дольше выбранного времени. Короткие прохожие галереи система собирает правильно и сюда не попадают. Два вопроса задаются отдельно: не подмешан ли чужой человек и весь ли визит собран. Время — UTC+7.</p>
-<div id="notice" role="status"></div>
-<div id="summary"></div>
-<section id="content">Загрузка…</section>
-</main><script src="/static/longvisits.js"></script></body></html>
+<label class="muted">от <select id="minimum" aria-label="Наименьшая длительность визита">
+<option value="60" selected>60 с</option><option value="120">2 мин</option><option value="300">5 мин</option><option value="30">30 с</option>
+</select></label>
+<span id="progress" class="counter muted"></span>
+<span class="spacer"></span>
+<button id="undo" disabled>Отменить · Z</button>
+<button id="help">Клавиши · ?</button>
+<a href="/day" style="color:var(--accent)">Разметка дня</a>
+<a href="/people" style="color:var(--accent)">Люди</a>
+<a href="/visits" style="color:var(--accent)">Связи</a>
+</div>
+<div id="notice" role="status" aria-live="polite"></div>
+</header>
+<main id="stage">Загрузка…</main>
+<div id="keybar" class="keybar" role="group" aria-label="Ответы"></div>
+<dialog id="helpBox"><div class="top"><strong>Клавиши</strong><button data-close>Закрыть</button></div>
+<table class="keys-table"><tbody>
+<tr><td><kbd>1</kbd></td><td>да · тот же человек</td></tr>
+<tr><td><kbd>2</kbd></td><td>нет · другой человек</td></tr>
+<tr><td><kbd>3</kbd></td><td>не разобрать</td></tr>
+<tr><td><kbd>4</kbd></td><td>это сотрудник, а не покупатель (на первом вопросе) — больше ничего не спросит</td></tr>
+<tr><td><kbd>Enter</kbd></td><td>согласиться с предложенным ответом: подсказкой Claude или итогом проверки границ. Где предложения нет, Enter ничего не делает</td></tr>
+<tr><td><kbd>V</kbd></td><td>видео вокруг сравниваемого момента</td></tr>
+<tr><td><kbd>F</kbd></td><td>открыть этот кадр в видеоредакторе</td></tr>
+<tr><td><kbd>A</kbd></td><td>показать отсеянных и уже отвеченных кандидатов</td></tr>
+<tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>предыдущий · следующий визит, без ответа</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>переспросить этот визит сначала</td></tr>
+<tr><td><kbd>Z</kbd></td><td>отменить последнее сохранённое действие</td></tr>
+</tbody></table>
+<p class="muted">Синяя рамка — камера 1, оранжевая — камера 2. Они смотрят на зал с разных сторон: один человек на них выглядит по-разному.</p>
+<p class="muted">Подсказки Claude — это разметка другого разметчика, не ваша. В число приёмки идёт только то, что сохранили вы; ответы, данные при видимой подсказке, помечаются как такие.</p>
+<p class="muted">Ответы уходят на сервер в фоне, по одному и по порядку. Пока что-то не сохранилось, новые ответы не принимаются — страница скажет об этом красным.</p>
+</dialog>
+<dialog id="player"><div class="top"><strong>Видео вокруг границы</strong><button data-close>Закрыть</button></div>
+<p class="muted">Слева — конец визита, справа — кандидат. Время относится к исходной записи камеры.</p>
+<div id="videos"></div></dialog>
+<script src="/static/longvisits.js"></script></body></html>

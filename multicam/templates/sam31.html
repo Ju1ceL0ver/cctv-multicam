@@ -1,0 +1,62 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAM 3.1 очередь</title>
+<style>
+:root{--bg:#101418;--card:#1a2027;--fg:#e6e9ec;--mut:#8a949e;--ok:#3fb950;--run:#d29922;--open:#30363d;--bad:#f85149;--acc:#58a6ff}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif;padding:16px}
+h1{font-size:18px;margin:0 0 12px}h2{font-size:14px;color:var(--mut);margin:20px 0 8px;font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.k{background:var(--card);border-radius:8px;padding:10px 12px}.k b{display:block;font-size:22px}.k span{color:var(--mut);font-size:12px}
+.bar{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--open);min-width:120px}
+.bar i{display:block}.d{background:var(--ok)}.c{background:var(--run)}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden}
+td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #222a33;white-space:nowrap}th{color:var(--mut);font-weight:500;font-size:12px}
+td.n{text-align:right;font-variant-numeric:tabular-nums}.wrap{overflow-x:auto}
+.tag{padding:1px 6px;border-radius:4px;font-size:12px}.t-done{background:#1f3d2a;color:var(--ok)}.t-run{background:#3d321a;color:var(--run)}.t-wait{background:#262c33;color:var(--mut)}.t-merge{background:#1a2d44;color:var(--acc)}
+.stale{color:var(--bad)}.mut{color:var(--mut)}
+</style></head><body>
+<h1>SAM 3.1 — разметка окон <span id="upd" class="mut" style="font-size:12px;font-weight:400"></span></h1>
+<div class="kpi" id="kpi"></div>
+<h2>Общий прогресс</h2><div class="bar" id="tot" style="height:20px"></div>
+<h2>Окна (день_время / камера)</h2><div class="wrap"><table id="cams"></table></div>
+<h2>Сейчас в работе</h2><div class="wrap"><table id="claimed"></table></div>
+<h2>Воркеры</h2><div class="wrap"><table id="workers"></table></div>
+<script>
+const $=id=>document.getElementById(id);
+const dur=s=>{if(!isFinite(s)||s<0)return'—';s=Math.round(s);const h=s/3600|0,m=(s%3600)/60|0;return h?`${h} ч ${m} мин`:m?`${m} мин ${s%60} с`:`${s} с`};
+const clock=t=>new Date(t*1000).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+const day=t=>new Date(t*1000).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const win=tag=>{const[d,t]=tag.split('_'),m=600+Math.round(+t/60),e=m+15;const f=x=>`${x/60|0}:${String(x%60).padStart(2,'0')}`;return`${d.slice(6,8)}.${d.slice(4,6)} · ≈${f(m)}–${f(e)}`};   // tag seconds from the film start, ~10:00
+const bar=(d,c,t)=>`<div class="bar"><i class="d" style="width:${100*d/t}%"></i><i class="c" style="width:${100*c/t}%"></i></div>`;
+async function tick(){
+ let s;try{s=await(await fetch('/api/sam31/status')).json()}catch(e){$('upd').textContent='нет связи';return}
+ const J=s.jobs,tot=J.open+J.claimed+J.done,now=s.now,left=J.open+J.claimed;
+ const rate=m=>s.done_at.filter(t=>t>now-m*60).length/m;          // jobs per minute over last m min
+ const r30=rate(30),r5=rate(5),eta=left/(r30||1e-9);
+ const act=Object.entries(s.workers).filter(([n,w])=>w.last&&now-w.last<1800&&n!='-');
+ const fps=act.reduce((a,[n,w])=>a+1/w.s_per_frame,0);
+ $('kpi').innerHTML=[
+  [`${(100*J.done/tot).toFixed(1)}%`,`готово ${J.done} из ${tot} задач`],
+  [J.claimed,`в работе · ${J.open} ждут`],
+  [`${(r30*60).toFixed(0)}/ч`,`задач/час за 30 мин (за 5 мин: ${(r5*60).toFixed(0)})`],
+  [`${fps.toFixed(1)} к/с`,`кадров/с суммарно, ${act.length} активных воркеров`],
+  [dur(eta*60),'осталось (по темпу 30 мин)'],
+  [r30?day(now+eta*60):'—','окончание'],
+ ].map(([b,t])=>`<div class="k"><b>${b}</b><span>${t}</span></div>`).join('');
+ $('tot').innerHTML=`<i class="d" style="width:${100*J.done/tot}%"></i><i class="c" style="width:${100*J.claimed/tot}%"></i>`;
+ const merged=new Set(s.merged||[]);
+ $('cams').innerHTML='<tr><th>окно</th><th>камера</th><th>статус</th><th>прогресс</th><th class="n">задач</th><th class="n">кадров</th><th class="n">сбоев</th><th>начато</th><th>ETA окна</th></tr>'+
+  Object.entries(s.cameras).sort().map(([k,c])=>{const[tag,cam]=k.split('/'),t=c.open+c.claimed+c.done;
+   const st=merged.has(k)?'<span class="tag t-merge">собрано</span>':c.done==t?'<span class="tag t-done">готово, склейка</span>':c.done||c.claimed?'<span class="tag t-run">идёт</span>':'<span class="tag t-wait">ждёт</span>';
+   const e=c.done<t&&c.done&&c.last?dur((now-c.first)/c.done*(t-c.done)):'';
+   return`<tr><td>${win(tag)}</td><td>${cam}</td><td>${st}</td><td>${bar(c.done,c.claimed,t)}</td><td class="n">${c.done}/${t}</td><td class="n">${c.frames_done||0}/${c.frames||0}</td><td class="n ${c.fails?'stale':''}">${c.fails||0}</td><td>${c.first?clock(c.first):''}</td><td>${e}</td></tr>`}).join('');
+ $('claimed').innerHTML='<tr><th>задача</th><th>окно</th><th>воркер</th><th class="n">кадров</th><th>держит</th><th>ожидаемо</th></tr>'+
+  s.claimed.sort((a,b)=>b.age-a.age).map(j=>{const w=s.workers[j.worker]||{},exp=j.frames*(w.s_per_frame||1);
+   return`<tr><td class="mut">${j.id}</td><td>${win(j.cam.split('/')[0])} ${j.cam.split('/')[1]}</td><td>${j.worker}</td><td class="n">${j.frames}</td><td class="${j.age>exp*2+300?'stale':''}">${dur(j.age)}</td><td>~${dur(exp)}</td></tr>`}).join('');
+ $('workers').innerHTML='<tr><th>воркер</th><th class="n">задач</th><th class="n">кадров</th><th class="n">с/кадр</th><th class="n">к/с</th><th class="n">сейчас</th><th>последний раз</th></tr>'+
+  Object.entries(s.workers).filter(([n])=>n!='-').sort((a,b)=>b[1].frames-a[1].frames).map(([n,w])=>{
+   const busy=s.claimed.filter(j=>j.worker==n).length,ago=w.last?now-w.last:1e9;
+   return`<tr><td>${n}</td><td class="n">${w.done}</td><td class="n">${w.frames}</td><td class="n">${w.s_per_frame}</td><td class="n">${w.s_per_frame?(1/w.s_per_frame).toFixed(2):''}</td><td class="n">${busy||''}</td><td class="${ago>1800&&!busy?'stale':''}">${w.last?dur(ago)+' назад':'—'}</td></tr>`}).join('');
+ $('upd').textContent='обновлено '+new Date().toLocaleTimeString('ru-RU');
+}
+tick();setInterval(tick,15000);
+</script></body></html>

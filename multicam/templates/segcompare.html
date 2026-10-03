@@ -1,0 +1,93 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Какая сегментация лучше</title><link rel="stylesheet" href="/static/review.css">
+<style>
+.cmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.cmp figure{margin:0;background:#12181e;border:2px solid var(--line);border-radius:10px;padding:6px;cursor:zoom-in}
+.cmp figure.picked{border-color:var(--accent)}
+.cmp figure.chosen{border-color:#f5c542;box-shadow:0 0 0 3px #f5c54255}
+.cmp figcaption{cursor:pointer}
+.cmp img{width:100%;display:block;border-radius:6px}
+.cmp figcaption{font:700 22px system-ui;text-align:center;padding:4px 0}
+#raw{max-width:420px;border-radius:8px;margin-top:10px}
+#big{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:9}
+#big img{max-width:96vw;max-height:94vh}
+@media(max-width:800px){.cmp{grid-template-columns:1fr}}
+</style></head>
+<body class="labeller">
+<header><div class="top"><strong>Какая сегментация лучше</strong><span id="progress" class="counter muted"></span>
+<span class="spacer"></span><a href="/door" style="color:var(--accent)">Дверь</a></div>
+<div class="muted" style="font-size:14px;margin-top:6px">Три разметки одного кадра, порядок каждый раз случайный и скрыт. Смотрите, кто точнее обводит людей:
+не залезает ли на соседа и на стенд, не теряет ли руки, ноги, ребёнка. Отметьте лучшую цифрой (<kbd>1</kbd> А, <kbd>2</kbd> Б, <kbd>3</kbd> В) —
+если две одинаково хороши, отметьте обе — и нажмите <kbd>Enter</kbd>. Щелчок по букве — отметить, по картинке — крупно.</div>
+<div id="notice" role="status"></div></header>
+<main>
+  <p class="ask" id="ask"></p>
+  <section class="cmp" id="cmp"></section>
+  <p class="hint">Кадр без разметки (клавиша R — спрятать/показать):</p>
+  <img id="raw" alt="">
+</main>
+<div class="keybar">
+  <button onclick="toggle('a')"><kbd>1</kbd>А</button><button onclick="toggle('b')"><kbd>2</kbd>Б</button>
+  <button onclick="toggle('c')"><kbd>3</kbd>В</button><button class="primary" onclick="commit()"><kbd>Enter</kbd>Сохранить выбранные</button>
+  <button onclick="answer('same')"><kbd>0</kbd>Все одинаковы</button>
+  <button onclick="step(-1)"><kbd>←</kbd>Назад</button><button onclick="step(1)"><kbd>→</kbd>Дальше</button>
+</div>
+<div id="big" onclick="this.style.display='none'"><img id="bigimg" alt=""></div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+let items = [], A = {}, i = 0, chosen = new Set();
+const NAME = {a: 'А', b: 'Б', c: 'В'};
+const said = a => a.best === 'same' ? 'все одинаковы' : [].concat(a.best).map(l => NAME[l]).join(' и ');
+async function load() {
+  const j = await (await fetch('/api/segcompare')).json();
+  items = j.items; A = j.answers || {};
+  i = Math.max(0, items.findIndex(it => !A[it.id]));
+  show();
+}
+function show() {
+  const it = items[i];
+  const n = Object.keys(A).length;
+  $('#progress').textContent = `отвечено ${n} из ${items.length}` + (n === items.length && n ? ' · готово, спасибо' : '');
+  if (!it) { $('#ask').textContent = 'Кадры ещё готовятся — зайдите позже.'; return; }
+  const a = A[it.id];
+  chosen = new Set(a && a.best !== 'same' ? [].concat(a.best) : []);
+  $('#ask').textContent = `Кадр ${i + 1} из ${items.length}. Какая разметка точнее? Можно отметить две.` + (a ? `  Ваш ответ: ${said(a)}` : '');
+  $('#cmp').innerHTML = ['a', 'b', 'c'].map((l, k) => `<figure id="f_${l}" class="${chosen.has(l) ? 'chosen' : ''}">
+      <figcaption onclick="toggle('${l}')">${'АБВ'[k]}</figcaption><img onclick="zoom('${it.id}_${l}.jpg')" src="/segcompare-img/${it.id}_${l}.jpg"></figure>`).join('');
+  $('#raw').src = `/segcompare-img/${it.id}_raw.jpg`;
+  for (const k of [1, 2]) { const n2 = items[i + k]; if (n2) for (const l of ['a', 'b', 'c']) new Image().src = `/segcompare-img/${n2.id}_${l}.jpg`; }
+}
+window.zoom = name => { $('#bigimg').src = '/segcompare-img/' + name; $('#big').style.display = 'flex'; };
+window.toggle = l => {
+  chosen.has(l) ? chosen.delete(l) : chosen.add(l);
+  for (const x of ['a', 'b', 'c']) { const f = $('#f_' + x); if (f) f.className = chosen.has(x) ? 'chosen' : ''; }
+};
+function commit() {
+  if (!chosen.size) { $('#notice').textContent = 'Отметьте хотя бы одну: 1, 2 или 3'; return; }
+  answer(chosen.size === 1 ? [...chosen][0] : [...chosen].sort());
+}
+async function answer(best) {
+  const it = items[i]; if (!it) return;
+  const r = await fetch('/api/segcompare', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: it.id, best})});
+  if (!r.ok) { $('#notice').textContent = 'Не сохранилось'; return; }
+  A[it.id] = {best}; $('#notice').textContent = '';
+  let k = items.findIndex((x, j) => j > i && !A[x.id]);
+  if (k < 0) k = items.findIndex(x => !A[x.id]);
+  i = k < 0 ? i : k; show();
+}
+function step(d) { i = Math.min(items.length - 1, Math.max(0, i + d)); show(); }
+document.addEventListener('keydown', ev => {
+  if ($('#big').style.display === 'flex') { $('#big').style.display = 'none'; return; }
+  const code = ev.code || '', k = /^Digit\d$/.test(code) ? code.slice(5) : /^Numpad\d$/.test(code) ? code.slice(6) : ev.key;
+  const map = {'1': 'a', '2': 'b', '3': 'c'};
+  if (map[k]) { toggle(map[k]); ev.preventDefault(); }
+  else if (k === '0') { answer('same'); ev.preventDefault(); }
+  else if (ev.key === 'Enter') { commit(); ev.preventDefault(); }
+  else if (ev.key === 'ArrowLeft') step(-1);
+  else if (ev.key === 'ArrowRight') step(1);
+  else if (code === 'KeyR' || /^[rк]$/i.test(ev.key)) { const r = $('#raw'); r.hidden = !r.hidden; }
+});
+load();
+</script>
+</body></html>

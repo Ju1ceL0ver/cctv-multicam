@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Сведение пола</title>
+<style>
+:root{--bg:#111418;--panel:#1b2027;--ink:#e6e9ee;--dim:#8b94a3;--acc:#4da3ff;--c2:#ff9f43;--ok:#3ecf8e;--bad:#ff5d6c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;overflow:hidden}
+header{display:flex;gap:16px;align-items:center;padding:8px 14px;background:var(--panel);border-bottom:1px solid #2a313b}
+header b{font-size:15px}.pill{padding:3px 9px;border-radius:99px;background:#262d37;color:var(--dim)}
+.pill.ok{background:#173d2e;color:var(--ok)}.pill.bad{background:#402026;color:var(--bad)}
+main{display:flex;gap:8px;padding:8px;height:calc(100vh - 124px)}
+.view{position:relative;flex:1;background:#000;border-radius:8px;overflow:hidden}
+.view canvas{width:100%;height:100%;display:block;cursor:crosshair}
+.tag{position:absolute;top:8px;left:8px;padding:3px 10px;border-radius:6px;font-weight:600;border:2px solid}
+#v1 .tag{border-color:var(--acc);color:var(--acc);background:#0b1a2acc}#v2 .tag{border-color:var(--c2);color:var(--c2);background:#2a1a0bcc}
+#loupe{position:fixed;width:180px;height:180px;border-radius:50%;border:2px solid #fff8;pointer-events:none;display:none;box-shadow:0 4px 20px #000a}
+footer{padding:6px 14px;color:var(--dim);font-size:13px;background:var(--panel);border-top:1px solid #2a313b}
+kbd{background:#2a313b;border-radius:4px;padding:1px 6px;color:var(--ink);font-size:12px}
+input[type=range]{width:170px;vertical-align:middle}
+select{background:#262d37;color:var(--ink);border:1px solid #394251;border-radius:6px;padding:3px}
+</style></head><body>
+<header><b>Сведение пола двух камер</b>
+<span class="pill" id="count">0 пар</span><span class="pill" id="err">нужно ≥ 4 пар</span>
+<span class="pill" id="hint">щёлкни точку на полу на любой камере</span>
+<select id="bgsel"></select><span class="pill" id="save"></span></header>
+<div id="tools" style="display:flex;gap:14px;align-items:center;padding:6px 14px;background:#161b21;border-bottom:1px solid #2a313b;font-size:13px;flex-wrap:wrap">
+<label><input type="checkbox" id="ov"> наложить камеру 1 на камеру 2 <kbd>O</kbd></label>
+<label>прозрачность <input type="range" id="op" min="0" max="100" value="50"></label>
+<label>← → <input type="range" class="adj" id="dx" min="-3000" max="3000" value="0"></label>
+<label>↑ ↓ <input type="range" class="adj" id="dy" min="-3000" max="3000" value="0"></label>
+<label>поворот <input type="range" class="adj" id="rot" min="-1800" max="1800" value="0"></label>
+<label>масштаб <input type="range" class="adj" id="sc" min="-1000" max="1000" value="0"></label>
+<label>наклон ↔ <input type="range" class="adj" id="tx" min="-3000" max="3000" value="0"></label>
+<label>наклон ↕ <input type="range" class="adj" id="ty" min="-3000" max="3000" value="0"></label>
+<button id="reset">сбросить</button><button id="keep">сохранить подгонку</button>
+<span style="color:var(--dim)">жёлтые точки на камере 2 можно тянуть мышью — так ставится любое положение. Совмещай только пол: швы плитки, коврик, низ стоек. Стены и стойки не совпадут — так и должно быть. <kbd>B</kbd> — мигнуть</span></div>
+<main><div class="view" id="v1"><canvas></canvas><span class="tag">КАМЕРА 1</span></div>
+<div class="view" id="v2"><canvas></canvas><span class="tag">КАМЕРА 2</span></div></main>
+<canvas id="loupe" width="180" height="180"></canvas>
+<footer>Щелчок — точка на полу (сначала на одной камере, потом та же точка на другой) · наведи — на другой камере крестик, куда эта точка должна попасть ·
+<kbd>Z</kbd> отменить · <kbd>Esc</kbd> сбросить начатую · <kbd>Del</kbd> удалить пару под мышкой · <kbd>[</kbd> <kbd>]</kbd> другой кадр · <kbd>H</kbd> скрыть точки ·
+Лучше всего: углы плитки и швы в зоне, которую видят обе камеры, и по краям этой зоны. Красные номера — пара с большой ошибкой, проверь её.</footer>
+<script>
+const RAW=[2560,1440];let pairs=[],pending=null,fit=null,bgs=[],bgi=0,hide=false,hover=null,cross=null,imgs={};
+const V={cam1:document.querySelector('#v1 canvas'),cam2:document.querySelector('#v2 canvas')};
+const loupe=document.getElementById('loupe'),lctx=loupe.getContext('2d');
+function geo(c){const r=c.getBoundingClientRect(),s=Math.min(r.width/RAW[0],r.height/RAW[1]);
+ return {r,s,ox:(r.width-RAW[0]*s)/2,oy:(r.height-RAW[1]*s)/2}}
+function toRaw(c,e){const g=geo(c);return [(e.clientX-g.r.left-g.ox)/g.s,(e.clientY-g.r.top-g.oy)/g.s]}
+function draw(){for(const cam of ['cam1','cam2']){const c=V[cam],g=geo(c),x=c.getContext('2d');
+ c.width=g.r.width*devicePixelRatio;c.height=g.r.height*devicePixelRatio;x.scale(devicePixelRatio,devicePixelRatio);
+ x.fillStyle='#000';x.fillRect(0,0,g.r.width,g.r.height);
+ if(imgs[cam]&&imgs[cam].complete)x.drawImage(imgs[cam],g.ox,g.oy,RAW[0]*g.s,RAW[1]*g.s);
+ const P=([a,b])=>[g.ox+a*g.s,g.oy+b*g.s];
+ if(!hide)pairs.forEach((p,i)=>{const [a,b]=P(p[cam==='cam1'?'c1':'c2']),e=fit&&fit.err[i],bad=e>25;
+  x.strokeStyle=bad?'#ff5d6c':(cam==='cam1'?'#4da3ff':'#ff9f43');x.lineWidth=2;x.beginPath();x.arc(a,b,6,0,7);x.stroke();
+  x.fillStyle=bad?'#ff5d6c':'#fff';x.font='bold 13px system-ui';x.fillText(String(i+1),a+8,b-8)});
+ if(pending&&pending.cam===cam){const [a,b]=P(pending.pt);x.fillStyle='#fff';x.beginPath();x.arc(a,b,5,0,7);x.fill()}
+ if(cam==='cam2'&&ovOn&&ovImg&&ovImg.complete){x.globalAlpha=+document.getElementById('op').value/100;x.drawImage(ovImg,g.ox,g.oy,RAW[0]*g.s,RAW[1]*g.s);x.globalAlpha=1}
+ if(cam==='cam2'&&ovOn&&fit){const H=Hfinal();const q=HANDLES.map(p=>P(ap(H,p)));x.strokeStyle='#ffe066';x.lineWidth=1.5;x.beginPath();q.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.stroke();
+  q.forEach(([a,b])=>{x.fillStyle='#ffe066';x.beginPath();x.arc(a,b,7,0,7);x.fill()})}
+ if(cross&&cross.cam===cam){const [a,b]=P(cross.pt);x.strokeStyle='#3ecf8e';x.lineWidth=2;
+  x.beginPath();x.moveTo(a-14,b);x.lineTo(a+14,b);x.moveTo(a,b-14);x.lineTo(a,b+14);x.stroke()}}}
+function status(){document.getElementById('count').textContent=pairs.length+' пар';
+ const e=document.getElementById('err');if(!fit){e.className='pill';e.textContent='нужно ≥ 4 пар'}
+ else{e.className='pill '+(fit.median<12?'ok':'bad');e.textContent='ошибка: медиана '+fit.median+' px, худшая '+fit.max+' px'}
+ document.getElementById('hint').textContent=pending?('теперь та же точка на '+(pending.cam==='cam1'?'КАМЕРЕ 2':'КАМЕРЕ 1')):'щёлкни точку на полу на любой камере'}
+async function save(){const s=document.getElementById('save');s.textContent='сохраняю…';
+ try{const r=await fetch('/api/floorpair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(manual?{pairs,bg:bgs[bgi],manual,H_final:Hfinal()}:{pairs,bg:bgs[bgi]})});
+  fit=(await r.json()).fit;s.textContent='сохранено';warp()}catch(e){s.textContent='НЕ СОХРАНЕНО — повтори'}status();draw()}
+function setBg(i){bgi=(i+bgs.length)%bgs.length;const [a,b]=bgs[bgi];document.getElementById('bgsel').value=bgi;
+ for(const [cam,n] of [['cam1',a],['cam2',b]]){const im=new Image();im.onload=draw;im.src='/api/floorpair/bg/'+n;imgs[cam]=im}}
+let tq=0;async function preview(cam,pt){if(!fit)return;const my=++tq;
+ const r=await fetch('/api/floorpair/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({H:fit.H,mode:fit.mode,cam,pts:[pt]})});
+ if(my!==tq)return;cross={cam:cam==='cam1'?'cam2':'cam1',pt:(await r.json()).pts[0]};draw()}
+let last=0;
+V.cam2.addEventListener('mousedown',e=>{if(!ovOn||!fit)return;const p=toRaw(V.cam2,e),H=Hfinal(),g=geo(V.cam2);
+ HANDLES.forEach((h,i)=>{const q=ap(H,h);if(Math.hypot(q[0]-p[0],q[1]-p[1])*g.s<12)drag=i});if(drag>=0){e.preventDefault();e.stopImmediatePropagation()}},true);
+addEventListener('mousemove',e=>{if(drag<0)return;const p=toRaw(V.cam2,e),H=Hfinal();const dst=HANDLES.map((h,i)=>i===drag?p:ap(H,h));
+ const Hn=hom(HANDLES,dst);D=mm(inv3(corr()),mm(Hn,inv3(fit.H)));draw();warp()});
+addEventListener('mouseup',e=>{if(drag>=0){drag=-1;V.cam2.dataset.skip='1'}});
+V.cam2.addEventListener('click',e=>{if(V.cam2.dataset.skip){delete V.cam2.dataset.skip;e.stopImmediatePropagation()}},true);
+for(const cam of ['cam1','cam2']){const c=V[cam];
+ c.addEventListener('mousemove',e=>{hover={cam,pt:toRaw(c,e)};showLoupe(cam,e);const t=Date.now();if(t-last>120){last=t;preview(cam,hover.pt)}});
+ c.addEventListener('mouseleave',()=>{loupe.style.display='none';hover=null;cross=null;draw()});
+ c.addEventListener('click',e=>{const pt=toRaw(c,e);
+  if(!pending||pending.cam===cam){pending={cam,pt}}
+  else{pairs.push(cam==='cam2'?{c1:pending.pt,c2:pt}:{c1:pt,c2:pending.pt});pending=null;save()}
+  status();draw()})}
+function showLoupe(cam,e){const im=imgs[cam];if(!im||!im.complete)return;const [x,y]=toRaw(V[cam],e),k=im.naturalWidth/RAW[0],Z=5;
+ loupe.style.display='block';loupe.style.left=(e.clientX+24)+'px';loupe.style.top=(e.clientY-200)+'px';
+ lctx.imageSmoothingEnabled=false;lctx.fillStyle='#000';lctx.fillRect(0,0,180,180);
+ const w=180/Z;lctx.drawImage(im,x*k-w/2,y*k-w/2,w,w,0,0,180,180);
+ lctx.strokeStyle='#ff3';lctx.beginPath();lctx.moveTo(90,78);lctx.lineTo(90,102);lctx.moveTo(78,90);lctx.lineTo(102,90);lctx.stroke()}
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+ if(k==='z'||k==='я'){if(pending)pending=null;else if(pairs.length){pairs.pop();save()}}
+ else if(k==='escape')pending=null;
+ else if((k==='delete'||k==='backspace')&&hover){const key=hover.cam==='cam1'?'c1':'c2';let bi=-1,bd=1e9;
+  pairs.forEach((p,i)=>{const d=Math.hypot(p[key][0]-hover.pt[0],p[key][1]-hover.pt[1]);if(d<bd){bd=d;bi=i}});
+  if(bi>=0&&bd<40){pairs.splice(bi,1);save()}}
+ else if(k==='['||k==='х')setBg(bgi-1);else if(k===']'||k==='ъ')setBg(bgi+1);
+ else if(k==='h'||k==='р')hide=!hide;
+ status();draw()});
+document.getElementById('bgsel').onchange=e=>{setBg(+e.target.value);warp()};
+let ovOn=false,ovImg=null,manual=null;
+const mm=(A,B)=>A.map((r,i)=>B[0].map((_,j)=>r[0]*B[0][j]+r[1]*B[1][j]+r[2]*B[2][j]));
+function corr(){const v=id=>+document.getElementById(id).value,c=[1280,720],a=v('rot')/10*Math.PI/180,k=Math.pow(10,v('sc')/1000);
+ const T=(x,y)=>[[1,0,x],[0,1,y],[0,0,1]];
+ const R=[[k*Math.cos(a),-k*Math.sin(a),0],[k*Math.sin(a),k*Math.cos(a),0],[0,0,1]];
+ const P=[[1,0,0],[0,1,0],[v('tx')*1e-6,v('ty')*1e-6,1]];
+ return mm(T(v('dx'),v('dy')),mm(T(c[0],c[1]),mm(R,mm(P,T(-c[0],-c[1])))))}
+let D=[[1,0,0],[0,1,0],[0,0,1]];
+function Hfinal(){return fit?mm(corr(),mm(D,fit.H)):null}
+function inv3(m){const [a,b,c]=m[0],[d,e,f]=m[1],[g,h,i]=m[2],A=e*i-f*h,B=-(d*i-f*g),C=d*h-e*g,det=a*A+b*B+c*C;
+ return [[A/det,-(b*i-c*h)/det,(b*f-c*e)/det],[B/det,(a*i-c*g)/det,-(a*f-c*d)/det],[C/det,-(a*h-b*g)/det,(a*e-b*d)/det]]}
+function hom(src,dst){const M=[],r=[];for(let k=0;k<4;k++){const [x,y]=src[k],[u,v]=dst[k];
+  M.push([x,y,1,0,0,0,-u*x,-u*y]);r.push(u);M.push([0,0,0,x,y,1,-v*x,-v*y]);r.push(v)}
+ for(let c=0;c<8;c++){let p=c;for(let q=c+1;q<8;q++)if(Math.abs(M[q][c])>Math.abs(M[p][c]))p=q;[M[c],M[p]]=[M[p],M[c]];[r[c],r[p]]=[r[p],r[c]];
+  for(let q=0;q<8;q++)if(q!==c){const f=M[q][c]/M[c][c];for(let k=c;k<8;k++)M[q][k]-=f*M[c][k];r[q]-=f*r[c]}}
+ const h=r.map((v,c)=>v/M[c][c]);return [[h[0],h[1],h[2]],[h[3],h[4],h[5]],[h[6],h[7],1]]}
+const HANDLES=[[640,760],[1920,760],[1920,1320],[640,1320]];
+function ap(H,[x,y]){const w=H[2][0]*x+H[2][1]*y+H[2][2];return [(H[0][0]*x+H[0][1]*y+H[0][2])/w,(H[1][0]*x+H[1][1]*y+H[1][2])/w]}
+let drag=-1;
+let wq=0;function warp(){if(!ovOn||!fit)return;if(fit.mode!=='raw'){document.getElementById('save').textContent='наложение только для прямой привязки';return}
+ const my=++wq;setTimeout(()=>{if(my!==wq)return;const im=new Image();im.onload=()=>{if(my===wq){ovImg=im;draw()}};
+  im.src='/api/floorpair/warp?bg='+encodeURIComponent(bgs[bgi][0])+'&h='+encodeURIComponent(JSON.stringify(Hfinal()))},120)}
+document.getElementById('ov').onchange=e=>{ovOn=e.target.checked;warp();draw()};
+document.getElementById('op').oninput=draw;
+document.querySelectorAll('.adj').forEach(el=>el.oninput=warp);
+document.getElementById('reset').onclick=()=>{document.querySelectorAll('.adj').forEach(el=>el.value=0);D=[[1,0,0],[0,1,0],[0,0,1]];warp();draw()};
+document.getElementById('keep').onclick=async()=>{manual=Object.fromEntries([...document.querySelectorAll('.adj')].map(el=>[el.id,+el.value]));manual.D=D;
+ const s=document.getElementById('save');s.textContent='сохраняю…';
+ const r=await fetch('/api/floorpair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pairs,bg:bgs[bgi],manual,H_final:Hfinal()})});
+ s.textContent=r.ok?'подгонка сохранена':'НЕ СОХРАНЕНО'};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+ if(k==='o'||k==='щ'){const c=document.getElementById('ov');c.checked=!c.checked;c.onchange({target:c})}
+ if(k==='b'||k==='и'){ovOn=!ovOn;draw();if(ovOn)warp()}});
+addEventListener('resize',draw);
+(async()=>{const d=await (await fetch('/api/floorpair')).json();pairs=d.state.pairs||[];fit=d.fit;bgs=d.backgrounds;
+ if(d.state.manual){manual=d.state.manual;if(manual.D)D=manual.D}
+ if(d.state.manual)for(const [k,v] of Object.entries(d.state.manual)){const el=document.getElementById(k);if(el)el.value=v}
+ const sel=document.getElementById('bgsel');bgs.forEach((b,i)=>{const o=document.createElement('option');o.value=i;o.textContent=b[0].replace('_cam1','').replace('.jpg','');sel.appendChild(o)});
+ let i=bgs.findIndex(b=>b[0]===(d.state.bg||[])[0]);if(i<0)i=bgs.findIndex(b=>b[0].startsWith('20260922'));setBg(Math.max(0,i));status()})();
+</script></body></html>

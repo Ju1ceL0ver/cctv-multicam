@@ -8,7 +8,7 @@ from flask import abort, jsonify, render_template, request, send_file
 from rawsource import FPS
 from review_store import Conflict, read_state
 from storage import read_json
-from video_media import display_image, frame_image, metadata, validate_frame, video_window
+from video_media import display_image, frame_image, metadata, person_roi, validate_frame, video_window
 
 
 def register(app, clip_folder, root):
@@ -82,10 +82,17 @@ def register(app, clip_folder, root):
     @app.get('/api/video/<clip>/image')
     def video_image(clip):
         try:
+            folder = clip_folder(clip)
+            cam, frame = request.args.get('cam'), request.args.get('frame', 0)
             roi = request.args.get('roi')
             if roi is not None:
                 roi = [int(v) for v in roi.split(',')]
-            path, identity = display_image(clip_folder(clip), request.args.get('cam'), request.args.get('frame', 0),
+            # `box` is one person's detection: the server pads and clamps it, so a review
+            # page asking for twelve people does not download twelve full-size frames.
+            elif request.args.get('box'):
+                roi = person_roi(folder, cam, frame, [int(v) for v in request.args['box'].split(',')],
+                                 pad=float(request.args.get('pad', 0.35)))
+            path, identity = display_image(folder, cam, frame,
                                            preview=request.args.get('preview') == '1', roi=roi)
             response = send_file(path, conditional=True)
             response.headers['X-Raw-Frame'] = str(identity['clip_frame'])

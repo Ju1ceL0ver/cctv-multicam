@@ -96,6 +96,48 @@ def frame_image(folder, cam, frame):
     return path, identity
 
 
+def source_dimensions(folder, cam, original=None):
+    """The camera's native picture size, remembered the first time a frame is read."""
+    dimensions = read_json(Path(folder) / 'review_media/source.json', {}).get('dimensions', {}).get(cam)
+    if dimensions is not None:
+        return dimensions
+    image = cv2.imread(str(original)) if original is not None else None
+    if image is None:
+        raise ValueError('Не удалось прочитать исходный кадр')
+    remember_dimensions(folder, cam, image)
+    return [image.shape[1], image.shape[0]]
+
+
+def person_roi(folder, cam, frame, box, pad=0.35, smallest=64):
+    """A padded, in-bounds rectangle around one detection, for showing this person.
+
+    A review screen holds a dozen people at once. Serving each of them as the whole
+    2560x1440 frame ships megabytes to draw a figure 200 px tall, and over the tunnel that
+    is what makes the queue feel slow. This is the rectangle the page actually looks at;
+    the full frame stays one click away and remains the only thing annotations refer to.
+    """
+    try:
+        width, height = source_dimensions(folder, cam)
+    except ValueError:
+        # Nothing has been read from this camera yet, so one frame has to be decoded to
+        # learn its size. Every later crop from it is then free of that cost.
+        width, height = source_dimensions(folder, cam, frame_image(folder, cam, frame)[0])
+    x1, y1, x2, y2 = (float(v) for v in box)
+    if not (x2 > x1 and y2 > y1):
+        raise ValueError('Пустая рамка человека')
+    pad = min(max(float(pad), 0.0), 2.0)
+    grow_x = max((x2 - x1) * pad, (smallest - (x2 - x1)) / 2, 0.0)
+    grow_y = max((y2 - y1) * pad, (smallest - (y2 - y1)) / 2, 0.0)
+    left = max(0, int(math.floor(x1 - grow_x)))
+    top = max(0, int(math.floor(y1 - grow_y)))
+    right = min(int(width), int(math.ceil(x2 + grow_x)))
+    bottom = min(int(height), int(math.ceil(y2 + grow_y)))
+    # A box that sits outside the picture entirely still has to produce something to look at.
+    left = min(left, int(width) - 1)
+    top = min(top, int(height) - 1)
+    return [left, top, max(right, left + 1), max(bottom, top + 1)]
+
+
 def display_image(folder, cam, frame, *, preview=False, roi=None):
     """Small overview or native-resolution crop; annotations keep raw coordinates.
 
@@ -105,13 +147,7 @@ def display_image(folder, cam, frame, *, preview=False, roi=None):
     original, identity = frame_image(folder, cam, frame)
     if not preview and roi is None:
         return original, identity
-    dimensions = read_json(Path(folder) / 'review_media/source.json', {}).get('dimensions', {}).get(cam)
-    if dimensions is None:
-        image = cv2.imread(str(original))
-        if image is None:
-            raise ValueError('Не удалось прочитать исходный кадр')
-        remember_dimensions(folder, cam, image)
-        dimensions = [image.shape[1], image.shape[0]]
+    dimensions = source_dimensions(folder, cam, original)
     if roi is not None:
         if (not isinstance(roi, (list, tuple)) or len(roi) != 4 or
                 any(type(v) is not int for v in roi)):

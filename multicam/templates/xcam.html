@@ -1,0 +1,137 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Один человек на двух камерах</title><link rel="stylesheet" href="/static/review.css">
+<style>
+#stage{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.6fr);gap:14px;margin-top:8px;align-items:start}
+@media (max-width:820px){ #stage{grid-template-columns:1fr} }
+.panel{background:#0b0f13;border-radius:10px;padding:8px;color:#fff}
+.panel h3{margin:0 0 6px;font:600 14px system-ui}
+.panel .frame{width:100%;display:block;border-radius:6px}
+#ask{height:300px;display:block;margin:8px auto 0;border-radius:6px}
+#offer{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#offer figure{margin:0;position:relative;cursor:pointer;border:3px solid transparent;border-radius:8px;overflow:hidden}
+#offer figure.chosen{border-color:#f5c542}
+#offer img{height:220px;display:block}
+#offer figcaption{position:absolute;left:4px;top:4px;background:#f5c542;color:#000;font:800 18px system-ui;padding:1px 8px;border-radius:5px}
+#tag{font:600 13px system-ui;margin-left:8px}
+#given{margin-left:8px;background:#f5c542;color:#000;padding:2px 10px;border-radius:6px;font:800 14px system-ui;display:none}
+.hint{margin-top:8px;font-size:13px}
+</style></head>
+<body class="labeller">
+<header><div class="top"><strong>Один человек на двух камерах</strong><span id="tag" class="muted"></span><span id="given"></span>
+<span class="spacer"></span><span id="progress" class="counter muted"></span></div>
+<div id="notice" role="status"></div></header>
+<main>
+  <div id="stage">
+    <div class="panel"><h3>Камера 1 — этот человек</h3><img id="f1" class="frame" alt=""><img id="ask" alt=""></div>
+    <div class="panel"><h3>Камера 2 в тот же момент — кто из них он?</h3><img id="f2" class="frame" alt=""><div id="offer"></div></div>
+  </div>
+  <div class="hint muted">Цифра — номер человека на камере 2, который тот же, что слева. <b>0</b> — его нет среди них
+    (другая камера его не видит). <b>X</b> — не понять. Щелчок по вырезке — то же, что цифра.</div>
+</main>
+<div class="keybar">
+  <button onclick="give(1)"><kbd>1</kbd>…<kbd>9</kbd>тот же</button>
+  <button onclick="give(0)"><kbd>0</kbd>нет среди них</button>
+  <button onclick="give(-1)"><kbd>X</kbd>не понять</button>
+  <button onclick="undo()"><kbd>Z</kbd>отменить</button>
+  <button onclick="back()"><kbd>←</kbd>назад</button><button onclick="fwd()"><kbd>→</kbd>дальше</button>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+let todo = [], recent = [], given = {}, meta = {}, cur = null, viewing = null, total = 0, done = 0;
+const outbox = [];
+const V = '?o=3';                     // image version: outlines (old cached pictures had boxes)
+let sending = false, loaded = false;
+
+async function refill() {
+  const j = await (await fetch('/api/xcam?n=200')).json();
+  Object.assign(meta, j.meta);
+  const seen = new Set([...recent, ...todo, cur].filter(Boolean));
+  todo = todo.concat(j.todo.filter(i => !seen.has(i) && given[i] === undefined));
+  if (!recent.length) { recent = j.recent; Object.assign(given, j.answers); }
+  total = j.total;
+  if (!loaded) { done = j.done; loaded = true; }
+  if (!cur) next();
+  counters();
+}
+function counters() { $('#progress').textContent = `размечено ${done} из ${total}`; }
+function show(id) {
+  viewing = id;
+  const m = meta[id] || {};
+  $('#f1').src = `/xcam-img/${id}/frame1${V}`;
+  $('#ask').src = `/xcam-img/${id}/crop1${V}`;
+  $('#f2').src = `/xcam-img/${id}/frame2${V}`;
+  const off = $('#offer'); off.innerHTML = '';
+  for (let k = 1; k <= (m.offered || 0); k++) {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<img src="/xcam-img/${id}/crop2/${k}${V}" alt=""><figcaption>${k}</figcaption>`;
+    fig.onclick = () => give(k);
+    if (given[id] === k) fig.classList.add('chosen');
+    off.appendChild(fig);
+  }
+  $('#tag').textContent = m.day ? `${m.day.slice(6, 8)}.${m.day.slice(4, 6)}` : '';
+  const g = given[id];
+  $('#given').style.display = g === undefined ? 'none' : 'inline';
+  $('#given').textContent = g === undefined ? '' : g > 0 ? `тот же: ${g}` : g === 0 ? 'нет среди них' : 'не понять';
+  for (const n of todo.slice(0, 2)) { new Image().src = `/xcam-img/${n}/frame1${V}`; new Image().src = `/xcam-img/${n}/frame2${V}`; }
+}
+function next() {
+  cur = todo.shift() || null;
+  if (!cur) { $('#tag').textContent = 'Все размечены'; viewing = null; return; }
+  show(cur);
+  if (todo.length < 20) refill();
+}
+async function pump() {
+  if (sending) return;
+  sending = true;
+  while (outbox.length) {
+    const a = outbox[0];
+    try {
+      const r = await fetch('/api/xcam', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(a)});
+      if (r.status >= 400 && r.status < 500) { $('#notice').textContent = 'Не принято: ' + a.id; outbox.shift(); continue; }
+      if (!r.ok) throw new Error(r.status);
+      outbox.shift(); $('#notice').textContent = '';
+    } catch (e) { $('#notice').textContent = 'Нет связи, повторю…'; await new Promise(z => setTimeout(z, 3000)); }
+  }
+  sending = false;
+}
+window.give = k => {
+  const id = viewing; if (!id) return;
+  const m = meta[id] || {};
+  if (k > (m.offered || 0)) return;                 // no such person on camera 2
+  if (given[id] === undefined) done++;
+  given[id] = k;
+  recent = recent.filter(x => x !== id).concat([id]);
+  outbox.push({id, match: k}); pump();
+  counters();
+  if (id === cur) next(); else show(cur || id);
+};
+window.undo = () => {
+  const id = recent[recent.length - 1]; if (!id) return;
+  done--; delete given[id];
+  recent.pop();
+  outbox.push({id, match: null}); pump();
+  if (cur) todo.unshift(cur);
+  cur = id; show(id); counters();
+};
+window.back = () => {
+  const k = recent.indexOf(viewing);
+  const id = k > 0 ? recent[k - 1] : (k < 0 ? recent[recent.length - 1] : null);
+  if (id) show(id);
+};
+window.fwd = () => {
+  const k = recent.indexOf(viewing);
+  if (k >= 0 && k < recent.length - 1) show(recent[k + 1]); else if (cur) show(cur);
+};
+addEventListener('beforeunload', e => { if (outbox.length) { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('keydown', ev => {
+  const code = ev.code || '', k = /^Digit\d$/.test(code) ? code.slice(5) : /^Numpad\d$/.test(code) ? code.slice(6) : ev.key;
+  if (/^[0-9]$/.test(k)) { give(+k); ev.preventDefault(); }
+  else if (code === 'KeyX' || /^[xч]$/i.test(ev.key)) give(-1);
+  else if (code === 'KeyZ' || /^[zя]$/i.test(ev.key)) undo();
+  else if (ev.key === 'ArrowLeft') back();
+  else if (ev.key === 'ArrowRight') fwd();
+});
+refill();
+</script>
+</body></html>

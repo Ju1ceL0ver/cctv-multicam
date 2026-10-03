@@ -19,6 +19,8 @@ app = Flask(__name__)
 
 @app.before_request
 def gate():
+    if request.path.startswith('/api/jobs/'):     # SAM 3.1 workers: their own key, checked there
+        return None
     if request.args.get('key') and secrets.compare_digest(request.args['key'], KEY):
         args = {k: v for k, v in request.args.items() if k != 'key'}
         target = request.path + (('?' + '&'.join('%s=%s' % kv for kv in args.items())) if args else '')
@@ -511,14 +513,14 @@ def long_visits_api(day):
     """The people who stayed. Reviewing clips in order spends most of a session on
     passers-by the machine already gets right; these are the visits worth an answer."""
     if not re.fullmatch(r'\d{8}', day): abort(400)
-    from long_visits import queue, judge, MINIMUM_SECONDS
+    from long_visits import answer, queue, MINIMUM_SECONDS
     try:
         seconds = float(request.args.get('seconds', MINIMUM_SECONDS))
     except ValueError:
         abort(400)
     try:
         return jsonify(queue(day, seconds, ROOT) if request.method == 'GET'
-                       else judge(day, request.get_json(force=True), ROOT))
+                       else answer(day, request.get_json(force=True), ROOT))
     except (ValueError, KeyError, TypeError) as e:
         return jsonify({'error': str(e)}), 409
 
@@ -551,6 +553,34 @@ def legacy_pieces():
 from video_api import register as register_video_api
 register_video_api(app, clip_folder, ROOT)
 
+from day_player import register as register_day_player
+register_day_player(app, lambda: ROOT)
+
+from day_movie import register as register_day_movie
+register_day_movie(app, lambda: ROOT)
+
+from door_review import register as register_door
+register_door(app, lambda: ROOT)
+
+from seg_compare import register as register_segcompare
+register_segcompare(app, lambda: ROOT)
+
+from paint import register as register_paint
+register_paint(app, lambda: ROOT)
+
+from rate import register as register_rate
+register_rate(app, lambda: ROOT)
+
+from inout import register as register_inout
+register_inout(app, lambda: ROOT)
+
+from xcam import register as register_xcam
+register_xcam(app, lambda: ROOT)
+
+
+from sam31_jobs import register as register_sam31_jobs
+register_sam31_jobs(app, lambda: ROOT)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5070, threaded=True)
+

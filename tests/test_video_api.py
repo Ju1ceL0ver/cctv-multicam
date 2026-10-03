@@ -7,6 +7,7 @@ from storage import atomic_json
 from review_store import read_state, transact, Conflict
 from video_annotations import video_transact, frame_data
 from video_api import accept_sam_proposals
+from video_media import display_image, person_roi
 
 
 @pytest.fixture
@@ -141,3 +142,22 @@ def test_http_gzip_export_download_matches_plain_snapshot(scene,monkeypatch):
     assert gzip.decompress(packed.data)==plain.data
     assert packed.mimetype=='application/gzip'
     assert 'segmentation-tracks.ndjson.gz' in packed.headers['Content-Disposition']
+
+
+def test_a_person_crop_is_padded_and_stays_inside_the_picture(scene):
+    """The review pages ask for one person, not the whole 2560x1440 frame. Whatever the
+    detector gives, the rectangle has to be one `display_image` will accept."""
+    inside = person_roi(scene, 'cam1', 0, [8, 8, 12, 14], pad=0.5, smallest=0)
+    assert inside == [6, 5, 14, 17]                      # grown by half the box each way
+    edge = person_roi(scene, 'cam1', 0, [0, 0, 6, 6], pad=1.0, smallest=0)
+    assert edge == [0, 0, 12, 12]                        # clipped at the picture's corner
+    far = person_roi(scene, 'cam1', 0, [19, 19, 40, 40], pad=0.0, smallest=0)
+    for x1, y1, x2, y2 in (inside, edge, far):
+        assert 0 <= x1 < x2 <= 20 and 0 <= y1 < y2 <= 20
+        assert all(type(v) is int for v in (x1, y1, x2, y2))
+
+
+def test_a_tiny_detection_still_produces_something_to_look_at(scene):
+    assert person_roi(scene, 'cam1', 0, [9, 9, 11, 11], pad=0.0, smallest=8) == [6, 6, 14, 14]
+    with pytest.raises(ValueError, match='Пустая рамка'):
+        person_roi(scene, 'cam1', 0, [5, 5, 5, 9])

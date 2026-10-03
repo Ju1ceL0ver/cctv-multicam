@@ -1,0 +1,109 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Проверка двери</title><link rel="stylesheet" href="/static/review.css"><link rel="stylesheet" href="/static/door.css"></head>
+<body class="labeller door">
+<header><div class="top">
+<strong>Проверка двери</strong>
+<select id="day" aria-label="День"></select>
+<span id="progress" class="counter muted"></span>
+<span class="spacer"></span>
+<button id="undo" disabled>Отменить · Z</button>
+<a href="/door" style="color:var(--accent)">Дверь</a>
+</div>
+<div class="howto muted">Модель считает, что здесь человек в рамке вошёл или вышел, а в разметке двери рядом ничего нет —
+  счётчик это место не записал. Скажите, что было на самом деле. Видео крутится вокруг момента (−5…+4 с).</div>
+<div id="notice" role="status" aria-live="polite"></div>
+</header>
+<main>
+  <p class="ask" id="ask">Загружаю…</p>
+  <section class="door-grid" style="grid-template-columns:1fr">
+    <div class="door-video" id="vbox"><video id="video" muted playsinline preload="auto"></video>
+      <div class="door-tick" id="tick"></div><div class="nofilm" id="nofilm" hidden>Фильма за этот день нет</div></div>
+  </section>
+</main>
+<div class="keybar" id="keys">
+  <span><kbd>1</kbd> покупатель вошёл</span><span><kbd>2</kbd> покупатель вышел</span><span><kbd>3</kbd> никто не прошёл</span>
+  <span><kbd>4</kbd> сотрудник вошёл</span><span><kbd>5</kbd> сотрудник вышел</span><span><kbd>6</kbd> не разобрать</span>
+  <span><kbd>пробел</kbd> заново</span><span><kbd>←</kbd><kbd>→</kbd> листать</span><span><kbd>Z</kbd> отменить</span>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const KEYS = {'1': 'in', '2': 'out', '3': 'none', '4': 'staff_in', '5': 'staff_out', '6': 'unsure'};
+const NAMES = {in: 'покупатель вошёл', out: 'покупатель вышел', none: 'никто не прошёл', staff_in: 'сотрудник вошёл', staff_out: 'сотрудник вышел', unsure: 'не разобрать'};
+const BEFORE = 5, AFTER = 4, ZOOM = 2.2;
+let day = null, I = [], A = {}, i = 0, undo = [];
+async function api(u, body) {
+  const r = await fetch(u, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {});
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j;
+}
+async function init() {
+  const j = await api('/api/doorcheck');
+  const sel = $('#day');
+  sel.innerHTML = j.days.map(d => `<option value="${d.day}">${d.day.slice(6)}.${d.day.slice(4, 6)} — ${d.answered}/${d.items}</option>`).join('');
+  const want = new URLSearchParams(location.search).get('day');
+  sel.onchange = () => openDay(sel.value);
+  if (j.days.length) openDay(want && j.days.some(d => d.day === want) ? want : (j.days.find(d => d.answered < d.items) || j.days[0]).day);
+  else $('#ask').textContent = 'Нечего проверять';
+}
+async function openDay(d) {
+  day = d; $('#day').value = d; history.replaceState(null, '', '/doorcheck?day=' + d);
+  const j = await api('/api/doorcheck/' + d); I = j.items; A = j.answers; undo = [];
+  const v = $('#video'); v.src = `/movie-file/${d}/cam1.mp4`;
+  i = Math.max(0, I.findIndex(x => !A[x.id])); show();
+}
+function focus(x) {
+  const v = $('#video'); v.style.position = 'absolute';
+  let fx = 0.2, fy = 0.3;
+  if (x.box) { fx = x.box[0]; fy = x.box[1] * 1248 / 1224; }
+  const clamp = (a, lo, hi) => Math.min(hi, Math.max(lo, a));
+  v.style.width = v.style.height = (ZOOM * 100) + '%';
+  v.style.left = clamp(50 - fx * ZOOM * 100, (1 - ZOOM) * 100, 0) + '%';
+  v.style.top = clamp(50 - fy * ZOOM * 100, (1 - ZOOM) * 100, 0) + '%';
+}
+function replay() { const x = I[i]; if (!x) return; const v = $('#video'); v.currentTime = Math.max(0, x.film - BEFORE); v.play().catch(() => {}); }
+$('#video').ontimeupdate = () => {
+  const x = I[i], v = $('#video'); if (!x) return;
+  if (v.currentTime > x.film + AFTER || v.currentTime < x.film - BEFORE - 1) v.currentTime = Math.max(0, x.film - BEFORE);
+  const dt = v.currentTime - x.film; $('#tick').textContent = (dt >= 0 ? '+' : '') + dt.toFixed(1) + ' с';
+};
+function show() {
+  const x = I[i]; const n = I.filter(y => A[y.id]).length;
+  $('#progress').textContent = `проверено ${n} из ${I.length}`; $('#undo').disabled = !undo.length;
+  if (!x) { $('#ask').textContent = 'Всё проверено'; return; }
+  const t = new Date(0); t.setSeconds(0);
+  const near = x.answered_near.length ? ' · в разметке рядом: ' + x.answered_near.map(a => `${a.kind} ${a.dt > 0 ? '+' : ''}${a.dt} с`).join(', ') : '';
+  $('#ask').textContent = `${i + 1}/${I.length}: модель — «${x.kind === 'in' ? 'вошёл' : 'вышел'}» (уверенность ${x.p.toFixed(2)})` +
+    (A[x.id] ? ` · ваш ответ: ${NAMES[A[x.id].answer]}` : '') + near;
+  focus(x); replay();
+}
+async function put(key) {
+  const x = I[i]; if (!x) return;
+  const prev = A[x.id] ? A[x.id].answer : null;
+  try {
+    await api('/api/doorcheck/' + day, {item: x.id, answer: key});
+    if (key) A[x.id] = {answer: key}; else delete A[x.id];
+    undo.push([i, prev]);
+    if (key) { const nxt = I.findIndex((y, k) => k > i && !A[y.id]); i = nxt >= 0 ? nxt : Math.min(i + 1, I.length); }
+    show();
+  } catch (e) { $('#notice').textContent = 'Не сохранилось: ' + e.message; }
+}
+document.addEventListener('keydown', async ev => {
+  if (ev.target.tagName === 'SELECT') return;
+  const k = ev.key;
+  if (KEYS[k]) { ev.preventDefault(); return put(KEYS[k]); }
+  if (k === ' ') { ev.preventDefault(); return replay(); }
+  if (k === 'ArrowRight') { i = Math.min(I.length - 1, i + 1); return show(); }
+  if (k === 'ArrowLeft') { i = Math.max(0, i - 1); return show(); }
+  if (k === 'z' || k === 'Z' || k === 'я' || k === 'Я') {
+    const u = undo.pop(); if (!u) return; i = u[0];
+    await api('/api/doorcheck/' + day, {item: I[i].id, answer: u[1]});
+    if (u[1]) A[I[i].id] = {answer: u[1]}; else delete A[I[i].id];
+    show();
+  }
+});
+// a hidden tab pauses a muted video by itself (section 24): play on as soon as the page is seen again
+document.addEventListener('visibilitychange', () => { if (!document.hidden) $('#video').play().catch(() => {}); });
+$('#video').addEventListener('pause', () => { if (!document.hidden) setTimeout(() => $('#video').play().catch(() => {}), 100); });
+$('#undo').onclick = () => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'z'}));
+init();
+</script>
+</body></html>

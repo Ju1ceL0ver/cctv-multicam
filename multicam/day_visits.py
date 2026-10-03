@@ -19,6 +19,13 @@ ROOT=Path(__file__).resolve().parent
 def node_key(clip, label):return clip+':'+label
 
 
+def _shot(cam, frame, box):
+ """Where this person was in one exact frame, so the page can ask for a crop of them
+ instead of the whole 2560x1440 picture. Display only: the box is rounded to whole
+ pixels and never becomes annotation."""
+ return {'cam':cam,'frame':int(frame),'box':[int(round(float(v))) for v in box]}
+
+
 _node_cache = {}
 _cache_lock = RLock()
 
@@ -88,7 +95,10 @@ def _video_nodes(folder, meta, state):
   nodes.append({'key':node_key(folder.name,label),'clip':folder.name,'label':label,'pieces':ids,
     'first':first,'last':last,'reviewed':label in known_labels,'evidence':evidence,
     'ranges':ranges,'observations':[o['id'] for o in items],
-    'representative':{'cam':representative['cam'],'frame':representative['frame'],'observation_id':representative['id']},
+    'representative':{'cam':representative['cam'],'frame':representative['frame'],'observation_id':representative['id'],
+                      'box':[int(round(float(v))) for v in representative['box']]},
+    'first_shot':_shot(items[0]['cam'],items[0]['frame'],items[0]['box']),
+    'last_shot':_shot(items[-1]['cam'],items[-1]['frame'],items[-1]['box']),
     'cams':sorted({o['cam'] for o in items}),
     '_obs':obs,'_feat':feat})
  return nodes
@@ -128,10 +138,14 @@ def clip_nodes(folder, meta):
  if ep.exists():
   with np.load(ep) as archive:ez={cam:archive[cam] for cam in ('cam1','cam2')}
  for label,pieces in buckets.items():
-  obs=set();feats=[];first=1e30;last=-1e30;ids=[]
+  obs=set();feats=[];first=1e30;last=-1e30;ids=[];head=None;tail=None
   for p in pieces:
    ids.append(p['piece']);d=dz[p['cam']][p['dets']]
-   first=min(first,start+float(d[:,0].min()));last=max(last,start+float(d[:,0].max()))
+   lo=int(d[:,0].argmin());hi=int(d[:,0].argmax())
+   if start+float(d[lo,0])<first:
+    first=start+float(d[lo,0]);head=_shot(p['cam'],round(float(d[lo,0])*25),d[lo,1:5])
+   if start+float(d[hi,0])>last:
+    last=start+float(d[hi,0]);tail=_shot(p['cam'],round(float(d[hi,0])*25),d[hi,1:5])
    for row in d:
     obs.add((p['cam'],int(round((start+float(row[0]))*25)),*(int(round(x)) for x in row[1:5])))
    if ez is not None:
@@ -142,6 +156,7 @@ def clip_nodes(folder, meta):
   evidence=hashlib.sha256(json.dumps([label,pieces,{str(i):state['quality'].get(str(i)) for i in ids},meta],sort_keys=True).encode()).hexdigest()[:16]
   nodes.append({'key':node_key(folder.name,label),'clip':folder.name,'label':label,'pieces':ids,
                 'first':first,'last':last,'reviewed':label in human_labels,'evidence':evidence,
+                'first_shot':head,'last_shot':tail,
                 'cams':sorted({p['cam'] for p in pieces}),
                 '_obs':obs,'_feat':feat})
  # One version per clip, bounded number of clips. Never cache the dense embeddings.
@@ -151,13 +166,27 @@ def clip_nodes(folder, meta):
  return nodes
 
 
-def build_day(day, root=ROOT):
+NEIGHBOUR_WINDOW=120.0   # how far apart two fragments may be and still be asked about
+_day_cache={}
+
+
+def _compute(day, root):
+ """The day's grouping, plus every pair of fragments close enough in time to be the same
+ person. Both come out of one pass and are cached together: an answer used to rebuild the
+ whole day twice, and a page that only reads it rebuilt it again on every request."""
  root=Path(root);nodes=[]
  for folder in sorted((root/'data/raw_clips').glob('c*')):
   meta=read_json(folder/'meta_yolo26x-seg.json',{})
   if meta.get('day')==day:nodes.extend(clip_nodes(folder,meta))
  decisions=read_json(root/'data/day_review'/('%s.json'%day),{'revision':0,'links':[]})
- by={n['key']:n for n in nodes};parents={k:k for k in by};members={k:{k} for k in by};accepted=[];proposals=[]
+ # Node evidence is a content hash, so this signature changes exactly when an answer would.
+ signature=(tuple(sorted((n['key'],n['evidence']) for n in nodes)),
+            hashlib.sha256(json.dumps(decisions,sort_keys=True,default=str).encode()).hexdigest())
+ cache_key=(day,str(root))
+ with _cache_lock:cached=_day_cache.get(cache_key)
+ if cached is not None and cached[0]==signature:return cached[1]
+ by={n['key']:n for n in nodes};parents={k:k for k in by};members={k:{k} for k in by}
+ accepted=[];proposals=[];neighbours=[]
  def find(k):
   while parents[k]!=k:k=parents[k]
   return k
@@ -182,18 +211,25 @@ def build_day(day, root=ROOT):
   if r['decision']=='same':merge(r['a'],r['b'],'human')
  for i,a in enumerate(nodes):
   for b in nodes[i+1:]:
-   if a['clip']==b['clip']:continue
    gap=max(0,max(a['first'],b['first'])-min(a['last'],b['last']))
-   if gap>90:continue
+   if gap>NEIGHBOUR_WINDOW:continue
    pair=tuple(sorted((a['key'],b['key'])))
-   if pair in valid_decisions:continue
+   distance=(None if a['_feat'] is None or b['_feat'] is None
+             else round(float(1-a['_feat']@b['_feat']),4))
+   answered=valid_decisions.get(pair)
+   # Kept whatever the pair's fate below: the long-visit queue needs the ones the
+   # automatic rules skip -- above all two machine groups inside one ten-minute window,
+   # which is where the measurements say a long visit actually breaks.
+   neighbours.append({'a':pair[0],'b':pair[1],'gap_s':round(gap,2),'distance':distance,
+                      'same_clip':a['clip']==b['clip'],'decision':answered['decision'] if answered else None,
+                      'evidence_a':by[pair[0]]['evidence'],'evidence_b':by[pair[1]]['evidence']})
+   if a['clip']==b['clip'] or gap>90 or answered is not None:continue
    common=a['_obs']&b['_obs']
    frames=len({(o[0],o[1]) for o in common})
    if frames>=2 and merge(a['key'],b['key'],'shared_raw_frames'):
     continue
-   if a['_feat'] is None or b['_feat'] is None:continue
-   distance=float(1-a['_feat']@b['_feat'])
-   proposals.append({'a':pair[0],'b':pair[1],'distance':round(distance,4),'gap_s':round(gap,2),
+   if distance is None:continue
+   proposals.append({'a':pair[0],'b':pair[1],'distance':distance,'gap_s':round(gap,2),
                      'evidence_a':by[pair[0]]['evidence'],'evidence_b':by[pair[1]]['evidence']})
  proposals.sort(key=lambda r:(r['distance'],r['gap_s']))
  # At most three alternatives per endpoint keeps the review queue finite.
@@ -210,7 +246,19 @@ def build_day(day, root=ROOT):
  result={'day':day,'revision':decisions['revision'],'can_undo':decisions.get('undo_revision') is not None,'nodes':public,'visits':visits,'links':accepted,
          'proposals':queue,'stale_decisions':sum(not valid(r) for r in decisions['links'])}
  atomic_json(root/'data/day_visits'/('%s.json'%day),result)
- return result
+ with _cache_lock:
+  if cache_key not in _day_cache and len(_day_cache)>=8:_day_cache.pop(next(iter(_day_cache)))
+  _day_cache[cache_key]=(signature,(result,neighbours))
+ return result,neighbours
+
+
+def build_day(day, root=ROOT):
+ return _compute(day,root)[0]
+
+
+def neighbours(day, root=ROOT):
+ """Every pair of fragments within NEIGHBOUR_WINDOW seconds of each other, answered or not."""
+ return _compute(day,root)[1]
 
 
 def decide(day, body, root=ROOT):
@@ -249,7 +297,10 @@ def decide(day, body, root=ROOT):
 
   atomic_json(path.parent/'history'/('%s_%08d.json'%(day,current['revision'])),current)
   current['links']=[r for r in current['links'] if (r['a'],r['b'])!=(a,b)]
-  current['links'].append({'a':a,'b':b,'decision':body['decision'],'evidence_a':evidence[a],'evidence_b':evidence[b]})
+  link={'a':a,'b':b,'decision':body['decision'],'evidence_a':evidence[a],'evidence_b':evidence[b]}
+  # An answer given with someone else's proposal on screen is recorded as such.
+  if body.get('assisted') in ('claude',):link['assisted']=body['assisted']
+  current['links'].append(link)
   current['undo_revision']=current['revision']
   current['revision']+=1;atomic_json(path,current)
  return build_day(day,root)

@@ -1,4 +1,5 @@
 """Frame times read from the recording, not counted off the frame index."""
+import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -121,3 +122,56 @@ def test_timestamps_that_go_backwards_are_refused(tmp_path, monkeypatch):
     video.write_bytes(b'x')
     with pytest.raises(RuntimeError, match='not in order'):
         ft.segment_offsets(str(video), tmp_path / 'cache')
+
+
+def _pair(offset, jitter=0.0):
+    """One walker crossing the floor, seen by both cameras, cam2's clock `offset` later."""
+    steps = 200
+    t = np.arange(steps) * 0.12
+    xy = np.c_[t * 0.6, np.full(steps, 3.0)]
+    noise = np.random.default_rng(0).uniform(-jitter, jitter, steps) if jitter else 0.0
+    return {'cam1': [{'t': t, 'xy': xy}], 'cam2': [{'t': t + offset + noise, 'xy': xy}]}
+
+
+@pytest.fixture
+def sync(monkeypatch):
+    """sync_estimate with the calibrated shop stubbed out, so only its matching is on trial."""
+    import importlib, io, types
+    holder = {}
+    fusion = types.ModuleType('fusion2')
+    fusion.build = lambda *a, **k: (holder['per_cam'], {})
+    geometry = types.ModuleType('person3d')
+    geometry.Camera = lambda cam, calib: None
+    monkeypatch.setitem(sys.modules, 'fusion2', fusion)
+    monkeypatch.setitem(sys.modules, 'person3d', geometry)
+    monkeypatch.delitem(sys.modules, 'sync_estimate', raising=False)
+    opener = open
+    monkeypatch.setattr('builtins.open', lambda path, *a, **k:
+                        io.StringIO('{"cam1": {}, "cam2": {}}') if str(path).endswith('calib_final.json')
+                        else opener(path, *a, **k))
+    here = os.getcwd()
+    try:
+        yield importlib.import_module('sync_estimate'), holder   # its import chdirs to multicam
+    finally:
+        os.chdir(here)
+
+
+def test_grid_times_are_matched_exactly_as_before(sync):
+    """Every offset in this project's history was measured with exact-bin matching; the
+    tolerance must not quietly redefine what those numbers meant."""
+    module, holder = sync
+    holder['per_cam'] = _pair(0.36)
+    peak, score, _, points, _, _ = module.estimate({}, {})
+    assert peak == pytest.approx(0.36, abs=0.021) and points == 200
+    assert score == module.estimate({}, {}, tolerance=0)[1]
+
+
+def test_times_read_off_the_recording_need_a_bin_of_tolerance(sync):
+    """They are not multiples of 1/25 s, so a genuine pair can fall either side of a bin
+    edge and exact matching drops it."""
+    module, holder = sync
+    holder['per_cam'] = _pair(0.36, jitter=0.05)   # just over one bin, as real timestamps are
+    strict = module.estimate({}, {}, tolerance=0)
+    loose = module.estimate({}, {}, tolerance=1)
+    assert strict[1] < loose[1]
+    assert loose[0] == pytest.approx(0.36, abs=0.041)
