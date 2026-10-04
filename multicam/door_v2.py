@@ -382,6 +382,22 @@ def add_io(ticks, path=None):
                 v = dep.get('%d|%.2f|%d' % (r['s'], r['t'], q['w']))
                 if v is not None and v[0] is not None:
                     q['dep'] = v
+    lk_p = Path(str(path).replace('.jsonl.gz', '.lk.json.gz')) if path else None
+    if lk_p is not None and lk_p.exists() and os.environ.get('RA_DOOR_NOLK') != '1':   # door_lk.py: do its points follow it
+        lk = json.load(gzip.open(lk_p, 'rt'))
+        for r in ticks:
+            for q in r['p']:
+                v = lk.get('%d|%.2f|%d' % (r['s'], r['t'], q['w']))
+                if v is not None and v[1] is not None:
+                    q['lk'] = v
+    tap_p = Path(str(path).replace('.jsonl.gz', '.tap.json.gz')) if path else None
+    if tap_p is not None and tap_p.exists() and os.environ.get('RA_DOOR_NOTAP') != '1':   # door_tap.py: TAPNext++ points
+        tap = json.load(gzip.open(tap_p, 'rt'))
+        for r in ticks:
+            for q in r['p']:
+                v = tap.get('%d|%.2f|%d' % (r['s'], r['t'], q['w']))
+                if v is not None:
+                    q['tap'] = v
     cnn_p = Path(str(path).replace('.jsonl.gz', '.io_cnn.json.gz')) if path else None
     if cnn_p is not None and cnn_p.exists():             # door_io_crops.py: the crop net on the same people
         cnn = json.load(gzip.open(cnn_p, 'rt'))
