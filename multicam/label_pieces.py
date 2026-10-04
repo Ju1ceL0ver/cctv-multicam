@@ -573,6 +573,8 @@ register_rate(app, lambda: ROOT)
 
 from inout import register as register_inout
 register_inout(app, lambda: ROOT)
+from staff import register as register_staff
+register_staff(app, lambda: ROOT)
 
 from xcam import register as register_xcam
 register_xcam(app, lambda: ROOT)
