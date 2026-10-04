@@ -244,6 +244,15 @@ def features(seq, ts, t, a, b, key, changes, crowd):
         else:
             f['%s_dep' % name] = f['%s_dep_behind' % name] = f['%s_dep_floor' % name] = np.nan
     f['d_dep'] = f['post_dep'] - f['pre_dep'] if np.isfinite(f['post_dep']) and np.isfinite(f['pre_dep']) else np.nan
+    # its own points (door_lk.py): a track that slid onto somebody else leaves its points behind in another box
+    v = [q['lk'] for t_, q in seq if abs(t_ - t) <= 1.5 and 'lk' in q]
+    f['lk_same_min'] = float(min(x[1] for x in v)) if v else np.nan
+    f['lk_other_max'] = float(max(x[2] for x in v)) if v else np.nan
+    f['lk_bad_n'] = float(sum(x[1] < 0.5 for x in v)) if v else np.nan
+    v = [q['tap'] for t_, q in seq if abs(t_ - t) <= 2.0 and 'tap' in q]
+    f['tap_same_min'] = float(min(x[1] for x in v)) if v else np.nan
+    f['tap_other_max'] = float(max(x[2] for x in v)) if v else np.nan
+    f['tap_bad_n'] = float(sum(x[1] < 0.5 for x in v)) if v else np.nan
     # a track that jumps from one person to the next (two walking together): the feet and the box leap
     win = [(t_, q) for t_, q in seq if abs(t_ - t) <= 1.5 and q.get('foot')]
     jumps = [np.hypot(b_[1]['foot'][0] - a_[1]['foot'][0], b_[1]['foot'][1] - a_[1]['foot'][1]) / max(0.08, b_[0] - a_[0])
@@ -423,10 +432,30 @@ def matrix(cands, names=None):
     return np.array([[c[0][n] for n in names] for c in cands], np.float32), names
 
 
+class SafeHGB:
+    """The boosting, but a feature that is empty (all NaN) in the training rows is set to 0 (sklearn's binning
+    fails on such a column) -- in training and in prediction alike."""
+    def __init__(self):
+        from sklearn.ensemble import HistGradientBoostingClassifier
+        self.m = HistGradientBoostingClassifier(max_iter=400, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0,
+                                                min_samples_leaf=10, random_state=0)
+
+    def _fix(self, X):
+        X = np.array(X, np.float32, copy=True)
+        X[:, self.empty] = 0
+        return X
+
+    def fit(self, X, y):
+        self.empty = ~np.isfinite(X).any(0)
+        self.m.fit(self._fix(X), y)
+        return self
+
+    def predict_proba(self, X):
+        return self.m.predict_proba(self._fix(X))
+
+
 def model():
-    from sklearn.ensemble import HistGradientBoostingClassifier
-    return HistGradientBoostingClassifier(max_iter=400, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0,
-                                          min_samples_leaf=10, random_state=0)
+    return SafeHGB()
 
 
 def evaluate(days):

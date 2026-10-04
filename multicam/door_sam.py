@@ -127,6 +127,24 @@ def foot_of(m):
     return float(xs[low].mean()), float(ys.max())
 
 
+def static_people(M, owned, person, n_ticks, max_px=8.0, min_share=0.7):
+    """Numbers of the "people" that never move (the poster stand by the door): the median distance of the box centre from
+    its median below max_px (2176 frame) -- robust to SAM lending the number to a passer-by for a moment -- while seen in
+    more than min_share of the stretch's ticks."""
+    by = {}
+    for p, rs in owned.items():
+        pid = person.get(int(p)) or 0
+        for r in rs:
+            x1, y1, x2, y2 = M.rows[r, 4:8]
+            by.setdefault(pid, {})[int(M.rows[r, 1])] = ((x1 + x2) / 2, (y1 + y2) / 2)
+    out = set()
+    for pid, c in by.items():
+        P = np.array(list(c.values()))
+        if len(c) >= min_share * n_ticks and float(np.median(np.linalg.norm(P - np.median(P, 0), axis=1))) < max_px:
+            out.add(pid)
+    return out
+
+
 def convert(days):
     import door_v2 as D
     import sam31_reid as R
@@ -144,7 +162,10 @@ def convert(days):
             overlap = {int(s): int(sh) for s, e, sh in info['sessions']}
             owned, _ = R.link_seams(M, overlap)
             person = {int(p): v for p, v in rep['person_of_piece'].items()}
+            static = static_people(M, owned, person, info['ticks'])
             for p, rs in owned.items():
+                if (person.get(int(p)) or 0) in static:
+                    continue                                   # the poster stand: never moves, not a person
                 w = si * 10000 + int(person.get(int(p)) or 0)
                 for r in rs:
                     tick = int(M.rows[r, 1])

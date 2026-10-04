@@ -58,8 +58,6 @@ def main(path, every=2):
             done += 1
             if i % every or not r['p']:
                 continue
-            if (9, 40) <= time.localtime()[3:5] < (21, 0):
-                raise SystemExit('09:40: the card goes back to the live counter')
             img = raw.get(tks[i])
             if img is None:
                 continue
