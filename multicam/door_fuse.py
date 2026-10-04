@@ -4,6 +4,10 @@
 2. events of both sources of one direction within JOIN_S are one event; its numbers: each source's best score and
    count there, whether both saw it, the time between them;
 3. a second-level classifier, trained on two days, scores the third; the threshold comes from the training days.
+4. (05.10) the debounce rule (door_debounce.py, the owner's fixed numbers W=2 s, frac 0.7, doorway = outside -- nothing
+   tuned on the test day) on both sources is a third input: each event gets the gap to the nearest debounce event of
+   its direction on each source; a debounce event with no rule event within JOIN_S becomes a candidate of its own
+   (it misses almost nothing, so it brings back passes both rules lost). RA_FUSE_DEB=0 switches it off.
 Also printed for reference: each source alone, "both must agree", "either is enough", the mean score.
 
 usage: door_fuse.py [--skip '20260918 15:06-15:29']  -> data/door_v2/fuse.out, fuse.json"""
@@ -23,6 +27,27 @@ DAYS = ('20260917', '20260918', '20260919')
 RUNS = {'model': {'20260917': '20260917_v2_m_clips_best_q', '20260918': '20260918_v2_m_clips_best', '20260919': '20260919_v2_m_clips_best_p'},
         'sam': {d: '%s_sam31' % d for d in DAYS}}
 JOIN_S = 4.0
+DEB = os.environ.get('RA_FUSE_DEB', '1') == '1'
+DEB_W, DEB_FRAC, DEB_DOOR_OUT = 2.0, 0.7, True
+NO_GAP = 99.0
+_deb = {}
+
+
+def debounce(day, src):
+    """Debounce events of one track source, on the counter's clock like the rule's ({'kind', 't'})."""
+    if (day, src) not in _deb:
+        import door_debounce as B
+        import door_learn as L
+        import door_v2 as D2
+        path = D / (RUNS[src][day] + '.jsonl.gz')
+        ticks, _ = D2._read(path)
+        D2.add_io(ticks, path)
+        by = {}
+        for r in ticks:
+            for q in r['p']:
+                by.setdefault(q['w'], []).append((r['t'], q))
+        _deb[(day, src)] = [dict(e, t=e['t'] + L.SHIFT) for e in B.events(by, DEB_W, DEB_FRAC, DEB_DOOR_OUT)]
+    return _deb[(day, src)]
 
 
 def scores(src, env):
@@ -56,9 +81,26 @@ def events(day):
             return ({'model_p': a['p'] if a else 0.0, 'sam_p': b['p'] if b else 0.0, 'both': float(bool(a and b)),
                      'dt': abs(a['t'] - b['t']) if a and b else -1.0, 'model_near': near(t, A), 'sam_near': near(t, B),
                      'out': float(kind == 'out')}, kind, t)
-        out += [feat(A[i], B[j]) for i, j in pairs]
-        out += [feat(A[i], None) for i in range(len(A)) if i not in ia]
-        out += [feat(None, B[j]) for j in range(len(B)) if j not in ib]
+        part = [feat(A[i], B[j]) for i, j in pairs]
+        part += [feat(A[i], None) for i in range(len(A)) if i not in ia]
+        part += [feat(None, B[j]) for j in range(len(B)) if j not in ib]
+        if DEB:
+            dm = [e['t'] for e in debounce(day, 'model') if e['kind'] == kind]
+            ds = [e['t'] for e in debounce(day, 'sam') if e['kind'] == kind]
+            # debounce events far from every rule event: new candidates, one per JOIN_S cluster
+            extra = []
+            for t in sorted(dm + ds):
+                if not any(abs(t - x[2]) <= JOIN_S for x in part) and not any(abs(t - x) <= JOIN_S for x in extra):
+                    extra.append(t)
+            part += [({'model_p': 0.0, 'sam_p': 0.0, 'both': 0.0, 'dt': -1.0, 'model_near': near(t, A), 'sam_near': near(t, B),
+                       'out': float(kind == 'out')}, kind, t) for t in extra]
+            gap = lambda t, L: min([abs(x - t) for x in L], default=NO_GAP)
+            for f, _, t in part:
+                f['deb_model_gap'] = min(gap(t, dm), NO_GAP)
+                f['deb_sam_gap'] = min(gap(t, ds), NO_GAP)
+                f['deb_n'] = float(sum(abs(x - t) <= JOIN_S for x in dm + ds))
+                f['rule_none'] = float(f['model_p'] == 0 and f['sam_p'] == 0)
+        out += part
     return out
 
 
@@ -137,7 +179,7 @@ def main():
     json.dump(res, open(D / 'fuse.json', 'w'), indent=1)
     json.dump(errors, open(D / 'fuse_errors.json', 'w'), indent=1)
     with open(D / 'fuse.out', 'a', encoding='utf-8') as f:
-        f.write('\n== skip %s\n' % os.environ.get('RA_DOOR_SKIP', '-') + '\n'.join(lines) + '\n')
+        f.write('\n== skip %s, debounce %s\n' % (os.environ.get('RA_DOOR_SKIP', '-'), 'on' if DEB else 'off') + '\n'.join(lines) + '\n')
     print('\n'.join(lines))
 
 
