@@ -57,7 +57,11 @@ class Student(nn.Module):
         super().__init__()
         import timm
         self.name, self.inner, self.nblocks, self.size = name, inner, blocks, size
-        self.body = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=(1, 2, 3))
+        probe = timm.create_model(name, pretrained=False, features_only=True)
+        red = probe.feature_info.reduction()
+        idx = tuple(red.index(r) for r in (8, 16, 32))                 # strides 8/16/32, whatever the net's levels
+        del probe
+        self.body = timm.create_model(name, pretrained=pretrained, features_only=True, out_indices=idx)
         ch = self.body.feature_info.channels()
         self.l8 = nn.Conv2d(ch[0], inner, 1)
         self.l16 = nn.Conv2d(ch[1], inner, 1)
@@ -216,6 +220,39 @@ def losses(s_trunk, t_trunk, s_necks, t_necks, scale):
     return tot, parts
 
 
+EVAL_EVERY = 2000          # steps between full-pipeline checks (SAM 3.1 heads on the student's map vs SAM 3.1)
+
+
+def say(run, text):
+    """One human line into progress.md (what is going on, in words) and the log."""
+    line = '%s  %s' % (time.strftime('%d.%m %H:%M'), text)
+    with open(run / 'progress.md', 'a', encoding='utf-8') as f:
+        f.write(line + '\n')
+    print(line, flush=True)
+
+
+def pipeline_check(run, step, ema_state, arch):
+    """The whole SAM 3.1 with the student's encoder against SAM 3.1 on 23.09 (two crowded clips, 96 ticks each; the
+    teacher's answers cached after the first time). Runs as a separate process while training waits."""
+    import subprocess
+    ev = run / 'evals'
+    ev.mkdir(exist_ok=True)
+    ck = run / 'eval.pt'
+    torch.save({'ema': ema_state, 'arch': arch, 'step': step}, ck)
+    torch.cuda.empty_cache()
+    out = ev / ('step_%06d.json' % step)
+    t0 = time.time()
+    py = ROOT.parent / 'venv_sam3' / 'Scripts' / 'python.exe'
+    r = subprocess.run([str(py if py.exists() else sys.executable), str(ROOT / 'sam31_lite_eval.py'), str(ck), '2', '96', '--cache', str(ev / 'teacher_cache'),
+                        '--out', str(out), '--preview', str(ev / ('step_%06d.jpg' % step)), '--film', 'none'],
+                       capture_output=True, text=True, cwd=str(ROOT))
+    if r.returncode != 0 or not out.exists():
+        return {'pipeline_error': (r.stderr or r.stdout)[-600:]}
+    m = json.load(open(out))['mean']
+    m['pipeline_s'] = round(time.time() - t0)
+    return m
+
+
 def main(out, stop='09:30', init=None, student='repvit_m1_1', batch=2):
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -255,20 +292,32 @@ def main(out, stop='09:30', init=None, student='repvit_m1_1', batch=2):
     span = stop_at - t_start
     log = open(run / 'log.jsonl', 'a')
     step, t_last, seen, t_save = step0, time.time(), 0, time.time()
+    nparam = sum(p.numel() for p in s.parameters()) / 1e6
+    say(run, 'старт: ученик %s (%.1f млн параметров) учится выдавать карту 72x72x1024 кодировщика SAM 3.1; '
+             'стоп в %s; проверка на 23.09 (ученик его не видит): признаки каждые 1000 шагов, весь SAM 3.1 с учеником '
+             'каждые %d шагов' % (student, nparam, stop, EVAL_EVERY))
+    best_found = None
     run_parts = {}
 
     def evaluate():
         s.eval()
-        cos, mse = [], []
+        cos, mse, nk = [], [], {}
         with torch.no_grad(), ac():
             for i in range(0, len(test), 4):
                 x = norm_input(test[i:i + 4], dev)
-                t = neck.trunk(x)[-1].float()
-                y = ema(x)[-1].float()
-                cos.append(F.cosine_similarity(y, t, dim=1).mean().item())
-                mse.append((((y - t) / scale['trunk']) ** 2).mean().item())
+                t = neck.trunk(x)[-1]
+                y = ema(x)[-1]
+                cos.append(F.cosine_similarity(y.float(), t.float(), dim=1).mean().item())
+                mse.append((((y.float() - t.float()) / scale['trunk']) ** 2).mean().item())
+                tn, yn = neck_maps(neck, t), neck_maps(neck, y)
+                for h, name in ((0, 'detector'), (2, 'tracker')):
+                    for j, sc in enumerate(SCALES):
+                        nk.setdefault('test_cos_%s_neck_%dx' % (name, 2 ** (2 - sc)), []).append(
+                            F.cosine_similarity(yn[h][j].float(), tn[h][j].float(), dim=1).mean().item())
         s.train()
-        return {'test_cos_trunk': round(float(np.mean(cos)), 4), 'test_mse_trunk': round(float(np.mean(mse)), 4)}
+        r = {'test_cos_trunk': round(float(np.mean(cos)), 4), 'test_mse_trunk': round(float(np.mean(mse)), 4)}
+        r.update({k: round(float(np.mean(v)), 4) for k, v in nk.items()})
+        return r
 
     def save(tag='last'):
         torch.save({'model': s.state_dict(), 'ema': ema.state_dict(), 'arch': s.arch(), 'step': step,
@@ -308,8 +357,27 @@ def main(out, stop='09:30', init=None, student='repvit_m1_1', batch=2):
                   'loss': {k: round(float(v), 4) for k, v in run_parts.items()}, 'updated': time.strftime('%H:%M:%S'),
                   'stop': stop}
             seen, t_last = 0, time.time()
+            st['gpu_gb'] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 2)
+            st['eta_stop_min'] = round((stop_at - time.time()) / 60)
             if step % 1000 == 0:
-                st.update(evaluate())
+                ev = evaluate()
+                st.update(ev)
+                txt = ('шаг %d: похожесть признаков на учителя (косинус, 1 = одинаковые) — карта %.3f, шея детектора %.3f, '
+                       'шея трекера %.3f; %.2f кадра/с' % (step, ev['test_cos_trunk'], ev.get('test_cos_detector_neck_1x', 0),
+                                                       ev.get('test_cos_tracker_neck_1x', 0), st['frames_per_s']))
+                if step % EVAL_EVERY == 0:
+                    pc = pipeline_check(run, step, ema.state_dict(), s.arch())
+                    st['pipeline'] = pc
+                    if 'found' in pc:
+                        txt += ('; SAM 3.1 с учеником против SAM 3.1: найдено %.0f%% людей учителя, точность %.0f%%, маски %.2f, '
+                                'IDF1 %.2f, смен номера %d (%d с на проверку)' % (100 * pc['found'], 100 * pc['precision'],
+                                pc['mask_iou'], pc['idf1'], pc['id_switches'], pc.get('pipeline_s', 0)))
+                        if best_found is None or pc['found'] + pc['idf1'] > best_found:
+                            best_found = pc['found'] + pc['idf1']
+                            save('best')
+                    else:
+                        txt += '; проверка всего SAM упала: %s' % pc.get('pipeline_error', '')[-200:]
+                say(run, txt)
                 log.write(json.dumps(st) + '\n'); log.flush()
             json.dump(st, open(run / 'status.json', 'w'), indent=1)
         if time.time() - t_save > 900:
@@ -317,6 +385,9 @@ def main(out, stop='09:30', init=None, student='repvit_m1_1', batch=2):
     save()
     st = {'step': step, 'finished': time.strftime('%H:%M:%S')}
     st.update(evaluate())
+    pc = pipeline_check(run, step, ema.state_dict(), s.arch())
+    st['pipeline'] = pc
+    say(run, 'конец, шаг %d: признаки %.3f; весь SAM: %s' % (step, st['test_cos_trunk'], json.dumps(pc, ensure_ascii=False)))
     log.write(json.dumps(st) + '\n'); log.close()
     json.dump(st, open(run / 'status.json', 'w'), indent=1)
     print(st, flush=True)

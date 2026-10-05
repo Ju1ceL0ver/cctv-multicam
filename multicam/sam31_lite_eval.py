@@ -6,7 +6,8 @@ extra (lite's people the teacher has not), mask IoU of the pairs. Over the stret
 tracker's: IDF1 (the best one-to-one map of teacher ids to lite ids over all frames) and id switches (a teacher id
 whose paired lite id changes). Seconds a frame for both. A side-by-side film of the first stretch: teacher left.
 
-usage (venv_sam3, the card): sam31_lite_eval.py CKPT [N_STRETCHES] [TICKS]  -> data/logs/sam31_lite_eval.json, .mp4"""
+usage (venv_sam3, the card): sam31_lite_eval.py CKPT [N_STRETCHES] [TICKS] [--cache DIR] [--out JSON] [--preview JPG]
+                             [--film MP4|none]   (the teacher's answers are kept in --cache and reused)"""
 import json
 import shutil
 import subprocess
@@ -125,12 +126,46 @@ def film(folder, T, S, out):
     enc.stdin.close(); enc.wait()
 
 
-def main(ckpt, n=3, ticks=240):
+def save_res(path, res):
+    import pickle
+    pickle.dump({k: [(i, p, np.packbits(m)) for i, p, m in v] for k, v in res.items()}, open(path, 'wb'))
+
+
+def load_res(path):
+    import pickle
+    d = pickle.load(open(path, 'rb'))
+    return {k: [(i, p, np.unpackbits(m)[:252 * 252].reshape(252, 252).astype(bool)) for i, p, m in v] for k, v in d.items()}
+
+
+def preview(folder, T, S, out):
+    """The most crowded frame: teacher | student, side by side."""
+    import cv2
+    k = max(T, key=lambda q: len(T[q]))
+    img = cv2.resize(cv2.imread(str(folder / ('%05d.jpg' % k))), (640, 640))
+    halves = []
+    for res, name in ((T[k], 'SAM 3.1'), (S.get(k, []), 'SAM 3.1 + student encoder')):
+        vis, over = img.copy(), img.copy()
+        for i, p, m in res:
+            m = cv2.resize(m.astype(np.uint8), (640, 640), interpolation=cv2.INTER_NEAREST) > 0
+            over[m] = COL[i % len(COL)]
+            cs, _ = cv2.findContours(m.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(vis, cs, -1, COL[i % len(COL)], 2)
+        vis = cv2.addWeighted(vis, 0.6, over, 0.4, 0)
+        cv2.rectangle(vis, (0, 0), (640, 34), (0, 0, 0), -1)
+        cv2.putText(vis, '%s: %d people' % (name, len(res)), (8, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        halves.append(vis)
+    cv2.imwrite(str(out), np.hstack(halves), [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+
+def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_path=''):
     import cv2
     import torch
     import sam31_distill as SD
     import sam31_segment as S
     n, ticks = int(n), int(ticks)
+    cache = Path(cache) if cache else None
+    if cache:
+        cache.mkdir(parents=True, exist_ok=True)
     student = SD.load_student(str(ROOT / ckpt) if not Path(ckpt).is_absolute() else ckpt)
     pred = S.build()
     tri = pred.model.detector.backbone.vision_backbone
@@ -147,26 +182,41 @@ def main(ckpt, n=3, ticks=240):
                 break
             cv2.imwrite(str(tmp / ('%05d.jpg' % k)), cv2.resize(f, (1008, 1008), interpolation=cv2.INTER_AREA), [cv2.IMWRITE_JPEG_QUALITY, 93])
         cap.release()
-        tri.trunk = teacher_trunk
-        T, t_sec = run(pred, tmp)
+        key = cache / ('%s_%s_%d_%d.pkl' % (d.parent.name, d.name, k0, ticks)) if cache else None
+        if key is not None and key.exists():
+            T, t_sec = load_res(key), None
+        else:
+            tri.trunk = teacher_trunk
+            T, t_sec = run(pred, tmp)
+            if key is not None:
+                save_res(key, T)
         torch.cuda.empty_cache()
         tri.trunk = student
         Sres, s_sec = run(pred, tmp)
         torch.cuda.empty_cache()
         r = compare(T, Sres)
         r.update({'window': d.parent.name + '/' + d.name, 'start_tick': k0, 'people_per_frame': round(dens, 2),
-                  'teacher_s_per_frame': round(t_sec, 3), 'lite_s_per_frame': round(s_sec, 3)})
+                  'teacher_s_per_frame': round(t_sec, 3) if t_sec else None, 'lite_s_per_frame': round(s_sec, 3)})
         rep['stretches'].append(r)
         print(json.dumps(r), flush=True)
-        if si == 0:
-            film(tmp, T, Sres, ROOT / 'data' / 'logs' / ('sam31_lite_%s.mp4' % Path(ckpt).parent.name))
+        if si == 0 and preview_path:
+            preview(tmp, T, Sres, preview_path)
+        if si == 0 and film_path != 'none':
+            film(tmp, T, Sres, Path(film_path) if film_path else ROOT / 'data' / 'logs' / ('sam31_lite_%s.mp4' % Path(ckpt).parent.name))
     keys = ('found', 'precision', 'mask_iou', 'idf1')
     w = np.array([r['teacher_people'] for r in rep['stretches']], float)
     rep['mean'] = {k: round(float(np.average([r[k] for r in rep['stretches']], weights=w)), 4) for k in keys}
     rep['mean']['id_switches'] = int(sum(r['id_switches'] for r in rep['stretches']))
-    json.dump(rep, open(ROOT / 'data' / 'logs' / 'sam31_lite_eval.json', 'w'), indent=1)
+    json.dump(rep, open(out or ROOT / 'data' / 'logs' / 'sam31_lite_eval.json', 'w'), indent=1)
     print(json.dumps(rep['mean']))
 
 
 if __name__ == '__main__':
-    main(*sys.argv[1:])
+    a = sys.argv[1:]
+    kw = {}
+    for flag, name in (('--cache', 'cache'), ('--out', 'out'), ('--preview', 'preview_path'), ('--film', 'film_path')):
+        if flag in a:
+            i = a.index(flag)
+            kw[name] = a[i + 1]
+            del a[i:i + 2]
+    main(*a, **kw)
