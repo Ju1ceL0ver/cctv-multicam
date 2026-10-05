@@ -146,14 +146,16 @@ class OneCam:
         T = r['tracks']
         ntr = len(self.track_world)
         masks = (logits > 0).cpu().numpy()
+        from door_exclusions import excluded
+        excluded_slots = np.array([excluded(mask, self.cam) for mask in masks])
         area = masks.reshape(len(masks), -1).sum(1)
         keep = np.zeros(len(p), bool)
         world = [None] * len(p)
         for s_ in range(min(T, ntr)):
             hidden = state[s_, 1] > max(state[s_, 0], state[s_, 2]) and (tick - self.hidden_since[s_]) * TICK < VT.HIDDEN_S
-            if p[s_] >= VT.KEEP_TRACK or hidden:
+            if not excluded_slots[s_] and (p[s_] >= VT.KEEP_TRACK or hidden):
                 keep[s_] = True; world[s_] = self.track_world[s_]
-        new = [s_ for s_ in range(T, len(p)) if not pad[s_] and p[s_] >= VT.KEEP and area[s_] > 0]
+        new = [s_ for s_ in range(T, len(p)) if not pad[s_] and not excluded_slots[s_] and p[s_] >= VT.KEEP and area[s_] > 0]
         order = [s_ for s_ in range(len(p)) if keep[s_] and p[s_] >= VT.KEEP_TRACK] + sorted(new, key=lambda s_: -p[s_])
         kept_masks = []
         cos = VT.Runtime._cos
@@ -179,6 +181,7 @@ class OneCam:
         for s_, w in zip(new, got):
             keep[s_] = True; world[s_] = w
         people, cut = [], np.zeros(masks.shape[1:], bool)
+        self.last_masks = []                                          # aligned with people (door_video_model.py draws them)
         for s_ in range(len(p)):
             if keep[s_] and world[s_] is not None and p[s_] >= VT.KEEP_TRACK and s_ in kept_masks:
                 self.world.see(world[s_], ident[s_], xy[s_], var[s_], tick, 0)
@@ -187,6 +190,7 @@ class OneCam:
                 people.append({'w': int(world[s_]), 's': round(float(p[s_]), 3), 'box': [round(float(v), 4) for v in r['box'][0, s_].float().cpu().tolist()],
                                'xy': [round(float(v), 3) for v in xy[s_]], 'z': [round(float(v), 3) for v in zone[s_]],
                                'st': int(state[s_].argmax()), 'foot': foot, 'new': bool(s_ >= T)})
+                self.last_masks.append(masks[s_])
             if p[s_] >= 0.3 and not pad[s_]:
                 cut |= masks[s_]
         kt = torch.as_tensor(keep, device=dev)[None]
