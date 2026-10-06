@@ -34,6 +34,15 @@ import torch.nn.functional as F                                 # noqa: E402
 
 # ------------------------------------------------------------------ the student
 
+
+def _safe_print(line):
+    """Windows consoles of background jobs cannot print every character (a '>=' sign killed two runs on 06.10)."""
+    try:
+        print(line, flush=True)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, 'encoding', None) or 'ascii'
+        print(line.encode(enc, 'replace').decode(enc, 'replace'), flush=True)
+
 class Block(nn.Module):
     """ConvNeXt block: depthwise 7x7, norm, MLP x4."""
 
@@ -228,7 +237,7 @@ def say(run, text):
     line = '%s  %s' % (time.strftime('%d.%m %H:%M'), text)
     with open(run / 'progress.md', 'a', encoding='utf-8') as f:
         f.write(line + '\n')
-    print(line, flush=True)
+    _safe_print(line)
 
 
 def pipeline_check(run, step, ema_state, arch):
@@ -348,6 +357,8 @@ def main(out, stop='09:30', init=None, student='repvit_m1_1', batch=2):
         with torch.no_grad():
             d = min(0.999, (1 + step - step0) / (10 + step - step0))
             torch._foreach_lerp_(list(ema.parameters()), list(s.parameters()), 1 - d)
+            for be, bs in zip(ema.buffers(), s.buffers()):       # BatchNorm running statistics: copied, not averaged
+                be.copy_(bs)
         step += 1
         seen += len(u8)
         for k, v in parts.items():

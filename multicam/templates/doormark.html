@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Входы и выходы</title>
+<style>
+  :root { --bg:#111; --fg:#eee; --mut:#999; --in:#3ccf6e; --out:#ff6b5b; --ans:#5aa9ff; --staff:#e0b84a; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px system-ui, sans-serif; display:flex; height:100vh; }
+  #side { width:260px; overflow:auto; border-right:1px solid #333; }
+  #side .day { padding:8px; display:flex; gap:6px; flex-wrap:wrap; }
+  #side .day button { background:#222; color:var(--fg); border:1px solid #444; padding:4px 8px; cursor:pointer; }
+  #side .day button.on { border-color:var(--ans); }
+  .st { padding:6px 10px; cursor:pointer; border-bottom:1px solid #222; display:flex; justify-content:space-between; }
+  .st.cur { background:#1e2a38; } .st.done { color:var(--mut); } .st .n { color:var(--mut); }
+  #main { flex:1; display:flex; flex-direction:column; padding:8px; gap:6px; min-width:0; }
+  #vwrap { position:relative; flex:1; min-height:0; display:flex; justify-content:center; background:#000; }
+  video { max-width:100%; max-height:100%; }
+  #flash { position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:28px; font-weight:700; padding:4px 14px; border-radius:6px; display:none; }
+  #bar { position:relative; height:46px; background:#1b1b1b; border-radius:4px; cursor:pointer; }
+  #cursor { position:absolute; top:0; bottom:0; width:2px; background:#fff; }
+  .mk { position:absolute; width:10px; margin-left:-5px; border-radius:2px; }
+  .mk.ans { top:2px; height:18px; background:var(--ans); }
+  .mk.in { top:24px; height:18px; background:var(--in); } .mk.out { top:24px; height:18px; background:var(--out); }
+  .mk.staff { outline:2px solid var(--staff); }
+  #info { display:flex; gap:16px; flex-wrap:wrap; color:var(--mut); }
+  #info b { color:var(--fg); }
+  #keys { color:var(--mut); font-size:13px; }
+  #keys kbd { background:#2a2a2a; border:1px solid #444; border-radius:3px; padding:0 5px; color:var(--fg); }
+  #list { font-size:13px; color:var(--mut); }
+  #list span { margin-right:12px; }
+</style>
+</head>
+<body>
+<div id="side"><div class="day" id="days"></div><div id="sts"></div></div>
+<div id="main">
+  <div id="vwrap"><video id="v" preload="auto" muted playsinline></video><div id="flash"></div></div>
+  <div id="bar"><div id="cursor"></div></div>
+  <div id="info"><span>отрезок <b id="tag">—</b></span><span>время <b id="tm">0.00</b> с</span><span>часы <b id="clk">—</b></span>
+    <span>скорость <b id="spd">1×</b></span><span>сохранено <b id="saved">—</b></span></div>
+  <div id="list"></div>
+  <div id="keys"><kbd>Пробел</kbd> пауза · <kbd>←</kbd><kbd>→</kbd> кадр · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 1 с ·
+    <kbd>↑</kbd><kbd>↓</kbd> скорость · <kbd>1</kbd> вход · <kbd>2</kbd> выход · <kbd>3</kbd> сотрудник вошёл · <kbd>4</kbd> сотрудник вышел ·
+    <kbd>Del</kbd> убрать ближайшую свою отметку · <kbd>Z</kbd> отменить последнюю · <kbd>Enter</kbd> отрезок размечен целиком → следующий ·
+    синие сверху — твои прежние ответы, снизу — новые отметки (зелёный вход, красный выход, жёлтая рамка — сотрудник)</div>
+</div>
+<script>
+const FPS = 12.5, DAYS = ['20260917', '20260918', '20260919'];
+let day = null, data = null, cur = -1, undo = [];
+const v = document.getElementById('v'), bar = document.getElementById('bar');
+const SPEEDS = [0.25, 0.5, 1, 2, 4]; let si = 2;
+const $ = id => document.getElementById(id);
+
+function flash(txt, col) { const f = $('flash'); f.textContent = txt; f.style.background = col; f.style.display = 'block';
+  clearTimeout(f._t); f._t = setTimeout(() => f.style.display = 'none', 700); }
+
+async function api(body) {
+  const r = await fetch('/api/doormark/' + day, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json(); if (!r.ok) { flash('ошибка: ' + (j.error || r.status), '#a00'); throw j; }
+  $('saved').textContent = j.marks + ' отметок, ' + j.done + ' отрезков'; return j;
+}
+
+async function loadDay(d) {
+  day = d; document.querySelectorAll('#days button').forEach(b => b.classList.toggle('on', b.textContent === d));
+  data = await (await fetch('/api/doormark/' + d)).json();
+  const firstOpen = data.stretches.findIndex(s => !data.state.done.includes(s.tag));
+  renderList(); open(firstOpen >= 0 ? firstOpen : 0);
+}
+
+function marksOf(tag) { return data.state.marks.filter(m => m.tag === tag); }
+
+function renderList() {
+  $('sts').innerHTML = data.stretches.map((s, i) => {
+    const clock = hms(s.a); const n = marksOf(s.tag).length;
+    return `<div class="st ${i === cur ? 'cur' : ''} ${data.state.done.includes(s.tag) ? 'done' : ''}" data-i="${i}">
+      <span>${data.state.done.includes(s.tag) ? '✓ ' : ''}${clock}</span><span class="n">${s.answers.length}+${n}</span></div>`; }).join('');
+  document.querySelectorAll('.st').forEach(e => e.onclick = () => open(+e.dataset.i));
+}
+
+let startClock = {};
+function hms(filmS) {          // film seconds -> shop clock, using the day's film start sent with the first stretch
+  if (!data || data.film_start == null) return (filmS / 60).toFixed(0) + ' мин';
+  const d = new Date((data.film_start + filmS) * 1000); return d.toTimeString().slice(0, 8);
+}
+
+function open(i) {
+  cur = i; const s = data.stretches[i]; $('tag').textContent = s.tag;
+  v.src = '/api/doormark/video/' + s.tag; v.playbackRate = SPEEDS[si]; renderList(); drawBar();
+}
+
+function drawBar() {
+  const s = data.stretches[cur]; if (!s) return; const W = s.seconds;
+  bar.querySelectorAll('.mk').forEach(e => e.remove());
+  for (const a of s.answers) { const e = document.createElement('div'); e.className = 'mk ans' + (a.staff ? ' staff' : '');
+    e.style.left = (100 * a.t / W) + '%'; e.title = 'ответ: ' + a.kind; bar.appendChild(e); }
+  for (const m of marksOf(s.tag)) { const e = document.createElement('div'); e.className = 'mk ' + m.kind + (m.staff ? ' staff' : '');
+    e.style.left = (100 * (m.film - s.a) / W) + '%'; e.title = (m.staff ? 'сотрудник ' : '') + m.kind; bar.appendChild(e); }
+  $('list').innerHTML = marksOf(s.tag).sort((a, b) => a.film - b.film).map(m =>
+    `<span>${(m.film - s.a).toFixed(1)} с — ${m.staff ? 'сотрудник ' : ''}${m.kind === 'in' ? 'вход' : 'выход'}</span>`).join('');
+}
+
+function tick() { const s = data && data.stretches[cur]; if (s) { $('tm').textContent = v.currentTime.toFixed(2);
+  $('clk').textContent = hms(s.a + v.currentTime); $('cursor').style.left = (100 * v.currentTime / s.seconds) + '%'; }
+  requestAnimationFrame(tick); }
+requestAnimationFrame(tick);
+
+bar.onclick = e => { const s = data.stretches[cur]; const r = bar.getBoundingClientRect();
+  v.currentTime = Math.max(0, (e.clientX - r.left) / r.width * s.seconds); };
+
+async function add(kind) {
+  const s = data.stretches[cur]; v.pause(); const film = s.a + v.currentTime;
+  const j = await api({op: 'add', tag: s.tag, film: film, kind: kind});
+  const id = s.tag + '_' + Math.round(film * 100);
+  data.state.marks = data.state.marks.filter(m => m.id !== id).concat([{id, tag: s.tag, film: +film.toFixed(2),
+    kind: kind.endsWith('in') ? 'in' : 'out', staff: kind.startsWith('staff')}]);
+  undo.push(id); drawBar(); renderList();
+  flash({in: 'ВХОД', out: 'ВЫХОД', staff_in: 'СОТРУДНИК ВОШЁЛ', staff_out: 'СОТРУДНИК ВЫШЕЛ'}[kind], kind.endsWith('in') ? '#1d7a3f' : '#8a2a22');
+}
+
+async function remove(id) { await api({op: 'remove', id}); data.state.marks = data.state.marks.filter(m => m.id !== id);
+  drawBar(); renderList(); flash('убрано', '#444'); }
+
+document.addEventListener('keydown', async e => {
+  if (!data) return; const s = data.stretches[cur]; const k = e.key, c = e.code;
+  if (k === ' ' || c === 'Space') { e.preventDefault(); v.paused ? v.play() : v.pause(); }
+  else if (k === 'ArrowLeft' || k === 'ArrowRight') { e.preventDefault(); v.pause();
+    const d = (e.shiftKey ? 1 : 1 / FPS) * (k === 'ArrowLeft' ? -1 : 1); v.currentTime = Math.max(0, Math.min(s.seconds, v.currentTime + d)); }
+  else if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); si = Math.max(0, Math.min(SPEEDS.length - 1, si + (k === 'ArrowUp' ? 1 : -1)));
+    v.playbackRate = SPEEDS[si]; $('spd').textContent = SPEEDS[si] + '×'; }
+  else if (c === 'Digit1' || k === '1') add('in');
+  else if (c === 'Digit2' || k === '2') add('out');
+  else if (c === 'Digit3' || k === '3') add('staff_in');
+  else if (c === 'Digit4' || k === '4') add('staff_out');
+  else if (k === 'Delete' || k === 'Backspace') { const now = s.a + v.currentTime;
+    const near = marksOf(s.tag).sort((a, b) => Math.abs(a.film - now) - Math.abs(b.film - now))[0];
+    if (near && Math.abs(near.film - now) <= 1.5) remove(near.id); }
+  else if (c === 'KeyZ' || k === 'z' || k === 'я') { const id = undo.pop(); if (id) remove(id); }
+  else if (k === 'Enter') { await api({op: 'done', tag: s.tag}); data.state.done.push(s.tag); flash('отрезок размечен', '#24527a');
+    const nx = data.stretches.findIndex((x, i) => i > cur && !data.state.done.includes(x.tag)); renderList(); if (nx >= 0) open(nx); }
+});
+
+$('days').innerHTML = DAYS.map(d => `<button>${d}</button>`).join('');
+document.querySelectorAll('#days button').forEach(b => b.onclick = () => loadDay(b.textContent));
+loadDay('20260919');
+</script>
+</body>
+</html>

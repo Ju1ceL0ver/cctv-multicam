@@ -145,15 +145,20 @@ def static_people(M, owned, person, n_ticks, max_px=8.0, min_share=0.7):
     return out
 
 
-def convert(days):
+def convert(days, door=None, name='sam31', tick=None):
+    """door: the folder of merged stretches (the teacher's data/sam31_door by default; door_micro.py passes the small
+    model's); name: the run's name in data/door_v2/<day>_<name>.jsonl.gz."""
     import door_v2 as D
     import sam31_reid as R
+    door = Path(door) if door else DOOR
+    tick = tick or D.TICK                                  # door_micro.py --stride keeps every n-th tick
+    summary = []
     for day in days:
         spans = D.stretches(day)
         rows_out = {}
         done = []
         for si, (a, b) in enumerate(spans):
-            base = DOOR / tag_of(day, a) / CAM
+            base = door / tag_of(day, a) / CAM
             if not (base / 'report.json').exists():
                 continue
             info = json.load(open(base / 'info.json'))
@@ -162,29 +167,31 @@ def convert(days):
             overlap = {int(s): int(sh) for s, e, sh in info['sessions']}
             owned, _ = R.link_seams(M, overlap)
             person = {int(p): v for p, v in rep['person_of_piece'].items()}
-            static = static_people(M, owned, person, info['ticks'])
+            static = static_people(M, owned, person, info['ticks'] if 'stride' not in info else info['ticks'])
             for p, rs in owned.items():
                 if (person.get(int(p)) or 0) in static:
                     continue                                   # the poster stand: never moves, not a person
                 w = si * 10000 + int(person.get(int(p)) or 0)
                 for r in rs:
-                    tick = int(M.rows[r, 1])
+                    tick_i = int(M.rows[r, 1])
                     x1, y1, x2, y2 = M.rows[r, 4:8].astype(int)
                     f = foot_of(M.crop(r))
-                    t = round(a + tick * D.TICK, 2)
+                    t = round(a + tick_i * tick, 2)
                     q = {'w': w, 's': round(float(M.rows[r, 3]), 3),
                          'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4), round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
                          'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p)}
                     rows_out.setdefault((si, t), []).append(q)
             done.append(si)
-        path = ROOT / 'data' / 'door_v2' / ('%s_sam31.jsonl.gz' % day)
+        path = ROOT / 'data' / 'door_v2' / ('%s_%s.jsonl.gz' % (day, name))
         start, _ = __import__('day_movie').clock(day, str(ROOT))
         with gzip.open(path, 'wt') as fo:
-            fo.write(json.dumps({'day': day, 'cam': CAM, 'ckpt': 'sam3.1', 'film_start': start, 'pad': 25.0, 'spans': spans,
-                                 'tick': D.TICK, 'sam_done': done}) + '\n')
+            fo.write(json.dumps({'day': day, 'cam': CAM, 'ckpt': 'sam3.1' if name == 'sam31' else name, 'film_start': start, 'pad': 25.0, 'spans': spans,
+                                 'tick': tick, 'sam_done': done}) + '\n')
             for (si, t) in sorted(rows_out):
                 fo.write(json.dumps({'s': si, 't': t, 'p': rows_out[(si, t)]}) + '\n')
         print(day, 'stretches', len(done), 'of', len(spans), 'ticks', len(rows_out), '->', path, flush=True)
+        summary.append('%s: %d of %d stretches, %d ticks' % (day, len(done), len(spans), len(rows_out)))
+    return '; '.join(summary)
 
 
 if __name__ == '__main__':

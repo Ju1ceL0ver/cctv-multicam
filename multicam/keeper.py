@@ -42,7 +42,9 @@ PLAN = os.path.join(ROOT, 'data', 'keeper_plan.json')
 # owner stopped the teachers' whole-day labelling and the nightly student: the ground truth
 # now comes from his own door labels, and the nights go to ReID and the live system.
 # 25.09: 'raw': false stops the raw recording of both cameras; the live counter keeps running.
-PLAN_DEFAULT = {'teachers': True, 'student_seg': True, 'raw': True}
+# 06.10: 'live': false -- the owner retired the live counter (retail_analytics run_live.py): it is not started and a
+# running one is stopped; the system that replaces it is built on SAM 3.1's design (AGENTS.md section 52).
+PLAN_DEFAULT = {'teachers': True, 'student_seg': True, 'raw': True, 'live': True}
 
 
 def plan():
@@ -113,6 +115,16 @@ def stop_recorders():
             continue
         os.system('taskkill /PID %d /F > nul 2>&1' % pid)
         log('plan: raw recording switched off, stopped recorder %s (pid %d)' % (cam, pid))
+
+
+def stop_live():
+    """The plan retired the live counter: end every run_live.py of retail_analytics, with its children."""
+    for l in running('run_live.py'):
+        pid, _, cmd = l.partition('|')
+        if 'retail_analytics' not in cmd or 'run_live.py' not in cmd:
+            continue
+        os.system('taskkill /PID %d /F /T > nul 2>&1' % int(pid.strip()))
+        log('plan: live counter switched off, stopped run_live.py (pid %s)' % pid.strip())
 
 
 CAMERA1 = (os.environ.get('RA_CAM_CAM1_IP', '192.168.99.241'), 554)
@@ -382,7 +394,9 @@ def main():
                 ensure_recorders()
             else:
                 stop_recorders()
-            if camera_up():             # the counter's own RetailAnalytics task restarts it anyway; do not fight it
+            if not p['live']:
+                stop_live()
+            elif camera_up():           # the counter's own RetailAnalytics task restarts it anyway; do not fight it
                 ensure('live counter', 'run_live.py', start_live)
             ensure('review site', 'label_pieces.py', start_labeler)
             ensure_jupyter()

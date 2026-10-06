@@ -403,7 +403,7 @@ def add_io(ticks, path=None):
                 if v is not None:
                     q['tap'] = v
     cnn_p = Path(str(path).replace('.jsonl.gz', '.io_cnn.json.gz')) if path else None
-    if cnn_p is not None and cnn_p.exists():             # door_io_crops.py: the crop net on the same people
+    if cnn_p is not None and cnn_p.exists() and os.environ.get('RA_DOOR_NOCNN') != '1':   # door_io_crops.py: the crop net
         cnn = json.load(gzip.open(cnn_p, 'rt'))
         for r in ticks:
             for q in r['p']:
@@ -536,6 +536,11 @@ def truth(day, physical=True):
         kind = {'in': 'in', 'out': 'out', 'staff_in': 'in', 'staff_out': 'out', 'unsure': 'any'}.get(a)
         if kind:
             out.append({'t': it['film'] + door_learn.SHIFT, 'kind': kind, 'staff': a.startswith('staff'), 'id': 'check:' + it['id']})
+    # the owner's own marks on the stretch videos (door_mark.py, /doormark): crossings no answer holds
+    import door_mark
+    for m in door_mark.truth_marks(day):
+        if not any(o['kind'] in (m['kind'], 'any') and abs(o['t'] - m['t']) <= 2.0 for o in out):
+            out.append(m)
     return out
 
 
@@ -606,6 +611,14 @@ def grid(day, path, tols=(3.0, 6.0)):
 
 
 def _read(path):
+    ticks, spans = _read_raw(path)
+    if os.environ.get('RA_DOOR_STITCH') == '1':              # door_stitch.py: one person, one number (06.10)
+        import door_stitch
+        door_stitch.stitch(ticks)
+    return ticks, spans
+
+
+def _read_raw(path):
     rows = []
     try:
         for l in gzip.open(path, 'rt'):

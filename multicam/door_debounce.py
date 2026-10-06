@@ -19,6 +19,9 @@ sys.path.insert(0, str(ROOT))
 D = ROOT / 'data' / 'door_v2'
 RUNS = {'model': {'20260917': '20260917_v2_m_clips_best_q', '20260918': '20260918_v2_m_clips_best', '20260919': '20260919_v2_m_clips_best_p'},
         'sam': {d: '%s_sam31' % d for d in ('20260917', '20260918', '20260919')}}
+if os.environ.get('RA_DEB_RUNS'):                 # 06.10: e.g. 'sam=sam31;micro=micro1s3' over the days that have both
+    days = os.environ.get('RA_DEB_DAYS', '20260917,20260919').split(',')
+    RUNS = {k: {d: '%s_%s' % (d, v) for d in days} for k, v in (x.split('=') for x in os.environ['RA_DEB_RUNS'].split(';'))}
 
 
 def events(by, W, frac, door_out):

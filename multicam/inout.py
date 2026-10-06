@@ -210,7 +210,7 @@ def register(app, root):
         """The next unlabelled people in a fixed shuffle (days and cameras mixed), the last
         answered ones (to go back), the counts."""
         ss, r = samples(here()), labels(here())
-        todo = sorted((i for i in ss if i not in r), key=_key)
+        todo = sorted((i for i in ss if i not in r), key=lambda i: (0 if ss[i].get('door') else 1, -ss[i].get('doubt', 0), _key(i)))   # 06.10: the door batch first, the least sure first
         done = sorted((i for i in r if i in ss), key=lambda i: r[i]['at'])
         hist = {str(k): 0 for k in LABELS}
         for v in r.values():

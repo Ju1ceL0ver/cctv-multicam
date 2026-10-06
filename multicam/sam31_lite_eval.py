@@ -126,6 +126,18 @@ def film(folder, T, S, out):
     enc.stdin.close(); enc.wait()
 
 
+def tune(pred):
+    """RA_S31_NEWDET / RA_S31_SCORE: SAM 3.1's thresholds for a new person and for a detection (0.65 / 0.4),
+    lowered for a student whose scores run a little lower than the teacher's."""
+    import os
+    m = pred.model
+    if os.environ.get('RA_S31_NEWDET'):
+        m.new_det_thresh = float(os.environ['RA_S31_NEWDET'])
+    if os.environ.get('RA_S31_SCORE'):
+        m.score_threshold_detection = float(os.environ['RA_S31_SCORE'])
+    return m.new_det_thresh, m.score_threshold_detection
+
+
 def save_res(path, res):
     import pickle
     pickle.dump({k: [(i, p, np.packbits(m)) for i, p, m in v] for k, v in res.items()}, open(path, 'wb'))
@@ -157,7 +169,7 @@ def preview(folder, T, S, out):
     cv2.imwrite(str(out), np.hstack(halves), [cv2.IMWRITE_JPEG_QUALITY, 85])
 
 
-def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_path=''):
+def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_path='', heads=None):
     import cv2
     import torch
     import sam31_distill as SD
@@ -168,8 +180,12 @@ def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_pat
         cache.mkdir(parents=True, exist_ok=True)
     student = SD.load_student(str(ROOT / ckpt) if not Path(ckpt).is_absolute() else ckpt)
     pred = S.build()
+    tune(pred)
     tri = pred.model.detector.backbone.vision_backbone
     teacher_trunk = tri.trunk
+    if heads:                                   # stage 2: the short heads too (only the cached teacher answers are used then)
+        import sam31_heads as SH
+        SH.install(pred, torch.load(heads, map_location='cpu', weights_only=False))
     rep = {'ckpt': ckpt, 'stretches': []}
     tmp = ROOT / 'data' / 'logs' / 'lite_eval_frames'
     for si, (d, k0, dens) in enumerate(stretches(n, ticks)):
@@ -214,7 +230,8 @@ def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_pat
 if __name__ == '__main__':
     a = sys.argv[1:]
     kw = {}
-    for flag, name in (('--cache', 'cache'), ('--out', 'out'), ('--preview', 'preview_path'), ('--film', 'film_path')):
+    for flag, name in (('--cache', 'cache'), ('--out', 'out'), ('--preview', 'preview_path'), ('--film', 'film_path'),
+                       ('--heads', 'heads')):
         if flag in a:
             i = a.index(flag)
             kw[name] = a[i + 1]
