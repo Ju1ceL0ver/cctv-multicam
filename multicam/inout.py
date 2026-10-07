@@ -210,6 +210,14 @@ def register(app, root):
         """The next unlabelled people in a fixed shuffle (days and cameras mixed), the last
         answered ones (to go back), the counts."""
         ss, r = samples(here()), labels(here())
+        if request.args.get('review'):      # 07.10: answers the model disagrees with (io_door_eval.py --review)
+            rv = json.load(open(folder(here()) / 'review.json', encoding='utf-8'))
+            items = [x for x in rv['items'] if x['id'] in ss and x['id'] in r and r[x['id']]['at'] <= rv['made']]
+            todo = [x['id'] for x in items]
+            meta = {x['id']: dict({k: ss[x['id']][k] for k in ('day', 'cam', 'near')}, old=x['old'], model=x['model'], p=x['p'])
+                    for x in items[:int(request.args.get('n', 200))]}
+            return jsonify({'todo': todo[:int(request.args.get('n', 200))], 'recent': [], 'labels': {}, 'meta': meta,
+                            'total': len(rv['items']), 'done': len(rv['items']) - len(items), 'hist': {}, 'review': True})
         todo = sorted((i for i in ss if i not in r), key=lambda i: (0 if ss[i].get('door') else 1, -ss[i].get('doubt', 0), _key(i)))   # 06.10: the door batch first, the least sure first
         done = sorted((i for i in r if i in ss), key=lambda i: r[i]['at'])
         hist = {str(k): 0 for k in LABELS}

@@ -136,9 +136,12 @@ def neck_maps(neck, x, scales=SCALES):
 def sources(test=False):
     """[(video, ticks with people, all ticks)]: windows (no 23.09 unless test) and door stretches (never in test)."""
     out = []
-    kinds = ['sam31_seg'] if test else ['sam31_seg', 'sam31_door']
+    kinds = ['sam31_seg'] if test else os.environ.get('RA_DISTILL_KINDS', 'sam31_seg,sam31_door').split(',')
+    skip = [x for x in os.environ.get('RA_DISTILL_SKIP', '').split(',') if x]   # days left out, e.g. the door exam day
     for kind in kinds:
         for d in sorted((ROOT / 'data' / kind).glob('*/cam*')):
+            if any(x in d.parent.name for x in skip):
+                continue
             v, c = d / 'video.mp4', d / 'chunks.npz'
             if not v.exists() or not c.exists():
                 continue

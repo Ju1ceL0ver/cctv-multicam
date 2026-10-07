@@ -17,6 +17,7 @@ usage: staff.py build        -> data/staff/feats.npz, people.json
 Storage: data/staff/labels.json {person: {label, at}}, every answer also in history.jsonl."""
 import hashlib
 import json
+import os
 import re
 import sys
 import threading
@@ -80,6 +81,14 @@ def build(root):
             meta[pid] = {'frame': frame, 'value': int(v), 'day': parts[0], 'cam': cam, 'box': [int(x) for x in box]}
             cloth.append(c.astype(np.float32))
             shape.append(s.astype(np.float32))
+    cz = folder(root) / 'counter_emb.npz'               # 08.10: the live counter's door snapshots (staff_counter.py)
+    if cz.exists():
+        z = np.load(cz)
+        cm = json.load(open(folder(root) / 'counter_people.json', encoding='utf-8'))
+        for i, c, s_ in zip(z['ids'], z['cloth'], z['shape']):
+            i = str(i)
+            if i in cm:
+                ids.append(i); meta[i] = cm[i]; cloth.append(c); shape.append(s_)
     C = _norm(_pca(_norm(np.array(cloth)), PCA_CLOTH))
     S = _norm(_pca(_norm(np.array(shape)), PCA_SHAPE))
     box = np.array([meta[i]['box'] for i in ids], np.float32)
@@ -115,9 +124,10 @@ def feats(root):
     return _feats
 
 
-def _clf():
-    from sklearn.linear_model import LogisticRegression
-    return LogisticRegression(C=1.0, max_iter=2000, class_weight='balanced')
+def _clf(n=1000):
+    # 08.10: a small net (256, 64) -- day-held-out 89.0 % on the owner's 1930 answers against 80.5 % of the logistic
+    from sklearn.neural_network import MLPClassifier
+    return MLPClassifier((256, 64), max_iter=400, early_stopping=n >= 100, random_state=0)
 
 
 def fit(root, force=False):
@@ -133,7 +143,10 @@ def fit(root, force=False):
             return _model
         rows = [F['row'][i] for i, _ in ans]
         X = F['X'][rows]
-        p = _clf().fit(X, y).predict_proba(F['X'])[:, 1]
+        p = _clf(len(y)).fit(X, y).predict_proba(F['X'])[:, 1]
+        if _model.get('cv') and abs(len(r) - _model.get('cv_n', 0)) < 50 and not force:
+            _model.update(n=len(r), p=p)
+            return _model
         days = np.array([F['meta'][i]['day'] for i, _ in ans])
         right = total = 0
         fp = fn = 0
@@ -142,34 +155,47 @@ def fit(root, force=False):
             tr = ~te
             if y[tr].sum() < 2 or (~y[tr]).sum() < 2:
                 continue
-            q = _clf().fit(X[tr], y[tr]).predict_proba(X[te])[:, 1] >= 0.5
+            q = _clf(int(tr.sum())).fit(X[tr], y[tr]).predict_proba(X[te])[:, 1] >= 0.5
             right += int((q == y[te]).sum()); total += int(te.sum())
             fp += int((q & ~y[te]).sum()); fn += int((~q & y[te]).sum())
         cv = {'acc': round(right / total, 4) if total else None, 'n': total, 'staff_as_customer': fn, 'customer_as_staff': fp}
-        _model.update(n=len(r), p=p, cv=cv)
+        _model.update(n=len(r), p=p, cv=cv, cv_n=len(r))
         return _model
+
+
+ONLY_CAM = os.environ.get('RA_STAFF_CAM', 'cam1')
+DEDUP = 0.95
+COUNTER_FIRST = True                  # cosine of the ReID vectors above which a candidate is the same person as one already queued     # 08.10: the owner asked for the door camera only
 
 
 def queue(root, n=100):
     """The next people to ask, in order: doubtful and random alternating (or the cold-start prior)."""
     F, r = feats(root), labels(root)
     m = fit(root)
-    todo = np.array([i not in r for i in F['ids']])
+    todo = np.array([i not in r and (not ONLY_CAM or F['meta'][i]['cam'] == ONLY_CAM) for i in F['ids']])
     idx = np.flatnonzero(todo)
     rand = sorted(idx, key=lambda k: _key(F['ids'][k]))
     if m['p'] is None:
         first = idx[np.argsort(-F['prior'][idx], kind='stable')]
     else:
         first = idx[np.argsort(np.abs(m['p'][idx] - 0.5), kind='stable')]
+    if COUNTER_FIRST:                                   # 08.10: the counter's snapshots of the unlabelled week first
+        cnt = np.array([F['meta'][F['ids'][k]].get('src') == 'counter' for k in first], bool)
+        if cnt.any():
+            first = np.concatenate([first[cnt], first[~cnt]])
+            rand = [k for k in rand if F['meta'][F['ids'][k]].get('src') == 'counter'] + \
+                   [k for k in rand if F['meta'][F['ids'][k]].get('src') != 'counter']
+    emb = F['X'][:, :192] / np.linalg.norm(F['X'][:, :192], axis=1, keepdims=True).clip(1e-6)
     out, seen = [], set()
     a = b = 0
+    picked = []
     while len(out) < n and (a < len(first) or b < len(rand)):
         for src, pos in ((first, 'a'), (rand, 'b')):
             k = a if pos == 'a' else b
-            while k < len(src) and src[k] in seen:
-                k += 1
+            while k < len(src) and (src[k] in seen or (picked and float(np.max(emb[picked] @ emb[src[k]])) > DEDUP)):
+                seen.add(src[k]); k += 1            # 08.10: the same person from a neighbouring frame -- skip
             if k < len(src):
-                seen.add(src[k]); out.append(int(src[k])); k += 1
+                seen.add(src[k]); out.append(int(src[k])); picked.append(int(src[k])); k += 1
             if pos == 'a':
                 a = k
             else:
@@ -246,6 +272,19 @@ def register(app, root):
         s = person(pid)
         if what not in ('crop', 'plain', 'frame'):
             abort(404)
+        if s.get('src') == 'counter':                   # the counter's own snapshot: its crop, or its frame with the box
+            import cv2
+            if what == 'frame' and s.get('full') and Path(s['full']).exists():
+                img = cv2.imread(s['full'])
+                x1, y1, x2, y2 = [int(v) for v in s['box_raw']]
+                cv2.rectangle(img, (x1 - 3, y1 - 3), (x2 + 3, y2 + 3), (66, 197, 245), 3)
+                img = cv2.resize(img, (960, int(960 * img.shape[0] / img.shape[1])))
+            else:
+                img = cv2.imread(s['crop'])
+            ok, buf = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 90])
+            resp = Response(buf.tobytes(), mimetype='image/jpeg')
+            resp.headers['Cache-Control'] = 'private, max-age=3600'
+            return resp
         data = inout.render(here(), s, 'frame' if what == 'frame' else 'crop', outline=what == 'crop')
         resp = Response(data, mimetype='image/jpeg')
         resp.headers['Cache-Control'] = 'private, max-age=3600'

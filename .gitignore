@@ -26,3 +26,8 @@ graphify-out/.graphify_root
 !graphify-out/graph.json
 !graphify-out/GRAPH_REPORT.md
 !graphify-out/cost.json
+inout_lab/*.npz
+
+# Regenerable float32 cache for minibatch CNN training on the Mac
+inout_lab/cnn_frames_88x160.npy
+inout_lab/cnn_frames_88x160.json

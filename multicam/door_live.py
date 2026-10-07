@@ -91,7 +91,8 @@ class Grabber(threading.Thread):
                     break
                 if file_mode:                        # a recorded file: every second frame of 25 is a tick
                     if k % max(1, int(round(fps * TICK))) == 0:
-                        self.out.put((time.time(), f))
+                        t0 = os.environ.get('RA_SOURCE_T0')       # 07.10: a test on a record -- the record's own clock
+                        self.out.put((float(t0) + k / fps if t0 else time.time(), f))
                         while self.out.qsize() > 600:
                             time.sleep(0.05)
                     k += 1
@@ -124,6 +125,19 @@ class Window:
         (self.dir / 'sam_in').mkdir(exist_ok=True)
         self.t0, self.n, self.sessions, self.told = t0, 0, [], []
         self.times = []
+        self.seen = set()
+        self.person_of = {}
+        self._fr = {}
+
+    def frame(self, k):
+        """The tick's frame as RGB (2176 x 1224), a few cached."""
+        import cv2
+        if k not in self._fr:
+            if len(self._fr) > 64:
+                self._fr.pop(next(iter(self._fr)))
+            f = cv2.imread(str(self.dir / 'frames' / ('%05d.jpg' % k)))
+            self._fr[k] = None if f is None else f[:, :, ::-1].copy()
+        return self._fr[k]
 
     def add(self, t, frame):
         import cv2
@@ -155,8 +169,9 @@ def segment(pred, win, sess):
               open(win.dir / 'info.json', 'w'))
 
 
-def people(win):
-    """ReID over the window -> door_v2 ticks (t = clock seconds of the tick)."""
+def people(win, combo=None):
+    """ReID over the window -> door_v2 ticks (t = clock seconds of the tick). With combo (door_combo.Live), every
+    person row not seen yet also goes through the owner's inside/outside model (07.10)."""
     import door_sam as DS
     import sam31_reid as R
     r = subprocess.run([RF, 'sam31_reid.py', '%s/cam1' % win.id, '0.35'], cwd=str(ROOT), capture_output=True, text=True,
@@ -179,6 +194,17 @@ def people(win):
             x1, y1, x2, y2 = M.rows[r_, 4:8].astype(int)
             f = DS.foot_of(M.crop(r_))
             t = round(win.times[k], 2) if k < len(win.times) else round(win.t0 + k * TICK, 2)
+            if combo is not None:
+                win.person_of[(win.id, k, r_)] = '%s:%d' % (win.id, w)
+            if combo is not None and (k, r_) not in win.seen:
+                win.seen.add((k, r_))
+                fr = win.frame(k)
+                if fr is not None:
+                    m = np.zeros((H, W), np.uint8)
+                    c_ = M.crop(r_)
+                    m[y1:y1 + c_.shape[0], x1:x1 + c_.shape[1]] = c_[:H - y1, :W - x1]
+                    fx, fy = (x1 + f[0], y1 + f[1]) if f else ((x1 + x2) / 2, y2)
+                    combo.add((win.id, k, r_), t, fr, m, [fx / W, fy / H])
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
                                                    round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
@@ -195,6 +221,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
     import torch
     LIVE.mkdir(parents=True, exist_ok=True)
     rule = DR.load(rule_name)
+    combo = None
+    if os.environ.get('RA_DOOR_COMBO', '1') == '1' and (ROOT / 'data' / 'door_v2' / 'combo_final.json').exists():
+        import door_combo
+        combo = door_combo.Live()          # the rule + the owner's model + movement + door zone, counted on agreement
     pred = DM.build(student, heads if heads not in ('-', 'none') else None)
     q = queue.Queue()
     src = source or camera_url()
@@ -202,19 +232,27 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
     g.start()
     if str(src).startswith('rtsp'):
         threading.Thread(target=g.ticker, daemon=True).start()
-    log('start: student %s, heads %s, rule %s (threshold %.2f), source %s' % (student, heads, rule_name, rule['thr'],
+    log('start: student %s, heads %s, rule %s (threshold %.2f), combo %s, source %s' % (student, heads, rule_name, rule['thr'],
+                                                                              'on' if combo else 'off',
                                                                               'camera 1' if str(src).startswith('rtsp') else src))
     win, old = None, []
     t_end = time.time() + 60 * float(minutes) if minutes else None
     told_all = []
     events_path = LIVE / 'events_cam1.jsonl'
+    final = False
     while True:
         try:
             item = q.get(timeout=1.0)
         except queue.Empty:
             item = 'idle'
-        if item is None or (t_end and time.time() > t_end):
+        if final:
             break
+        if item is None or (t_end and time.time() > t_end):
+            # 07.10: the end of a record -- the last, short session too, and every event without waiting LAG
+            if win is None or not win.sessions or win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP:
+                break
+            final = True
+            item = 'idle'
         if item != 'idle':
             t, f = item
             if win is None:
@@ -223,22 +261,27 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
         if win is None:
             continue
         sess = win.next_session()
+        if final:
+            s0 = win.sessions[-1][1] - OVERLAP
+            sess = (s0, win.n, OVERLAP)
         if sess is None:
             continue
         t0 = time.time()
         segment(pred, win, sess)
         t_sam = time.time() - t0
-        ticks = people(win)
+        ticks = people(win, combo)
         t_reid = time.time() - t0 - t_sam
         new = []
         if ticks:
             D.add_io(ticks)
             last = ticks[-1]['t']
-            for e in DR.apply(ticks, rule):
-                if e['t'] > last - LAG:
+            evs = DR.apply(ticks, rule) if combo is None else combo.events(DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
+            for e in evs:
+                if e['t'] > last - LAG and not final:
                     continue
                 if any(x['kind'] == e['kind'] and abs(x['t'] - e['t']) <= 2.0 for x in told_all):
                     continue
+                e = {k_: v_ for k_, v_ in e.items() if k_ not in ('xy', 'disp')}
                 e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
                 told_all.append(e); new.append(e)
                 with open(events_path, 'a', encoding='utf-8') as fo:

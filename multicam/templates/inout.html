@@ -42,12 +42,14 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const NAMES = {{ labels | tojson }};
+const REVIEW = new URLSearchParams(location.search).has('review');
+const MODEL = {outside: 'снаружи', inside: 'внутри', doorway: 'в проёме двери'};
 let todo = [], recent = [], given = {}, meta = {}, cur = null, viewing = null, noOutline = false, total = 0, done = 0, hist = {};
 const outbox = [];
 let sending = false, loaded = false;
 
 async function refill() {
-  const j = await (await fetch('/api/inout?n=200')).json();
+  const j = await (await fetch('/api/inout?n=200' + (REVIEW ? '&review=1' : ''))).json();
   Object.assign(meta, j.meta);
   const seen = new Set([...recent, ...todo, cur].filter(Boolean));
   todo = todo.concat(j.todo.filter(i => !seen.has(i) && given[i] === undefined));
@@ -58,7 +60,7 @@ async function refill() {
   counters();
 }
 function counters() {
-  $('#progress').textContent = `размечено ${done} из ${total}`;
+  $('#progress').textContent = (REVIEW ? `пересмотр: исправлено ${done} из ${total}` : `размечено ${done} из ${total}`);
   $('#hist').textContent = [1, 2, 3, 4, 5, 0].map(k => `${NAMES[k]}: ${hist[k] || 0}`).join(' · ');
 }
 function src(id) { return `/inout-img/${id}/${noOutline ? 'plain' : 'crop'}`; }
@@ -67,7 +69,8 @@ function show(id) {
   $('#crop').src = src(id);
   $('#frame').src = `/inout-img/${id}/frame`;
   const m = meta[id];
-  $('#tag').textContent = m ? `${m.day.slice(6, 8)}.${m.day.slice(4, 6)} · ${m.cam === 'cam1' ? 'камера 1' : 'камера 2'}` : '';
+  $('#tag').textContent = m ? `${m.day.slice(6, 8)}.${m.day.slice(4, 6)} · ${m.cam === 'cam1' ? 'камера 1' : 'камера 2'}` +
+    (m.old !== undefined ? ` · было: ${NAMES[m.old]} · модель: ${MODEL[m.model]} (${Math.round(m.p * 100)}%)` : '') : '';
   const g = given[id];
   $('#given').style.display = g === undefined ? 'none' : 'block';
   $('#given').textContent = g === undefined ? '' : NAMES[g];

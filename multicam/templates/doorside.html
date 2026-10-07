@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Внутри или снаружи — по людям</title>
+<style>
+:root{--bg:#111;--fg:#eee;--mut:#999;--in:#00e676;--out:#ff2bd6;--none:#9e9e9e;--acc:#ffd600}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px system-ui,sans-serif}
+header{display:flex;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid #333;flex-wrap:wrap}
+header select,header button{background:#222;color:var(--fg);border:1px solid #444;border-radius:6px;padding:4px 8px}
+main{display:flex;gap:12px;padding:8px 12px}
+#stage{position:relative;flex:1;max-width:1280px}
+#stage video,#stage canvas{width:100%;display:block}
+#stage canvas{position:absolute;left:0;top:0;cursor:crosshair}
+#side{width:300px;flex-shrink:0}
+#side h3{margin:6px 0}
+.ev{padding:3px 6px;border-radius:4px;margin:2px 0;cursor:pointer;background:#1c1c1c}
+.ev.in{border-left:4px solid var(--in)}.ev.out{border-left:4px solid var(--out)}
+#tl{margin:8px 12px;position:relative}
+#tl canvas{width:100%;display:block;background:#181818;border-radius:6px;cursor:pointer}
+.mut{color:var(--mut)}
+kbd{background:#333;border-radius:3px;padding:0 4px}
+#help{font-size:12px;line-height:1.7}
+#msg{color:var(--acc);min-height:18px}
+</style></head><body>
+<header>
+  <strong>Кто внутри, кто снаружи</strong>
+  день <select id="day"></select>
+  отрезок <select id="tag"></select>
+  <span id="info" class="mut"></span>
+  <span class="mut">скорость <b id="rate">1×</b></span>
+  <button id="done">отрезок размечен целиком (D)</button>
+  <span id="msg"></span>
+</header>
+<main>
+  <div id="stage"><video id="v" muted playsinline preload="auto"></video><canvas id="c" width="1280" height="720"></canvas></div>
+  <div id="side">
+    <h3>Выбран: <span id="sel" class="mut">никто</span></h3>
+    <div id="help">
+      Щелчок по человеку — выбрать. По пустому месту — человек без контура.<br>
+      <kbd>1</kbd> с этого кадра <b style="color:var(--in)">внутри</b> · <kbd>2</kbd> <b style="color:var(--out)">снаружи</b><br>
+      <kbd>Backspace</kbd> убрать ближайшую отметку выбранного · <kbd>Del</kbd> удалить точку<br>
+      <kbd>L</kbd> нарисовать линию магазина (2 конца + сторона «внутри») ·
+      <kbd>C</kbd> с этого кадра в треке другой человек (разрезать) ·
+      <kbd>X</kbd> это не человек (скрыть; ещё раз — вернуть) ·
+      <kbd>M</kbd> затем щелчок — это тот же человек (ноги и торс, кусок после стойки) · <kbd>U</kbd> расклеить<br>
+      <kbd>Пробел</kbd> пауза · <kbd>←</kbd><kbd>→</kbd> кадр · <kbd>Shift</kbd>+стрелки 1 с · <kbd>[</kbd><kbd>]</kbd> скорость<br>
+      <kbd>Tab</kbd> следующий человек в кадре · <kbd>N</kbd> следующий отрезок · <kbd>D</kbd> размечен целиком · <kbd>T</kbd> отрезок для обучения / теста<br>
+      Смена «снаружи → внутри» = <b style="color:var(--in)">ВХОД</b>, обратно = <b style="color:var(--out)">ВЫХОД</b>.
+    </div>
+    <h3>События отрезка</h3><div id="events" class="mut">—</div>
+    <h3>Прежние ответы по двери</h3><div id="answers" class="mut">—</div>
+  </div>
+</main>
+<div id="tl"><canvas id="tlc" width="1600" height="160"></canvas></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const v=$('#v'),c=$('#c'),g=c.getContext('2d'),tl=$('#tlc'),tg=tl.getContext('2d');
+let FPS=12.5,day=null,S=[],cur=null,outl={},sel=null,rates=[0.25,0.5,1,2,4],ri=2;
+const COL={in:'#00e676',out:'#ff2bd6',none:'#9e9e9e'};
+const msg=t=>{$('#msg').textContent=t;clearTimeout(msg.h);msg.h=setTimeout(()=>$('#msg').textContent='',2500)};
+const now=()=>v.currentTime;
+const kNow=()=>Math.round(now()*FPS);
+let mergeMode=false,selPiece=null,LINE=null,lineMode=0,linePts=[];
+fetch('/api/doorside/line').then(r=>r.json()).then(j=>{if(j.p1)LINE=j});
+function lineSide(x,y){const [x1,y1]=LINE.p1,[x2,y2]=LINE.p2;return Math.sign((x2-x1)*(y-y1)-(y2-y1)*(x-x1))}
+function polyInside(poly){if(!LINE)return false;const want=lineSide(...LINE.inside);let n=0;for(const [x,y] of poly)if(lineSide(x,y)===want)n++;return n>0}
+function eff(piece){const cs=((cur.cuts||{})[String(piece)]||[]);const n=cs.filter(c=>now()>=c-1e-6).length;return n?String(piece)+'.'+n:String(piece)}
+function root(p){p=String(p);const m=cur.merge||{};const seen=new Set();while(m[p]!==undefined&&!seen.has(p)){seen.add(p);p=String(m[p])}return p}
+function marksOf(r){const out=[];for(const [p,xs] of Object.entries(cur.sides))if(root(p)===r)out.push(...xs);return out.sort((a,b)=>a[0]-b[0])}
+function sideAt(p,t){const all=marksOf(root(p));if(!all.length)return 'none';const xs=all.filter(x=>x[0]<=t+1e-6);return xs.length?xs[xs.length-1][1]:all[0][1]}  // before the first mark: the first mark's side
+async function api(u,b){const r=await fetch(u,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+async function loadDay(d){
+  day=d;const j=await api('/api/doorside/'+d);FPS=j.fps;S=j.stretches;
+  $('#tag').innerHTML=S.map((s,i)=>`<option value="${i}">${s.done?'✓ ':''}${s.tag.split('_')[2]} · ${Math.round(s.seconds)} с · ответов ${s.answers.length}</option>`).join('');
+  const i=Math.max(0,S.findIndex(s=>!s.done));$('#tag').value=i;await openStretch(i)}
+async function openStretch(i){
+  cur=S[i];sel=null;$('#sel').textContent='никто';
+  $('#info').textContent=`${cur.tag} · ${Math.round(cur.seconds)} с`;
+  v.src='/api/doorside/video/'+cur.tag;v.playbackRate=rates[ri];
+  outl={};msg('загружаю контуры…');
+  outl=await api('/api/doorside/outlines/'+cur.tag);msg('');
+  renderLists();draw()}
+function renderLists(){
+  $('#events').innerHTML=cur.events.length?cur.events.map(e=>`<div class="ev ${e.kind}" data-t="${e.t}">${e.kind=='in'?'ВХОД':'ВЫХОД'} · ${label(e.person)} · ${e.t.toFixed(1)} с</div>`).join(''):'—';
+  $('#answers').innerHTML=cur.answers.length?cur.answers.map(a=>`<div class="ev ${a.kind=='in'?'in':'out'}" data-t="${a.t}">${a.kind=='in'?'вход':a.kind=='out'?'выход':a.kind}${a.staff?' (сотр.)':''} · ${a.t.toFixed(1)} с</div>`).join(''):'—';
+  document.querySelectorAll('.ev').forEach(el=>el.onclick=()=>{v.pause();v.currentTime=Math.max(0,+el.dataset.t-1.5)});
+  $('#info').textContent=`${cur.tag} · ${Math.round(cur.seconds)} с · ${(cur.role||'test')=='train'?'ОБУЧЕНИЕ':'ТЕСТ'} (T)`;
+  $('#done').textContent=cur.done?'отрезок размечен ✓ (D — снять)':'отрезок размечен целиком (D)';
+  drawTimeline()}
+const label=p=>String(p).startsWith('x')?'точка '+String(p).slice(1):String(p).startsWith('old')?'стар.'+String(p).slice(3):'T'+p;
+function peopleNow(){const k=String(kNow());return outl[k]||[]}
+function draw(){
+  g.clearRect(0,0,1280,720);const t=now();
+  for(const [piece,_,poly] of peopleNow()){
+    const p=root(eff(piece));
+    if((cur.noperson||[]).includes(p)){if(String(p)===String(sel)){g.setLineDash([6,6]);g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.lineWidth=2;g.strokeStyle='#777';g.stroke();g.setLineDash([])}continue}
+    const s=sideAt(p,t),col=COL[s];
+    g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();
+    g.fillStyle=col+'33';g.fill();g.lineWidth=String(p)===String(sel)?6:3;g.strokeStyle=String(p)===String(sel)?'#ffd600':col;g.stroke();
+    const top=poly.reduce((a,b)=>b[1]<a[1]?b:a);
+    g.font='bold 26px system-ui';g.lineWidth=6;g.strokeStyle='#000';const txt=`${label(p)} ${s=='in'?'ВНУТРИ':s=='out'?'СНАРУЖИ':'?'}`;
+    g.strokeText(txt,top[0]-50,Math.max(28,top[1]-10));g.fillStyle=col;g.fillText(txt,top[0]-50,Math.max(28,top[1]-10))}
+  for(const [pid,[x,y,t0]] of Object.entries(cur.points||{})){
+    const s=sideAt(pid,t),col=COL[s];g.beginPath();g.arc(x,y,14,0,7);g.lineWidth=pid===String(sel)?6:4;g.strokeStyle=pid===String(sel)?'#ffd600':col;g.stroke();
+    g.font='bold 22px system-ui';g.fillStyle=col;g.fillText(label(pid),x+18,y-8)}
+  if(LINE){const [x1,y1]=LINE.p1,[x2,y2]=LINE.p2,dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ex=dx/L*2000,ey=dy/L*2000;
+    g.setLineDash([14,8]);g.lineWidth=3;g.strokeStyle='#00e5ff';g.beginPath();g.moveTo(x1-ex,y1-ey);g.lineTo(x2+ex,y2+ey);g.stroke();g.setLineDash([]);
+    g.fillStyle='#00e5ff';g.beginPath();g.arc(LINE.inside[0],LINE.inside[1],8,0,7);g.fill();g.font='bold 18px system-ui';g.fillText('внутри',LINE.inside[0]+10,LINE.inside[1]+6)}
+  for(const [x,y] of linePts){g.fillStyle='#00e5ff';g.beginPath();g.arc(x,y,7,0,7);g.fill()}
+  g.font='bold 22px system-ui';g.fillStyle='#fff';g.fillText(`${t.toFixed(2)} с · кадр ${kNow()}`+(lineMode?['','  · ЛИНИЯ: 1-я точка','  · ЛИНИЯ: 2-я точка','  · щёлкни по стороне ВНУТРИ'][lineMode]:''),12,30);
+  drawCursor()}
+function drawTimeline(){
+  const W=tl.width,H=tl.height,T=cur.seconds||1;tg.clearRect(0,0,W,H);
+  const ppl=[...new Set([...Object.keys(cur.sides).map(root),...Object.keys(cur.points||{})])].filter(p=>!(cur.noperson||[]).includes(p));
+  const rowH=Math.max(10,Math.min(26,(H-30)/Math.max(1,ppl.length)));
+  ppl.forEach((p,i)=>{const y=20+i*rowH,xs=(cur.sides[p]||[]).slice().sort((a,b)=>a[0]-b[0]);
+    tg.fillStyle='#aaa';tg.font='11px system-ui';tg.fillText(label(p),2,y+rowH*0.7);
+    xs.forEach((x,j)=>{const a=x[0],b=j+1<xs.length?xs[j+1][0]:T;tg.fillStyle=COL[x[1]];tg.fillRect(50+a/T*(W-60),y+2,Math.max(2,(b-a)/T*(W-60)),rowH-4)})});
+  for(const a of cur.answers){tg.fillStyle=a.kind=='in'?COL.in:COL.out;tg.fillRect(50+a.t/T*(W-60)-1,0,3,14)}
+  for(const e of cur.events){tg.fillStyle='#ffd600';tg.beginPath();tg.arc(50+e.t/T*(W-60),H-8,5,0,7);tg.fill()}
+  tl.dataset.base=tg.getImageData(0,0,W,H)?1:0;window._tlimg=tg.getImageData(0,0,W,H)}
+function drawCursor(){if(!window._tlimg)return;tg.putImageData(window._tlimg,0,0);const W=tl.width,x=50+now()/(cur.seconds||1)*(W-60);
+  tg.fillStyle='#fff';tg.fillRect(x,0,2,tl.height)}
+async function send(b){try{const j=await api('/api/doorside/'+day,Object.assign({tag:cur.tag},b));
+  Object.assign(cur,j.stretch);cur.events=j.events;S[$('#tag').value]=cur;renderLists();draw();return j}catch(e){msg('ошибка: '+e.message)}}
+c.addEventListener('click',async ev=>{
+  const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*1280/r.width,y=(ev.clientY-r.top)*720/r.height;
+  if(lineMode){linePts.push([x,y]);lineMode++;
+    if(lineMode>3){const b={p1:linePts[0],p2:linePts[1],inside:linePts[2]};linePts=[];lineMode=0;
+      const j=await api('/api/doorside/line',b);LINE=j;msg('линия магазина сохранена')}draw();return}
+  for(const [pid,[px,py]] of Object.entries(cur.points||{}))if(Math.hypot(px-x,py-y)<18){sel=pid;$('#sel').textContent=label(pid);draw();return}
+  const hit=peopleNow().filter(([p,_,poly])=>inside(x,y,poly)&&(!(cur.noperson||[]).includes(root(eff(p)))||root(eff(p))===String(sel)));
+  if(hit.length){selPiece=String(hit[hit.length-1][0]);const h=root(eff(hit[hit.length-1][0]));
+    if(mergeMode&&sel!=null){mergeMode=false;if(h!==root(sel)){await send({act:'merge',person:root(sel),other:h});msg(label(h)+' склеен с '+label(root(sel)))}return}
+    sel=h;$('#sel').textContent=label(sel);draw();return}
+  if(mergeMode){mergeMode=false;msg('склейка отменена');return}
+  v.pause();const j=await send({act:'point',x,y,t:now()});if(j){sel=j.person;$('#sel').textContent=label(sel);msg('новый человек без контура: '+label(sel)+' — нажми 1 или 2');draw()}});
+function inside(x,y,poly){let o=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];
+  if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))o=!o}return o}
+tl.addEventListener('click',ev=>{const r=tl.getBoundingClientRect(),x=(ev.clientX-r.left)*tl.width/r.width;v.currentTime=Math.max(0,(x-50)/(tl.width-60)*cur.seconds)});
+document.addEventListener('keydown',async e=>{
+  if(e.target.tagName=='SELECT')return;
+  const k=e.key,code=e.code;
+  if(code=='Space'){e.preventDefault();v.paused?v.play():v.pause();return}
+  if(code=='ArrowRight'||code=='ArrowLeft'){e.preventDefault();v.pause();const d=(e.shiftKey?1:1/FPS)*(code=='ArrowRight'?1:-1);v.currentTime=Math.max(0,now()+d);return}
+  if(code=='BracketRight'||k==']'){ri=Math.min(rates.length-1,ri+1);v.playbackRate=rates[ri];$('#rate').textContent=rates[ri]+'×';return}
+  if(code=='BracketLeft'||k=='['){ri=Math.max(0,ri-1);v.playbackRate=rates[ri];$('#rate').textContent=rates[ri]+'×';return}
+  if(code=='Tab'){e.preventDefault();const ps=[...new Set(peopleNow().map(x=>root(eff(x[0]))))];if(ps.length){sel=ps[(ps.indexOf(String(sel))+1)%ps.length];$('#sel').textContent=label(sel);draw()}return}
+  if(code=='Digit1'||code=='Digit2'||k=='1'||k=='2'){if(sel==null){msg('сначала щёлкни по человеку');return}
+    const side=(code=='Digit1'||k=='1')?'in':'out';await send({act:'side',person:root(sel),t:now(),side});msg(label(sel)+' '+(side=='in'?'внутри':'снаружи')+' с '+now().toFixed(2)+' с');return}
+  if(code=='Backspace'){e.preventDefault();if(sel!=null){const r=root(sel),xs=Object.entries(cur.sides).filter(([p])=>root(p)===r);
+    let best=null;for(const [p,ms] of xs)for(const m of ms)if(!best||Math.abs(m[0]-now())<Math.abs(best[1]-now()))best=[p,m[0]];
+    if(best)await send({act:'unside',person:best[0],t:best[1]})}return}
+  if(code=='KeyM'||k=='m'||k=='ь'){if(sel==null){msg('сначала выбери человека');return}mergeMode=true;msg('щёлкни второй кусок этого же человека (ноги/торс, или после стойки)');return}
+  if(code=='KeyX'||k=='x'||k=='ч'){if(sel!=null){const was=(cur.noperson||[]).includes(root(sel));await send({act:'noperson',person:root(sel)});msg(label(root(sel))+(was?' снова человек':' — не человек, скрыт'));if(!was){sel=null;$('#sel').textContent='никто'}}return}
+  if(code=='KeyC'||k=='c'||k=='с'){const here=peopleNow().map(x=>String(x[0])).filter(p=>root(eff(p))===String(sel));
+    const piece=selPiece&&here.includes(selPiece)?selPiece:here[0];if(!piece){msg('выбери человека в этом кадре');return}
+    await send({act:'cut',person:piece,t:now()});sel=root(eff(piece));$('#sel').textContent=label(sel);msg('трек T'+piece+' разрезан: с этого кадра другой человек ('+label(sel)+')');return}
+  if(code=='KeyL'||k=='l'||k=='д'){v.pause();lineMode=1;linePts=[];msg('линия: щёлкни два конца, потом сторону ВНУТРИ магазина');return}
+  if(code=='KeyT'||k=='t'||k=='е'){const r=(cur.role||'test')=='train'?'test':'train';await send({act:'role',role:r});msg(r=='train'?'отрезок — ОБУЧЕНИЕ':'отрезок — ТЕСТ');renderLists();return}
+  if(code=='KeyU'||k=='u'||k=='г'){if(sel!=null){await send({act:'unmerge',person:root(sel)});msg('расклеено')}return}
+  if(code=='Delete'){if(sel&&String(sel).startsWith('x')){await send({act:'unpoint',person:sel});sel=null;$('#sel').textContent='никто'}return}
+  if(code=='KeyN'||k=='n'||k=='т'){const i=(+$('#tag').value+1)%S.length;$('#tag').value=i;openStretch(i);return}
+  if(code=='KeyD'||k=='d'||k=='в'){await send({act:'done',done:!cur.done});$('#tag').options[$('#tag').value].text=(cur.done?'✓ ':'')+$('#tag').options[$('#tag').value].text.replace(/^✓ /,'');return}
+});
+$('#tag').onchange=()=>openStretch(+$('#tag').value);
+$('#day').onchange=()=>loadDay($('#day').value);
+$('#done').onclick=()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'d',code:'KeyD'}));
+function loop(){if(cur)draw();requestAnimationFrame(loop)}
+const days=['20260919','20260918','20260917'];$('#day').innerHTML=days.map(d=>`<option>${d}</option>`).join('');
+const q=new URLSearchParams(location.search);loadDay(q.get('day')||days[0]).then(()=>{if(q.get('tag')){const i=S.findIndex(s=>s.tag==q.get('tag'));if(i>=0){$('#tag').value=i;openStretch(i)}}});
+requestAnimationFrame(loop);
+</script></body></html>

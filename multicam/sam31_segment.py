@@ -210,8 +210,13 @@ def label(pred, out, sess, deadline, prev=None):
             sid = pred.handle_request(dict(type='start_session', resource_path=str(sub), offload_video_to_cpu=True))['session_id']
             first = pred.handle_request(dict(type='add_prompt', session_id=sid, frame_index=0, text='person'))
             local[0] = SV.masks_of(first.get('outputs', {}) or {}, (SAM_IN, SAM_IN))
-            for resp in pred.handle_stream_request(dict(type='propagate_in_video', session_id=sid, propagation_direction='forward')):
-                local[int(resp.get('frame_index', len(local)))] = SV.masks_of(resp.get('outputs', {}) or {}, (SAM_IN, SAM_IN))
+            try:
+                for resp in pred.handle_stream_request(dict(type='propagate_in_video', session_id=sid, propagation_direction='forward')):
+                    local[int(resp.get('frame_index', len(local)))] = SV.masks_of(resp.get('outputs', {}) or {}, (SAM_IN, SAM_IN))
+            except RuntimeError as exc:                 # 07.10: a session with nobody found -- SAM raises instead of
+                if 'No points are provided' not in str(exc):    # returning nothing (the small detector, 19.09)
+                    raise
+                print('session', s, e, 'nobody found', flush=True)
             pred.handle_request(dict(type='close_session', session_id=sid))
         torch.cuda.empty_cache()
         shutil.rmtree(sub, ignore_errors=True)

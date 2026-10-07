@@ -9,6 +9,7 @@ whose paired lite id changes). Seconds a frame for both. A side-by-side film of 
 usage (venv_sam3, the card): sam31_lite_eval.py CKPT [N_STRETCHES] [TICKS] [--cache DIR] [--out JSON] [--preview JPG]
                              [--film MP4|none]   (the teacher's answers are kept in --cache and reused)"""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -186,6 +187,14 @@ def main(ckpt, n=3, ticks=240, cache=None, out=None, preview_path=None, film_pat
     if heads:                                   # stage 2: the short heads too (only the cached teacher answers are used then)
         import sam31_heads as SH
         SH.install(pred, torch.load(heads, map_location='cpu', weights_only=False))
+    if os.environ.get('RA_TRACKER_CKPT') and Path(os.environ['RA_TRACKER_CKPT']).exists():    # 07.10: a tracker taught on clips
+        import sam31_e2e_trk as ET
+        tk = torch.load(os.environ['RA_TRACKER_CKPT'], map_location='cpu', weights_only=False)
+        own = dict(ET.find_tracker(pred).named_parameters())
+        with torch.no_grad():
+            for n, v in tk['state'].items():
+                if n in own and own[n].shape == v.shape:
+                    own[n].copy_(v.to(own[n].device, own[n].dtype))
     rep = {'ckpt': ckpt, 'stretches': []}
     tmp = ROOT / 'data' / 'logs' / 'lite_eval_frames'
     for si, (d, k0, dens) in enumerate(stretches(n, ticks)):

@@ -64,11 +64,35 @@ def shorten(module, keep):
 
 def install(pred, ck):
     """Put the trained short stacks in place of SAM 3.1's own."""
+    if ck.get('prompt'):                            # 07.10: a learned 'person' prompt instead of the text encoder
+        det = pred.model.detector
+        learned = {k: v.to(next(det.parameters()).device) for k, v in ck['prompt'].items()}
+        orig = det.backbone.forward_text
+
+        def forward_text(*a, **kw):
+            out = orig(*a, **kw)
+            for k, v in learned.items():
+                if k in out and torch.is_tensor(out[k]) and out[k].shape == v.shape:
+                    out[k] = v.to(out[k].dtype)
+            return out
+        det.backbone.forward_text = forward_text
+    if ck.get('detector_rest'):                     # 07.10 (sam31_e2e_det): the detector's neck and heads trained too
+        pred.model.detector.load_state_dict(ck['detector_rest'], strict=False)
     full = stacks(pred)
     keep = ck.get('keep', KEEP)
+    only = ck.get('only') or os.environ.get('RA_HEADS_ONLY', '')      # 07.10: install only some stacks (diagnosis)
     for name, mod in full.items():
-        s = shorten(mod, keep[name])
-        s.load_state_dict(ck['state'][name])
+        if only and name not in only.split(','):
+            continue
+        if name not in keep or name not in ck.get('state', {}):        # 07.10: e2e det trains the detector only
+            continue
+        if os.environ.get('RA_HEADS_CONTROL') == 'sub':                # 07.10: the kept teacher layers, untrained
+            s = shorten(mod, keep[name])
+        elif os.environ.get('RA_HEADS_CONTROL'):                       # 07.10: the teacher's own layers, the same path
+            s = shorten(mod, list(range(len(mod.layers))))
+        else:
+            s = shorten(mod, keep[name])
+            s.load_state_dict(ck['state'][name])
         s.to(next(mod.parameters()).device).eval().requires_grad_(False)
         if name == 'trk':
             pred.model.tracker.model.transformer.encoder = s
@@ -153,6 +177,8 @@ def sources():
     out = []
     for kind in ('sam31_seg', 'sam31_door'):
         for d in sorted((ROOT / 'data' / kind).glob('*/cam*')):
+            if kind == 'sam31_door' and '20260918' in d.parent.name:      # 07.10: the door's held-out day
+                continue
             if d.parent.name.startswith(SD.TEST_DAY) or not (d / 'video.mp4').exists() or not (d / 'chunks.npz').exists():
                 continue
             try:

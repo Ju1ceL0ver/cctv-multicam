@@ -69,6 +69,21 @@ def main(n=600, days=('20260917', '20260918', '20260919')):
                     cands.append({'tag': tag, 'day': day, 'k': k, 'r': int(r), 'piece': int(p), 't': k * D.TICK, 'doubt': float(1 - pr.max()), **s})
                     last = k * D.TICK
     # the least sure first, a sure fifth as a check; per piece at most PER_PIECE, MIN_GAP apart
+    # 07.10: skip people already asked (same stretch, within MIN_GAP s, boxes overlapping) -- a second batch asks new ones
+    old = {}
+    for o in inout.samples(str(ROOT)).values():
+        if o.get('door') and '_door' in o.get('frame', ''):
+            fr = o['frame']
+            old.setdefault((o['day'], fr.split('_door')[1].split('_')[0]), []).append((int(fr.split('_k')[1][:5]) * D.TICK, o['box']))
+
+    def iou(a, b):
+        w = max(0, min(a[2], b[2]) - max(a[0], b[0])); h = max(0, min(a[3], b[3]) - max(a[1], b[1]))
+        u = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - w * h
+        return w * h / u if u > 0 else 0
+    n0 = len(cands)
+    cands = [c for c in cands if not any(abs(c['t'] - t) < MIN_GAP and iou(c['box'], b) > 0.3
+                                         for t, b in old.get((c['day'], c['tag'].split('_')[2]), []))]
+    print('already asked, skipped', n0 - len(cands), flush=True)
     cands.sort(key=lambda c: -c['doubt'])
     sure = [c for c in cands if c['doubt'] < 0.1]
     rng.shuffle(sure)

@@ -79,6 +79,8 @@ def build(ckpt, heads=None):
     pred.model.detector.backbone.vision_backbone.trunk = SD.load_student(ckpt)
     if os.environ.get('RA_KEEP_POSTER') != '1':
         no_poster(pred)
+    import sam31_lite_eval as SL                      # 07.10: RA_S31_NEWDET / RA_S31_SCORE thresholds
+    SL.tune(pred)
     if heads:
         import sam31_heads as SH
         SH.install(pred, torch.load(heads, map_location='cpu', weights_only=False))

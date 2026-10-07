@@ -22,6 +22,8 @@ def _emb(tmp_path):
 
 def test_build_queue_learn(tmp_path, monkeypatch):
     import staff
+    staff.ONLY_CAM = ""          # the door-camera filter off: the fixture has both cameras
+    staff.DEDUP = 1.01            # and no near-duplicate skipping: the fixture people are near-copies
     monkeypatch.setattr(staff, 'PCA_CLOTH', 4)
     monkeypatch.setattr(staff, 'PCA_SHAPE', 4)
     monkeypatch.setattr(staff, 'MIN_EACH', 2)
@@ -47,6 +49,8 @@ def test_build_queue_learn(tmp_path, monkeypatch):
 def test_pages(tmp_path, monkeypatch):
     from flask import Flask
     import staff
+    staff.ONLY_CAM = ""          # the door-camera filter off: the fixture has both cameras
+    staff.DEDUP = 1.01            # and no near-duplicate skipping: the fixture people are near-copies
     monkeypatch.setattr(staff, 'PCA_CLOTH', 4)
     monkeypatch.setattr(staff, 'PCA_SHAPE', 4)
     _day(tmp_path)

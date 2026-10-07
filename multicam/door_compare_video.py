@@ -12,8 +12,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-COL = [(66, 197, 245), (80, 220, 100), (245, 160, 66), (220, 90, 220), (240, 220, 70), (160, 100, 255), (60, 200, 200),
-       (200, 160, 90), (120, 230, 180), (250, 120, 160), (90, 140, 250), (230, 230, 230)]
+COL = [(0, 255, 255), (255, 0, 255), (0, 255, 0), (255, 255, 0), (0, 128, 255), (255, 0, 128), (128, 255, 0),
+       (0, 255, 160), (255, 80, 0), (160, 0, 255), (0, 200, 255), (255, 255, 255)]      # 07.10: acid, BGR
 
 
 def people(base):
@@ -44,7 +44,7 @@ def ticks_of(M, by_tick, a, tick):
         for r, pid in items:
             x1, y1, x2, y2 = M.rows[r, 4:8].astype(int)
             f = DS.foot_of(M.crop(r))
-            rows.setdefault(t, []).append({'w': pid, 's': round(float(M.rows[r, 3]), 3),
+            rows.setdefault(t, []).append({'w': pid, 'r': int(r), 's': round(float(M.rows[r, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
                                                    round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
                                            'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False})
@@ -60,12 +60,20 @@ def events(M, by_tick, a, tick, rule):
     import door_rule as DR
     import door_v2 as D
     ticks = ticks_of(M, by_tick, a, tick)
+    if os.environ.get('RA_DOOR_STITCH', '1') == '1':          # 07.10: one person, one number (door_stitch)
+        import door_stitch
+        door_stitch.stitch(ticks)
     D.add_io(ticks)
-    by, side = {}, {}
+    by, side, shown = {}, {}, {}
     for r in ticks:
         for q in r['p']:
             by.setdefault(q['w'], []).append((r['t'], q))
-            side[(round(r['t'], 2), q['w'])] = SIDE[int(np.argmax(q.get('io_mix', q['io'])))]
+            shown.setdefault(round(r['t'], 2), []).append((q['r'], q['w']))
+    for w, xs in by.items():                                    # 07.10: the side smoothed over +-1.5 s, not per tick
+        ts = np.array([t for t, _ in xs]); P = np.array([q.get('io_mix', q['io']) for _, q in xs], float)
+        for t, _ in xs:
+            side[(round(t, 2), w)] = SIDE[int(np.argmax(P[np.abs(ts - t) <= 1.5].mean(0)))]
+    events.shown = shown
     deb = DB.events(by, float(os.environ.get('RA_DEB_W', '3')), float(os.environ.get('RA_DEB_FRAC', '0.7')), True)
     return DR.apply(ticks, rule), deb, side
 
@@ -77,9 +85,9 @@ def banner(img, evs, now, who, x0, row=0):
     if on:
         txt = who + ': ' + ' + '.join(('ENTRY P%d' if e['kind'] == 'in' else 'EXIT P%d') % e['w'] if 'w' in e else
                                       ('ENTRY' if e['kind'] == 'in' else 'EXIT') for e in on)
-        col = {'RULE': (80, 255, 80), 'LABELS': (255, 200, 80), 'OWNER': (80, 200, 255)}[who]
-        cv2.putText(img, txt, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 1.6, (0, 0, 0), 9)
-        cv2.putText(img, txt, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 1.6, col, 4)
+        col = {'RULE': (0, 255, 0), 'LABELS': (255, 255, 0), 'OWNER': (0, 160, 255)}[who]
+        cv2.putText(img, txt, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 0), 12)
+        cv2.putText(img, txt, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 2.0, col, 5)
 
 
 def draw(img, M, items, title, side=None, now=None):
@@ -92,12 +100,12 @@ def draw(img, M, items, title, side=None, now=None):
         col = COL[pid % len(COL)]
         over[m] = col
         cs, _ = cv2.findContours(m.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(img, cs, -1, col, 4)
+        cv2.drawContours(img, cs, -1, col, 7)
         ly = y1 - 12 if y1 > 60 else y2 + 40
         lab = 'P%d %s' % (pid, side.get((round(now, 2), pid), '') if side is not None else '')
-        cv2.putText(img, lab, ((x1 + x2) // 2 - 50, ly), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 0), 8)
-        cv2.putText(img, lab, ((x1 + x2) // 2 - 50, ly), cv2.FONT_HERSHEY_SIMPLEX, 1.4, col, 3)
-    img = cv2.addWeighted(img, 0.65, over, 0.35, 0)
+        cv2.putText(img, lab, ((x1 + x2) // 2 - 60, ly), cv2.FONT_HERSHEY_SIMPLEX, 1.9, (0, 0, 0), 12)
+        cv2.putText(img, lab, ((x1 + x2) // 2 - 60, ly), cv2.FONT_HERSHEY_SIMPLEX, 1.9, col, 5)
+    img = cv2.addWeighted(img, 0.55, over, 0.45, 0)
     cv2.rectangle(img, (0, 0), (img.shape[1], 70), (0, 0, 0), -1)
     cv2.putText(img, title, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
     return img
@@ -126,8 +134,8 @@ def main(name, tag='busiest', out=None):
     a = float(tag.split('_')[2])
     a = next((x for x, y in D.stretches(day) if int(round(x)) == int(a)), a)
     rule = DR.load(os.environ.get('RA_DOOR_RULE', 'sam31_live'))
-    ev_t, deb_t, side_t = events(Mt, bt, a, D.TICK, rule)
-    ev_m, deb_m, side_m = events(Mm, bm, a, D.TICK * stride, rule)
+    ev_t, deb_t, side_t = events(Mt, bt, a, D.TICK, rule); shown_t = events.shown
+    ev_m, deb_m, side_m = events(Mm, bm, a, D.TICK * stride, rule); shown_m = events.shown
     n_t = int(json.load(open(tb / 'info.json'))['ticks'])
     owner = [{'kind': t['kind'], 't': t['t'] - L.SHIFT} for t in D.truth(day, True)
              if t['kind'] in ('in', 'out') and a - 1 <= t['t'] - L.SHIFT <= a + n_t * D.TICK]
@@ -136,6 +144,13 @@ def main(name, tag='busiest', out=None):
                'small rule': fmt(ev_m), 'small labels': fmt(deb_m)}
     print(json.dumps(summary, ensure_ascii=False), flush=True)
     out = out or str(ROOT / 'data' / 'logs' / ('door_cmp_%s.mp4' % tag))
+    span = float(os.environ.get('RA_VID_SPAN', '0'))          # 07.10: >0 -> only the span s with the most events
+    lo, hi = -1e9, 1e9
+    if span > 0:
+        ts = np.array(sorted(e['t'] for e in owner + ev_m + ev_t))
+        if len(ts):
+            c = max(ts, key=lambda t0: ((ts >= t0 - 5) & (ts <= t0 - 5 + span)).sum())
+            lo, hi = c - 5, c - 5 + span
     Wd, Hd = 960, 540
     enc = subprocess.Popen([day_proxy._ffmpeg(), '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', '%dx%d' % (2 * Wd, Hd),
                             '-r', str(12.5 / stride), '-i', '-', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', out],
@@ -147,10 +162,12 @@ def main(name, tag='busiest', out=None):
         ok, f = cap.read()
         if not ok:
             break
-        if k % stride == 0:
-            now = a_s + k * D.TICK
-            A = draw(f.copy(), Mt, bt.get(k, []), 'SAM 3.1 (teacher)  t=%.1f' % (k * D.TICK), side_t, now)
-            B = draw(f.copy(), Mm, bm.get(k // stride, []), 'small SAM (MobileNetV4 encoder)', side_m, now)
+        now = a_s + k * D.TICK
+        if now > hi:
+            break
+        if k % stride == 0 and now >= lo:
+            A = draw(f.copy(), Mt, shown_t.get(round(now, 2), []), 'SAM 3.1 (teacher)  t=%.1f' % (k * D.TICK), side_t, now)
+            B = draw(f.copy(), Mm, shown_m.get(round(now, 2), []), 'small SAM  t=%.1f' % (k * D.TICK), side_m, now)
             for img, ev, deb in ((A, ev_t, deb_t), (B, ev_m, deb_m)):
                 banner(img, ev, now, 'RULE', 20, 0)
                 banner(img, deb, now, 'LABELS', 20, 1)
