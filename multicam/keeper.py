@@ -412,6 +412,15 @@ def main():
                 ensure('live counter', 'run_live.py', start_live)
             if p.get('door') and door_hours(datetime.now()) and camera_up():
                 ensure('live door', 'door_live.py', start_door)
+            # 08.10: after closing, the night teacher over the day's clips (door_night.py), once per day
+            end = p.get('door_hours', '10:00-21:00').split('-')[1]
+            if p.get('door') and p.get('door_night', True) and datetime.now().strftime('%H:%M') >= end and \
+                    not running('door_live.py') and not running('door_night.py'):
+                import door_live_ctl
+                day = datetime.now().strftime('%Y%m%d')
+                if not os.path.exists(os.path.join(ROOT, 'data', 'live', 'night', day + '.started')):
+                    door_live_ctl.night(day)
+                    log('night teacher started for %s' % day)
             ensure('review site', 'label_pieces.py', start_labeler)
             ensure_jupyter()
             tunnel_up(5070, 'labeler')

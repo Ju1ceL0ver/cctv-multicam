@@ -67,6 +67,22 @@ def start(until='21:00'):
     print('started, pid', p.pid, '-- log', LIVE / 'live_cam1.log')
 
 
+def night(day=None):
+    """The night teacher over the day's clips (door_night.py, venv_sam3, the card) -- once per day."""
+    day = day or time.strftime('%Y%m%d')
+    mark = LIVE / 'night' / ('%s.started' % day)
+    if mark.exists() or (LIVE / 'night' / ('%s.json' % day)).exists():
+        print('night teacher already ran for', day)
+        return
+    mark.parent.mkdir(parents=True, exist_ok=True)
+    mark.write_text(time.strftime('%Y-%m-%dT%H:%M:%S'))
+    log = open(LIVE / 'night' / 'night.out', 'a', encoding='utf-8')
+    p = subprocess.Popen([SAM3, str(ROOT / 'door_night.py'), day], cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT,
+                         env=dict(os.environ, PYTHONIOENCODING='utf-8'),
+                         creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0))
+    print('night teacher started for', day, 'pid', p.pid)
+
+
 def stop():
     pid = running()
     if not pid:
@@ -94,4 +110,8 @@ def status():
 
 
 if __name__ == '__main__':
-    {'start': start, 'stop': stop, 'status': status}[sys.argv[1] if len(sys.argv) > 1 else 'status']()
+    cmd = sys.argv[1] if len(sys.argv) > 1 else 'status'
+    if cmd == 'night':
+        night(*sys.argv[2:3])
+    else:
+        {'start': start, 'stop': stop, 'status': status}[cmd]()

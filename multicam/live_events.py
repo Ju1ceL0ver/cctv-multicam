@@ -95,15 +95,26 @@ def register(app, root=None):
     def liveevents_day(day):
         valid(day)
         evs, st, cs = events(day), load(day), clips(day)
+        nf = LIVE / 'night' / ('%s.json' % day)            # the night teacher (door_night.py)
+        night = json.load(open(nf)) if nf.exists() else None
+        by_key = {r['live_key']: r['by'] for r in (night or {}).get('events', []) if r.get('live_key')}
         out = []
         for e in evs:
             c = next((c for c in cs if c['t0'] - 0.5 <= e['t'] <= c['t1'] + 0.5), None)
             out.append({'key': key_of(e), 'kind': e['kind'], 'clock': e.get('clock', '')[11:19], 'role': e.get('role'),
                         'p_staff': e.get('p_staff'), 'tracks': e.get('tracks'), 'verdict': st.get(key_of(e)),
-                        'clip': c['name'] if c else None, 'offset': round(e['t'] - c['t0'], 2) if c else None})
+                        'clip': c['name'] if c else None, 'offset': round(e['t'] - c['t0'], 2) if c else None,
+                        'teacher': by_key.get(key_of(e)) if night else None})
         others = [c for c in cs if 'event' not in c['why']]
         days = sorted({p.name for p in (LIVE / 'clips').glob('20??????')}, reverse=True) if (LIVE / 'clips').exists() else []
-        return jsonify({'day': day, 'events': out, 'summary': summary(day, evs, st), 'other_clips': others, 'days': days})
+        missed = []
+        for r in (night or {}).get('events', []):
+            if r['by'] == 'teacher':
+                c = next((c for c in cs if c['name'] == r.get('clip')), None)
+                missed.append({'kind': r['kind'], 'clock': r.get('clock'), 'clip': r.get('clip'),
+                               'offset': round(r['t'] - c['t0'], 2) if c else None})
+        return jsonify({'day': day, 'events': out, 'summary': summary(day, evs, st), 'other_clips': others, 'days': days,
+                        'missed': missed, 'night': (night or {}).get('summary')})
 
     @app.get('/api/live/clip/<day>/<name>')
     def liveevents_clip(day, name):

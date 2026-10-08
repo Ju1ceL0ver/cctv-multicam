@@ -45,13 +45,13 @@ video{width:100%;border-radius:8px;background:#000}
 'use strict';
 const $ = s => document.querySelector(s);
 const V = {{ verdicts | tojson }};
-let day = null, evs = [], others = [], cur = 0, mode = 'ev';
+let day = null, evs = [], others = [], missed = [], night = null, cur = 0, mode = 'ev';
 const today = () => { const d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
 
 async function load(d) {
   day = d || day || today();
   const j = await (await fetch('/api/live/events/' + day)).json();
-  evs = j.events; others = j.other_clips;
+  evs = j.events; others = j.other_clips; missed = j.missed || []; night = j.night;
   const sel = $('#day'); const ds = j.days.includes(day) ? j.days : [day, ...j.days];
   sel.innerHTML = ds.map(x => `<option ${x === day ? 'selected' : ''}>${x}</option>`).join('');
   summary(j.summary);
@@ -60,20 +60,34 @@ async function load(d) {
 }
 function summary(s) {
   $('#sum').textContent = `входов ${s.in}, выходов ${s.out} (сотрудники ${s.staff}); проверено ${s.checked}, верно ${s.right}` +
-    (s.checked ? ` (${Math.round(100 * s.right / s.checked)} %)` : '');
+    (s.checked ? ` (${Math.round(100 * s.right / s.checked)} %)` : '') +
+    (night ? `; учитель ночью: согласен ${night.both}, не видит ${night.live}, пропущено ${night.teacher}` : '');
 }
 function draw() {
   const L = evs.map((e, i) => `<div class="ev ${mode === 'ev' && i === cur ? 'cur' : ''}" onclick="pick(${i})">
     <span>${e.clock}</span><span class="kind ${e.kind}">${e.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}</span>
     <span class="role">${e.role === 'staff' ? 'сотрудник' : e.role === 'customer' ? 'покупатель' : ''}</span>
+    ${e.teacher === 'both' ? '<span title="учитель SAM 3.1 согласен">✓</span>' : e.teacher === 'live' ? '<span title="учитель SAM 3.1 этого не видит" style="color:#c0392b">?</span>' : ''}
     ${e.verdict ? `<span class="v v${e.verdict.v}">${V[e.verdict.v]}</span>` : (e.clip ? '' : '<span class="v">нет клипа</span>')}</div>`);
+  const M = missed.map((m, i) => `<div class="ev ${mode === 'm' && i === cur ? 'cur' : ''}" onclick="pickM(${i})">
+    <span>${m.clock || ''}</span><span class="kind ${m.kind}">${m.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}</span><span class="role">только учитель</span></div>`);
   const O = others.map((c, i) => `<div class="ev ${mode === 'o' && i === cur ? 'cur' : ''}" onclick="pickO(${i})">
     <span>${c.name.slice(0, 2)}:${c.name.slice(2, 4)}:${c.name.slice(4, 6)}</span><span class="kind">${c.why.includes('random') ? 'случайная' : 'спорное'}</span></div>`);
-  $('#list').innerHTML = (L.join('') || '<div class="ev muted">событий нет</div>') + (O.length ? '<h4>Спорные и случайные</h4>' + O.join('') : '');
+  $('#list').innerHTML = (L.join('') || '<div class="ev muted">событий нет</div>') +
+    (M.length ? '<h4>Учитель видит, живая система пропустила</h4>' + M.join('') : '') +
+    (O.length ? '<h4>Спорные и случайные</h4>' + O.join('') : '');
   const c = $('#list .cur'); if (c) c.scrollIntoView({block: 'nearest'});
 }
 function show() {
   const v = $('#v');
+  if (mode === 'm') {
+    const m = missed[cur]; if (!m || !m.clip) return;
+    const src = `/api/live/clip/${day}/${m.clip}`; if (!v.src.endsWith(src)) v.src = src;
+    const go = () => { v.currentTime = Math.max(0, (m.offset || 3) - 3); v.play().catch(() => {}); };
+    if (v.readyState >= 1) go(); else v.onloadedmetadata = go;
+    $('#what').textContent = `${m.clock || ''}  ${m.kind === 'in' ? 'ВХОД' : 'ВЫХОД'} — видит только учитель SAM 3.1`;
+    return;
+  }
   if (mode === 'o') {
     const c = others[cur]; if (!c) return;
     v.src = `/api/live/clip/${day}/${c.name}`; v.currentTime = 0; v.play().catch(() => {});
@@ -92,7 +106,8 @@ function show() {
 function replay() { show(); }
 function pick(i) { mode = 'ev'; cur = i; draw(); show(); }
 function pickO(i) { mode = 'o'; cur = i; draw(); show(); }
-function go(d) { const n = mode === 'ev' ? evs.length : others.length; cur = Math.min(Math.max(0, cur + d), n - 1); draw(); show(); }
+function pickM(i) { mode = 'm'; cur = i; draw(); show(); }
+function go(d) { const n = mode === 'ev' ? evs.length : mode === 'm' ? missed.length : others.length; cur = Math.min(Math.max(0, cur + d), n - 1); draw(); show(); }
 async function give(k) {
   if (mode !== 'ev' || !evs[cur]) return;
   const e = evs[cur];
