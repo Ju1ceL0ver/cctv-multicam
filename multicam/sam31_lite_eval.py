@@ -136,6 +136,19 @@ def tune(pred):
         m.new_det_thresh = float(os.environ['RA_S31_NEWDET'])
     if os.environ.get('RA_S31_SCORE'):
         m.score_threshold_detection = float(os.environ['RA_S31_SCORE'])
+    scale = float(os.environ.get('RA_S31_FPS_SCALE', '1'))      # 08.10: frames are every n-th of 12.5 fps (live stride)
+    if scale > 1:                                                # SAM 3.1's track rules count frames, set for 12.5 fps
+        for name in ('hotstart_delay', 'hotstart_unmatch_thresh', 'hotstart_dup_thresh', 'init_trk_keep_alive',
+                     'max_trk_keep_alive', 'recondition_every_nth_frame', 'masklet_confirmation_consecutive_det_thresh'):
+            for mod in m.modules():
+                v = getattr(mod, name, None)
+                if isinstance(v, int) and not isinstance(v, bool) and v > 0:
+                    setattr(mod, name, max(1, int(round(v / scale))))
+                    print('fps scale %g: %s %s %d -> %d' % (scale, type(mod).__name__, name, v, getattr(mod, name)), flush=True)
+        for mod in m.modules():
+            v = getattr(mod, 'min_trk_keep_alive', None)
+            if isinstance(v, int) and v < 0:
+                mod.min_trk_keep_alive = min(-1, int(round(v / scale)))
     return m.new_det_thresh, m.score_threshold_detection
 
 

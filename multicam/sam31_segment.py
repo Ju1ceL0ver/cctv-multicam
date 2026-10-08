@@ -174,7 +174,8 @@ def build():
     import sam3.model.decoder as sam3_decoder        # it asks for Flash Attention only; PyTorch on Windows has none
     from torch.nn.attention import sdpa_kernel, SDPBackend
     sam3_decoder.sdpa_kernel = lambda *a, **k: sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH])
-    pred = build_sam3_predictor(checkpoint_path=str(CKPT), version='sam3.1', use_fa3=False, max_num_objects=16)
+    pred = build_sam3_predictor(checkpoint_path=str(CKPT), version='sam3.1', use_fa3=False, max_num_objects=16,
+                                compile=os.environ.get('RA_S31_COMPILE') == '1')   # 08.10: torch.compile, "~2x" per Meta
     orig = pred.model.init_state
     known = set(inspect.signature(orig).parameters)
     pred.model.init_state = lambda *a, **kw: orig(*a, **{k: v for k, v in kw.items() if k in known})

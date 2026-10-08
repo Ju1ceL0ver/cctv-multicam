@@ -61,7 +61,7 @@ def stitch_tracks(tr, stitch, roots=None):
         merged.setdefault(root(k), []).extend(v)
         if roots is not None:
             roots[k] = root(k)
-    return {k: sorted(v) for k, v in merged.items()}
+    return {k: sorted(v, key=lambda x: x[0]) for k, v in merged.items()}
 
 
 def flip_events(tracks, conf, thr, shift=0.0):
