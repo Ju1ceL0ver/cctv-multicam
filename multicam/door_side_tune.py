@@ -56,8 +56,9 @@ def load():
     line = door_line.load()
     days = {}
     for day in C.DAYS:
-        f_ld = OUT / ('binary_micro1s3_%s%s.json' % (os.environ['RA_BIN_VER'], day))
-        f_mo = OUT / ('binary_micro1s3_%s%s.json' % (os.environ.get('RA_TUNE_MODEL', 'mpc'), day))
+        src = os.environ.get('RA_BIN_SRC', 'micro1s3')
+        f_ld = OUT / ('binary_%s_%s%s.json' % (src, os.environ['RA_BIN_VER'], day))
+        f_mo = OUT / ('binary_%s_%s%s.json' % (src, os.environ.get('RA_TUNE_MODEL', 'mpc'), day))
         if not (f_ld.exists() and f_mo.exists()):
             print('skip', day, f_ld.exists(), f_mo.exists(), flush=True)
             continue
@@ -111,7 +112,7 @@ def main(fast=False):
 
     fcache = {}
 
-    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03)):
+    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03, 0)):
         v = days[day]
         fk = (vkey, stride, conf)
         if vkey is None or fk not in fcache:
@@ -132,6 +133,8 @@ def main(fast=False):
                                     starts=[st['a'] for st in v['dd'].S.values()], gain=bd[6])
         if alt != 'none':
             ev = C.alternate(ev, alt)
+        if bd[7]:
+            ev = C.cancel_pairs(ev, bd[7])
         out = {}
         for role in ('train', 'test'):
             sp = [(x, y) for x, y, r in v['spans'] if r == role]
@@ -162,14 +165,14 @@ def main(fast=False):
         grid = []
         for mode in ('model', 'either_in+both_out', 'line_in+both_out', 'line'):
             for thr in ((None,) if mode == 'line' else (0.9, 0.95)):
-                for conf, alt, stride, birth, death, brad, bmove, blen, bdup, bgain in itertools.product(
-                        (2,), ('first',), (3, 6), (False, True), (False,), (1.0, 1.5), (False, True), (0.0, 2.0, 4.0), (None, 0.04),
-                        (0.02, 0.03, 0.05, 0.08)):
-                    if not birth and not death and (brad != 1.0 or bmove or blen or bdup or bgain != 0.03):
+                for conf, alt, stride, birth, death, brad, bmove, blen, bdup, bgain, cancel in itertools.product(
+                        (1, 2, 3, 4, 6, 8), ('first',), (3, 6), (False, True), (False,), (1.0,), (True,), (2.0,), (None,),
+                        (0.05, 0.08), (0, 5, 10, 20)):
+                    if not birth and not death and (brad != 1.0 or bmove or blen or bdup or bgain != 0.08):
                         continue
                     grid.append(dict(mode=mode, thr=thr, h_in=0, h_out=0, trunc=0.6 if mode == 'line' else 0.0, legs='unsure' if mode == 'line' else 'none',
                                      conf=conf, gate=True, alt=alt, stride=stride, birth=birth, death=death, brad=brad,
-                                     bmove=bmove, blen=blen, bdup=bdup, bgain=bgain))
+                                     bmove=bmove, blen=blen, bdup=bdup, bgain=bgain, cancel=cancel))
     print('settings', len(grid), flush=True)
     # per day: flat arrays of every observation, the index of (tag, i) into them
     arr, at = {}, {}
@@ -231,7 +234,7 @@ def main(fast=False):
             V = vcache[key]
             per_day[d] = counts(d, g['stride'], lambda o, V=V, d=d: V[at[d][o]], g['conf'], g['gate'], g['alt'], key,
                                 (g.get('birth', False), g.get('death', False), g.get('brad', 1.0), g.get('bmove', False),
-                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03)))
+                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03), g.get('cancel', 0)))
         res.append(dict(g, per_day=per_day))
         if n % 1000 == 0:
             print(n, 'of', len(grid), '%.0f s' % (time.time() - t0), flush=True)

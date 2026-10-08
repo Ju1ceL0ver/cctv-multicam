@@ -159,6 +159,26 @@ def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, 
     return ev
 
 
+def cancel_pairs(events, window):
+    """08.10, the owner's /door rule: a person going out and back in (or in and back out) within `window` s is standing
+    in the doorway -- neither counts."""
+    if not window:
+        return list(events)
+    by = {}
+    for i, e in enumerate(sorted(events, key=lambda e: e['t'])):
+        by.setdefault(e.get('bw') or e.get('w'), []).append(e)
+    out = []
+    for w, xs in by.items():
+        i = 0
+        while i < len(xs):
+            if i + 1 < len(xs) and xs[i + 1]['kind'] != xs[i]['kind'] and xs[i + 1]['t'] - xs[i]['t'] <= window:
+                i += 2                                      # both dropped
+                continue
+            out.append(xs[i])
+            i += 1
+    return sorted(out, key=lambda e: e['t'])
+
+
 def alternate(events, keep='first'):
     """08.10: a person's counted events alternate -- an 'in' right after a counted 'in' (the 'out' between them was
     dropped by the gate, or never was) is not counted again; keep='last' keeps the later one of such a run instead."""
@@ -453,7 +473,7 @@ class Live:
                                 min_len=lf.get('blen', 0.0), dup=lf.get('bdup'), starts=list(starts.values()),
                                 gain=lf.get('bgain', 0.03))
         if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None or self.side is not None:   # no door rule
-            return alternate(B, lf.get('alt', 'first'))
+            return cancel_pairs(alternate(B, lf.get('alt', 'first')), lf.get('cancel', 0))
         return alternate(combine(B, rule_cands, c['lo'], c['hi']), lf.get('alt', 'first'))
 
 

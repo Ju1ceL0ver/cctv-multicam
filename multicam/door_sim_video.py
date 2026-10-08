@@ -52,6 +52,8 @@ def main(day='20260919', n='3', out=None):
                                   starts=[st['a'] for st in dd.S.values()], gain=sd.get('bgain', 0.03))
         if sd.get('alt', 'none') != 'none':
             B = C.alternate(B, sd['alt'])
+        if sd.get('cancel'):
+            B = C.cancel_pairs(B, sd['cancel'])
     else:
         B = C.gate(dd.binary_events(f['conf'], f['thr'], tuple(f['stitch'])), np.array(f['u']), np.array(f['zone']), f['move'], f['rad'])
     st = S.load(day)

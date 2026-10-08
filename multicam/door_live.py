@@ -178,6 +178,7 @@ def people(win, combo=None, bank=None):
     model and/or the shop line); with bank (door_role.Bank), its best views are kept for the role (08.10)."""
     import door_sam as DS
     import sam31_reid as R
+    t_people = time.time()
     M = R.Masks(win.dir / 'chunks.npz')
     owned, _ = R.link_seams(M, {int(s): int(sh) for s, e, sh in win.sessions})
     if PIECES:
@@ -191,6 +192,9 @@ def people(win, combo=None, bank=None):
         rep = json.load(open(win.dir / 'report.json'))
         person = {int(p): v for p, v in rep['person_of_piece'].items()}
     static = DS.static_people(M, owned, person, win.n)
+    t_link = time.time() - t_people
+    if not hasattr(win, 'foot'):
+        win.foot = {}                                   # 08.10: (k, row) -> foot, once (it was redone for the whole window)
     boxes_at = {}
     for p, rs in owned.items():
         for r_ in rs:
@@ -203,7 +207,9 @@ def people(win, combo=None, bank=None):
         for r_ in rs:
             k = int(M.rows[r_, 1])
             x1, y1, x2, y2 = M.rows[r_, 4:8].astype(int)
-            f = DS.foot_of(M.crop(r_))
+            if (k, r_) not in win.foot:
+                win.foot[(k, r_)] = DS.foot_of(M.crop(r_))
+            f = win.foot[(k, r_)]
             t = round(win.times[k], 2) if k < len(win.times) else round(win.t0 + k * TICK, 2)
             if combo is not None:
                 win.person_of[(win.id, k, r_)] = '%s:%d' % (win.id, w)
@@ -231,6 +237,7 @@ def people(win, combo=None, bank=None):
                                            'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
                                                    round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
                                            'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p)})
+    win.timing = {'link': round(t_link, 1), 'rows': round(time.time() - t_people - t_link, 1)}
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
 
 
@@ -338,6 +345,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         t_sam = time.time() - t0
         ticks = people(win, combo, bank)
         t_reid = time.time() - t0 - t_sam
+        t_ev0 = time.time()
         new = []
         if ticks:
             last = ticks[-1]['t']
@@ -364,6 +372,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                     clipper.event(e)
                 with open(events_path, 'a', encoding='utf-8') as fo:
                     fo.write(json.dumps(e) + '\n')
+        t_events = time.time() - t_ev0
         if combo is not None and getattr(combo, 'raw', None):   # 08.10: every observation's votes, no pictures
             save_obs(win, combo)
         if clipper is not None:
@@ -378,8 +387,8 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                 log('clips failed: %s' % str(exc)[:200])
         behind = time.time() - win.times[sess[1] - 1]
         n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
-        log('session %s %d-%d: SAM %.1f s (%.0f ms/tick), ReID+rule %.1f s, behind the camera %.0f s, people %d, new events %s' % (
-            win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), t_reid, behind, n_people,
+        log('session %s %d-%d: SAM %.1f s (%.0f ms/tick), people %.1f s %s, events+role %.1f s, behind the camera %.0f s, people %d, new events %s' % (
+            win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), t_reid, getattr(win, 'timing', ''), t_events, behind, n_people,
             ', '.join('%s %s%s' % (e['kind'], e['clock'][11:], ' ' + e['role'] if e.get('role') else '') for e in new) or '-'))
         try:                                                # 08.10: the health log, one line per session
             (LIVE / 'records').mkdir(parents=True, exist_ok=True)

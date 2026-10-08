@@ -149,7 +149,7 @@ def run(ckpt, name, days, heads=None, only=None, stride=1, tags=None):
             info = json.load(open(src / 'info.json'))
             stride = int(stride)
             n = frames(src, out, stride)
-            sess = [tuple(s) for s in info['sessions']] if stride == 1 else sessions_of(n)
+            sess = [tuple(s) for s in info['sessions']] if stride == 1 else sessions_of(n, int(os.environ.get('RA_LIVE_SESSION', max(60, 720 // stride))))   # 08.10: as door_live
             t0 = time.time()
             SG.label(pred, out, sess, None)
             sec = time.time() - t0
