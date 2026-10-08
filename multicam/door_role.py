@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
 import numpy as np
@@ -92,18 +93,31 @@ class Worker:
             if line.startswith('{'):
                 return json.loads(line)
 
-    def probs(self, paths, boxes):
+    def probs(self, paths, boxes, vectors=False):
         with self.lock:
-            self.p.stdin.write(json.dumps({'crops': paths, 'boxes': boxes}) + '\n')
+            self.p.stdin.write(json.dumps({'crops': paths, 'boxes': boxes, 'vectors': vectors}) + '\n')
             self.p.stdin.flush()
-            return self._read()['p']
+            r = self._read()
+            return (r['p'], r.get('v')) if vectors else r['p']
+
+
+GALLERY_SEED = 0.7              # 08.10: a person the role model is this sure of (>= MIN_SEED_VIEWS views) seeds the day's gallery
+MIN_SEED_VIEWS = 4
+GALLERY_MAX = 40
+GALLERY_MIN = 5                 # the gallery is used once it has this many views
+GALLERY_SIM = 0.65              # mean of the 3 best cosines to the gallery (staff_gallery_test.py: 0.651-0.684 by day)
 
 
 class Roles:
+    """08.10: staff by the model OR by the day's gallery -- staff wear the same clothes all day; the gallery is seeded by
+    people the model is sure of (on the owner's /staff answers: 93.7 % against 91.3 % for the model on the same views)."""
+
     def __init__(self, bank, worker, threshold=None):
         self.bank, self.worker = bank, worker
         self.threshold = threshold if threshold is not None else getattr(worker, 'threshold', 0.45)
         self.cache = {}                                       # view path -> p_staff of that view
+        self.vec = {}                                         # view path -> appearance vector
+        self.gallery, self.gallery_day, self.seeded = [], None, set()
 
     def role(self, keys):
         v = self.bank.best(keys)
@@ -112,14 +126,33 @@ class Roles:
         new = [(p, b) for _, p, b in v if p not in self.cache]   # one model pass per view, ever (08.10: was per set)
         if new:
             try:
-                ps = self.worker.probs([p for p, _ in new], [b for _, b in new])
+                ps, vs = self.worker.probs([p for p, _ in new], [b for _, b in new], vectors=True)
                 if len(ps) != len(new):
                     raise RuntimeError('%d probabilities for %d views' % (len(ps), len(new)))
                 self.cache.update({p: float(x) for (p, _), x in zip(new, ps)})
+                if vs:
+                    self.vec.update({p: np.asarray(x, np.float32) for (p, _), x in zip(new, vs)})
             except Exception as exc:                          # the role never blocks the door
                 return {'role': None, 'p_staff': None, 'views': len(v), 'error': str(exc)[:100]}
         p = float(np.mean([self.cache[p_] for _, p_, _ in v]))
-        return {'role': 'staff' if p >= self.threshold else 'customer', 'p_staff': round(p, 3), 'views': len(v)}
+        day = time.strftime('%Y%m%d')
+        if day != self.gallery_day:                           # a new day: the staff wear other clothes
+            self.gallery, self.gallery_day, self.seeded = [], day, set()
+        mine = [self.vec[p_] for _, p_, _ in v if p_ in self.vec]
+        sim = None
+        if len(self.gallery) >= GALLERY_MIN and mine:
+            G = np.stack([g for g, owner in self.gallery if owner != tuple(keys)]) if any(o != tuple(keys) for _, o in self.gallery) else None
+            if G is not None and len(G) >= GALLERY_MIN:
+                S = np.stack(mine) @ G.T
+                sim = float(np.mean(np.sort(S, 1)[:, -3:].mean(1)))
+        if p >= GALLERY_SEED and len(mine) >= MIN_SEED_VIEWS and tuple(keys) not in self.seeded and len(self.gallery) < GALLERY_MAX:
+            self.seeded.add(tuple(keys))
+            self.gallery += [(m, tuple(keys)) for m in mine[:GALLERY_MAX - len(self.gallery)]]
+        staff = p >= self.threshold or (sim is not None and sim >= GALLERY_SIM)
+        out = {'role': 'staff' if staff else 'customer', 'p_staff': round(p, 3), 'views': len(v)}
+        if sim is not None:
+            out['gallery_sim'] = round(sim, 3)
+        return out
 
 
 def serve():
@@ -139,7 +172,14 @@ def serve():
                 continue
             v1, v2 = embed([crops[i] for i in ok])
             p = clf.predict_proba(np.asarray(v1), np.asarray(v2), [q['boxes'][i] for i in ok], ['cam1'] * len(ok))[:, 1]
-            print(json.dumps({'p': [float(x) for x in p]}), flush=True)
+            out = {'p': [float(x) for x in p]}
+            if q.get('vectors'):                          # 08.10: the day's staff gallery compares these
+                a1 = np.asarray(v1, np.float32); a2 = np.asarray(v2, np.float32)
+                a1 /= np.maximum(np.linalg.norm(a1, axis=1, keepdims=True), 1e-6)
+                a2 /= np.maximum(np.linalg.norm(a2, axis=1, keepdims=True), 1e-6)
+                v = np.concatenate([a1, a2], 1) / np.sqrt(2)
+                out['v'] = [[round(float(x), 4) for x in row] for row in v]
+            print(json.dumps(out), flush=True)
         except Exception as exc:
             print(json.dumps({'p': [], 'error': str(exc)[:200]}), flush=True)
 

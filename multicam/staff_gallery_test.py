@@ -85,6 +85,7 @@ def main():
             ths = np.unique(np.round(sims[tr], 3))
             accs = [(np.mean((sims[tr] >= th) == y[tr]), th) for th in ths[::max(1, len(ths) // 200)]]
             th = max(accs)[1]
+            res.setdefault('thr_K%d' % K, []).append(round(float(th), 3))
             q = sims[te] >= th
             hit += int((q == y[te]).sum()); tot += int(te.sum())
             s_c += int((~q & y[te]).sum()); c_s += int((q & ~y[te]).sum())
