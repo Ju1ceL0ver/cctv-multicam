@@ -134,8 +134,12 @@ def vote2(cfg, table, line, d, top, height, bx):
 
 
 def side_vote(cfg, table, line, d, top, height, bx, p):
-    """One observation's vote by a door_side_tune.py setting (mode, thr, h_in, h_out, trunc, legs): 1 / 0 / 0.5."""
+    """One observation's vote by a door_side_tune.py setting (mode, thr, h_in, h_out, trunc, legs): 1 / 0 / 0.5.
+    08.10: cfg['band'] -- the line says 'outside' only for a mask whose deepest pixel is within band px of it (the back
+    wall high in the frame is 'above' the line's extension but inside the shop)."""
     lv = vote2(cfg, table, line, d, top, height, bx)
+    if lv == 0.0 and cfg.get('band') and d is not None and d < -cfg['band']:
+        lv = 0.5
     thr = cfg.get('thr')
     mv = 0.5 if (p is None or not thr) else (1.0 if p >= thr else (0.0 if p <= 1 - thr else 0.5))
     m = cfg['mode']
@@ -154,3 +158,11 @@ def side_vote(cfg, table, line, d, top, height, bx, p):
     if m == 'either_in+both_out':
         return 1.0 if (lv == 1 or mv == 1) else (0.0 if (lv == 0 and mv == 0) else 0.5)
     raise ValueError(m)
+
+
+def seg_dist(line, x, y):
+    """Distance (1280 x 720 pixels) of a point from the drawn segment itself (not the infinite line)."""
+    (x1, y1), (x2, y2) = line['p1'], line['p2']
+    dx, dy = x2 - x1, y2 - y1
+    t = max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / max(1e-9, dx * dx + dy * dy)))
+    return float(np.hypot(x - (x1 + t * dx), y - (y1 + t * dy)))

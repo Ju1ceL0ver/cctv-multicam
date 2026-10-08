@@ -159,6 +159,14 @@ def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, 
     return ev
 
 
+def near_line(events, line, px):
+    """08.10: only crossings at the door -- the feet at the event within px (1280 x 720) of the owner's segment."""
+    if not px or line is None:
+        return list(events)
+    import door_line
+    return [e for e in events if e.get('xy') is not None and door_line.seg_dist(line, e['xy'][0] * 1280, e['xy'][1] * 720) <= px]
+
+
 def cancel_pairs(events, window):
     """08.10, the owner's /door rule: a person going out and back in (or in and back out) within `window` s is standing
     in the doorway -- neither counts."""
@@ -472,6 +480,7 @@ class Live:
                                 u=self.u if lf.get('bmove') else None, move=c['move'] if lf.get('bmove') else None,
                                 min_len=lf.get('blen', 0.0), dup=lf.get('bdup'), starts=list(starts.values()),
                                 gain=lf.get('bgain', 0.03))
+        B = near_line(B, self.line, lf.get('near'))
         if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None or self.side is not None:   # no door rule
             return cancel_pairs(alternate(B, lf.get('alt', 'first')), lf.get('cancel', 0))
         return alternate(combine(B, rule_cands, c['lo'], c['hi']), lf.get('alt', 'first'))

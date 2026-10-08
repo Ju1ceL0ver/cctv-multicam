@@ -112,7 +112,7 @@ def main(fast=False):
 
     fcache = {}
 
-    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03, 0)):
+    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03, 0, None)):
         v = days[day]
         fk = (vkey, stride, conf)
         if vkey is None or fk not in fcache:
@@ -131,6 +131,8 @@ def main(fast=False):
             ev = ev + C.birth_death(fcache[bk], conf, 0.95, hz, f_['rad'] * bd[2], bd[0], bd[1], L.SHIFT,
                                     u=u if bd[3] else None, move=f_['move'] if bd[3] else None, min_len=bd[4], dup=bd[5],
                                     starts=[st['a'] for st in v['dd'].S.values()], gain=bd[6])
+        if bd[8]:
+            ev = C.near_line(ev, line, bd[8])
         if alt != 'none':
             ev = C.alternate(ev, alt)
         if bd[7]:
@@ -161,6 +163,14 @@ def main(fast=False):
                                      gate=gate, alt=alt, stride=stride))
     if os.environ.get('RA_TUNE_SMOKE'):
         grid = grid[::max(1, len(grid) // int(os.environ['RA_TUNE_SMOKE']))]
+    if os.environ.get('RA_TUNE_GRID') == 'near':            # 08.10: the line judges / events count only near the door
+        grid = []
+        for mode in ('either_in+both_out', 'model', 'line_in+both_out'):
+            for conf, stride, band, near, birth in itertools.product((1, 2), (3, 6), (None, 40, 60, 100, 150), (None, 60, 100, 150, 250),
+                                                                     (False, True)):
+                grid.append(dict(mode=mode, thr=0.9, h_in=0, h_out=0, trunc=0.0, legs='none', conf=conf, gate=True, alt='first',
+                                 stride=stride, birth=birth, death=False, brad=1.0, bmove=True, blen=2.0, bdup=None, bgain=0.05,
+                                 cancel=0, band=band, near=near))
     if os.environ.get('RA_TUNE_GRID') == 'birth':           # 08.10: entries of tracks born at the door
         grid = []
         for mode in ('model', 'either_in+both_out', 'line_in+both_out', 'line'):
@@ -199,6 +209,8 @@ def main(fast=False):
             lv[vv & (A['dv'] >= h_in)] = 1.0
             lv[vv & (A['dv'] <= -h_out)] = 0.0
         lv[d >= h_in] = 1.0
+        if g.get('band'):                                   # 08.10: the line judges only near itself
+            lv[(lv == 0.0) & (d < -g['band'])] = 0.5
         lv[np.isnan(d)] = 0.5
         if g['thr']:
             mv = np.where(A['p'] >= g['thr'], 1.0, np.where(A['p'] <= 1 - g['thr'], 0.0, 0.5))
@@ -227,14 +239,14 @@ def main(fast=False):
     for n, g in enumerate(grid):
         per_day = {}
         for d in days:
-            key = (d, g['mode'], g['thr'], g['h_in'], g['h_out'], g['trunc'], g['legs'])
+            key = (d, g['mode'], g['thr'], g['h_in'], g['h_out'], g['trunc'], g['legs'], g.get('band'))
             if key not in vcache:
                 vcache.clear() if len(vcache) > 64 else None
                 vcache[key] = votes(d, g)
             V = vcache[key]
             per_day[d] = counts(d, g['stride'], lambda o, V=V, d=d: V[at[d][o]], g['conf'], g['gate'], g['alt'], key,
                                 (g.get('birth', False), g.get('death', False), g.get('brad', 1.0), g.get('bmove', False),
-                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03), g.get('cancel', 0)))
+                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03), g.get('cancel', 0), g.get('near')))
         res.append(dict(g, per_day=per_day))
         if n % 1000 == 0:
             print(n, 'of', len(grid), '%.0f s' % (time.time() - t0), flush=True)
