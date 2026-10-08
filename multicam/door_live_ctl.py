@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent
 LIVE = ROOT / 'data' / 'live'
 PID = LIVE / 'door_live.pid'
 SAM3 = r'C:\Users\ArykovAA\cctv_ai\venv_sam3\Scripts\python.exe'
+RF = r'C:\Users\ArykovAA\cctv_ai\venv_rfdetr\Scripts\python.exe'
 STUDENT = r'runs\s31micro_a\last.pt'
 RULE = 'micro1s3_live3'                 # only a fallback name: with side_final.json the door rule is not used
 VCVARS = r'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\Build\vcvars64.bat'
@@ -93,6 +94,25 @@ def night(day=None):
     print('night teacher started for', day, 'pid', p.pid)
 
 
+def learn(day=None):
+    """09.10: the role model learns from the owner's /liveevents answers (staff_live_learn.py, venv_rfdetr, a few minutes
+    on the card) -- once per day after closing; without enough answers it changes nothing."""
+    day = day or time.strftime('%Y%m%d')
+    out = ROOT / 'data' / 'staff' / 'live_learn'
+    mark = out / ('%s.started' % day)
+    if mark.exists():
+        print('role learning already ran for', day)
+        return
+    out.mkdir(parents=True, exist_ok=True)
+    mark.write_text(time.strftime('%Y-%m-%dT%H:%M:%S'))
+    log = open(out / 'learn.out', 'a', encoding='utf-8')
+    log.write('\n==== %s ====\n' % time.strftime('%Y-%m-%d %H:%M:%S'))
+    p = subprocess.Popen([RF, str(ROOT / 'staff_live_learn.py')], cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT,
+                         env=dict(os.environ, PYTHONIOENCODING='utf-8'),
+                         creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0))
+    print('role learning started for', day, 'pid', p.pid)
+
+
 def stop():
     pid = running()
     if not pid:
@@ -123,5 +143,7 @@ if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'status'
     if cmd == 'night':
         night(*sys.argv[2:3])
+    elif cmd == 'learn':
+        learn(*sys.argv[2:3])
     else:
         {'start': start, 'stop': stop, 'status': status}[cmd]()

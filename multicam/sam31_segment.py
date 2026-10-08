@@ -176,6 +176,19 @@ def build():
     sam3_decoder.sdpa_kernel = lambda *a, **k: sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH])
     pred = build_sam3_predictor(checkpoint_path=str(CKPT), version='sam3.1', use_fa3=False, max_num_objects=16,
                                 compile=os.environ.get('RA_S31_COMPILE') == '1')   # 08.10: torch.compile, "~2x" per Meta
+    parts = os.environ.get('RA_S31_COMPILE_PARTS', 'all')
+    if os.environ.get('RA_S31_COMPILE') == '1' and parts != 'all':
+        # 09.10: compile only the detector or only the tracker -- the rest goes back to its plain forward
+        undone = []
+        for name, m in pred.model.named_modules():
+            f = m.__dict__.get('forward')
+            if f is None or not hasattr(f, '_torchdynamo_orig_callable'):
+                continue
+            tracker = name.startswith('tracker') or '.tracker.' in '.' + name + '.'
+            if (parts == 'detector' and tracker) or (parts == 'tracker' and not tracker):
+                m.forward = f._torchdynamo_orig_callable
+                undone.append(name)
+        print('compile parts=%s, plain again: %s' % (parts, ', '.join(undone) or '-'), flush=True)
     orig = pred.model.init_state
     known = set(inspect.signature(orig).parameters)
     pred.model.init_state = lambda *a, **kw: orig(*a, **{k: v for k, v in kw.items() if k in known})

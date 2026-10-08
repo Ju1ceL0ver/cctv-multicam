@@ -83,6 +83,8 @@ class Grabber(threading.Thread):
     def run(self):
         import cv2
         file_mode = not str(self.source).startswith('rtsp')
+        pace = os.environ.get('RA_LIVE_PACE') == '1'   # 09.10: a record at the camera's own pace (tests of the lag logic)
+        self.w0 = self.tf0 = None
         while not self.stop:
             cap = cv2.VideoCapture(self.source, cv2.CAP_FFMPEG)
             if not cap.isOpened():
@@ -101,8 +103,12 @@ class Grabber(threading.Thread):
                     if self.ring is not None:
                         self.ring.offer(tf, f)
                     if k % max(1, int(round(fps * TICK))) == 0:
+                        if pace:
+                            if self.w0 is None:
+                                self.w0, self.tf0 = time.time(), tf
+                            time.sleep(max(0.0, self.w0 + (tf - self.tf0) - time.time()))
                         self.out.put((tf, f))
-                        while self.out.qsize() > 600:
+                        while self.out.qsize() > 600 and not pace:
                             time.sleep(0.05)
                     k += 1
                 else:
@@ -376,7 +382,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     t_end = time.time() + 60 * float(minutes) if minutes else None
     told_all = []
     events_path = LIVE / 'events_cam1.jsonl'
-    live_mode = str(src).startswith('rtsp')
+    live_mode = str(src).startswith('rtsp') or os.environ.get('RA_LIVE_PACE') == '1'
     from concurrent.futures import ThreadPoolExecutor
     post_pool = ThreadPoolExecutor(max_workers=1)     # 08.10: people, events, roles, clips while SAM does the next session
     pending = []
@@ -404,7 +410,8 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                     return
                 t, f = item
                 if live_mode and os.environ.get('RA_DEGRADE', '1') == '1':
-                    behind = self.backlog() > DEGRADE_SESSIONS * SESSION
+                    bl = self.backlog()            # with hysteresis: skip from 1.5 sessions behind until under half of one
+                    behind = bl > DEGRADE_SESSIONS * SESSION or (self.skipping and bl > 0.5 * SESSION)
                     if behind != self.skipping:
                         self.skipping = behind
                         log('behind by %d ticks: %s' % (self.backlog(), 'skipping every second frame' if behind else 'every frame again'))
@@ -494,6 +501,8 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                 except Exception as exc:                      # clips never stop the door
                     log('clips failed: %s' % str(exc)[:200])
             behind = time.time() - win.times[sess[1] - 1]
+            if getattr(g, 'w0', None) is not None:          # a paced record: how far behind its own clock
+                behind = time.time() - (g.w0 + win.times[sess[1] - 1] - g.tf0)
             n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
             log('session %s %d-%d: SAM %.1f s (%.0f ms/tick, GPU peak %s GB), people %.1f s %s, events+role %.1f s, behind the camera %.0f s, people %d, new events %s' % (
                 win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), getattr(win, 'gpu_peak', {}).get(tuple(sess)), t_reid, getattr(win, 'timing', ''), t_events, behind, n_people,

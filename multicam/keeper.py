@@ -421,6 +421,14 @@ def main():
                 if not os.path.exists(os.path.join(ROOT, 'data', 'live', 'night', day + '.started')):
                     door_live_ctl.night(day)
                     log('night teacher started for %s' % day)
+            # 09.10: after closing, the role model learns from the owner's /liveevents answers, once per day
+            if p.get('door') and p.get('role_learn', True) and datetime.now().strftime('%H:%M') >= end and \
+                    not running('door_live.py') and not running('staff_live_learn.py'):
+                import door_live_ctl
+                day = datetime.now().strftime('%Y%m%d')
+                if not os.path.exists(os.path.join(ROOT, 'data', 'staff', 'live_learn', day + '.started')):
+                    door_live_ctl.learn(day)
+                    log('role learning started for %s' % day)
             ensure('review site', 'label_pieces.py', start_labeler)
             ensure_jupyter()
             tunnel_up(5070, 'labeler')
