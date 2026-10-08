@@ -92,6 +92,65 @@ def flip_events(tracks, conf, thr, shift=0.0):
     return ev
 
 
+def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, u=None, move=None, min_len=0.0, dup=None):
+    """08.10, the owner: a track whose first side is inside counts as an entry when it starts at the door (someone who
+    came in while the tracker had nobody -- e.g. went out and came back as a new track); one found deep in the hall
+    (lost and re-found) counts nothing. death: a track last inside that vanishes at the door counts as an exit."""
+    near = lambda xy: xy is not None and len(hz) and float(np.min(np.hypot(*(hz - np.asarray(xy)).T))) <= rad
+    ev = []
+    for name, xs in tracks.items():
+        sides = []                                          # (t, side, xy) of every trusted run of conf votes
+        run_v, run_n, run_t, run_xy = None, 0, None, None
+        for t, p, xy in xs:
+            v = 1 if p >= thr else (0 if p <= 1 - thr else None)
+            if v is None:
+                continue
+            if v != run_v:
+                run_v, run_n, run_t, run_xy = v, 0, t, xy
+            run_n += 1
+            if run_xy is None:
+                run_xy = xy
+            if run_n == conf:
+                sides.append((run_t, v, run_xy))
+        if not sides:
+            continue
+        t0, v0, xy0 = sides[0]
+        if xs[-1][0] - xs[0][0] < min_len:                  # a flicker of a fragment
+            continue
+
+        def moved(i_from, sign):
+            """the feet's median 1.5 s after the track's first (or before its last) point, along u"""
+            if u is None or move is None:
+                return True
+            ta = xs[i_from][0]
+            pts = [xy for t, _, xy in xs if xy is not None and 0 < sign * (t - ta) <= 1.5]
+            if not pts or xs[i_from][2] is None:
+                return False
+            d = (np.median(pts, 0) - np.asarray(xs[i_from][2])) * sign
+            return float(d @ u) >= move
+
+        def alone(t, xy):
+            """nobody else's track within dup (frame share) at that moment -- else it is a split of that person"""
+            if dup is None or xy is None:
+                return True
+            for other, ys in tracks.items():
+                if other == name:
+                    continue
+                for t2, _, xy2 in ys:
+                    if xy2 is not None and abs(t2 - t) <= 0.5 and np.hypot(xy2[0] - xy[0], xy2[1] - xy[1]) <= dup:
+                        return False
+            return True
+        if birth and v0 == 1:
+            first_xy = next((xy for _, _, xy in xs if xy is not None), None)
+            if near(first_xy) and moved(0, 1) and alone(xs[0][0], first_xy):
+                ev.append({'kind': 'in', 't': xs[0][0] + shift, 'w': name, 'xy': first_xy, 'disp': None, 'birth': True})
+        if death and sides[-1][1] == 1:
+            last_xy = next((xy for _, _, xy in reversed(xs) if xy is not None), None)
+            if near(last_xy) and moved(len(xs) - 1, -1) and alone(xs[-1][0], last_xy):
+                ev.append({'kind': 'out', 't': xs[-1][0] + shift, 'w': name, 'xy': last_xy, 'disp': None, 'death': True})
+    return ev
+
+
 def alternate(events, keep='first'):
     """08.10: a person's counted events alternate -- an 'in' right after a counted 'in' (the 'out' between them was
     dropped by the gate, or never was) is not counted again; keep='last' keeps the later one of such a run instead."""
@@ -364,6 +423,11 @@ class Live:
         B = flip_events({str(k): v for k, v in tr.items()}, lf.get('conf', c['conf']), c['thr'])
         if lf.get('gate', True):
             B = gate(B, self.u, self.hz, c['move'], c['rad'])
+        if lf.get('birth') or lf.get('death'):              # 08.10: tracks born / lost at the door
+            B = B + birth_death({str(k): v for k, v in tr.items()}, lf.get('conf', c['conf']), c['thr'], self.hz,
+                                c['rad'] * lf.get('brad', 1.0), bool(lf.get('birth')), bool(lf.get('death')),
+                                u=self.u if lf.get('bmove') else None, move=c['move'] if lf.get('bmove') else None,
+                                min_len=lf.get('blen', 0.0), dup=lf.get('bdup'))
         if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None or self.side is not None:   # no door rule
             return alternate(B, lf.get('alt', 'first'))
         return alternate(combine(B, rule_cands, c['lo'], c['hi']), lf.get('alt', 'first'))

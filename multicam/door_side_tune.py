@@ -111,7 +111,7 @@ def main(fast=False):
 
     fcache = {}
 
-    def counts(day, stride, vote_of, conf, gate, alt, vkey=None):
+    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None)):
         v = days[day]
         fk = (vkey, stride, conf)
         if vkey is None or fk not in fcache:
@@ -122,6 +122,13 @@ def main(fast=False):
         ev = fcache[fk]
         if gate:
             ev = C.gate(ev, u, hz, f_['move'], f_['rad'])
+        if bd[0] or bd[1]:                                  # 08.10: born / lost at the door
+            bk = (vkey, stride, conf, 'bd')
+            if bk not in fcache:
+                tr = {name: [(t, vote_of((tag, i)), xy) for t, (tag, i), xy in lst] for name, lst in tracks[(day, stride)].items()}
+                fcache[bk] = tr
+            ev = ev + C.birth_death(fcache[bk], conf, 0.95, hz, f_['rad'] * bd[2], bd[0], bd[1], L.SHIFT,
+                                    u=u if bd[3] else None, move=f_['move'] if bd[3] else None, min_len=bd[4], dup=bd[5])
         if alt != 'none':
             ev = C.alternate(ev, alt)
         out = {}
@@ -150,6 +157,17 @@ def main(fast=False):
                                      gate=gate, alt=alt, stride=stride))
     if os.environ.get('RA_TUNE_SMOKE'):
         grid = grid[::max(1, len(grid) // int(os.environ['RA_TUNE_SMOKE']))]
+    if os.environ.get('RA_TUNE_GRID') == 'birth':           # 08.10: entries of tracks born at the door
+        grid = []
+        for mode in ('model', 'either_in+both_out', 'line_in+both_out', 'line'):
+            for thr in ((None,) if mode == 'line' else (0.9, 0.95)):
+                for conf, alt, stride, birth, death, brad, bmove, blen, bdup in itertools.product(
+                        (2,), ('none', 'first'), (3, 6), (False, True), (False, True), (1.0, 2.0), (False, True), (0.0, 2.0, 4.0), (None, 0.04)):
+                    if not birth and not death and (brad != 1.0 or bmove or blen or bdup):
+                        continue
+                    grid.append(dict(mode=mode, thr=thr, h_in=0, h_out=0, trunc=0.6 if mode == 'line' else 0.0, legs='unsure' if mode == 'line' else 'none',
+                                     conf=conf, gate=True, alt=alt, stride=stride, birth=birth, death=death, brad=brad,
+                                     bmove=bmove, blen=blen, bdup=bdup))
     print('settings', len(grid), flush=True)
     # per day: flat arrays of every observation, the index of (tag, i) into them
     arr, at = {}, {}
@@ -209,7 +227,9 @@ def main(fast=False):
                 vcache.clear() if len(vcache) > 64 else None
                 vcache[key] = votes(d, g)
             V = vcache[key]
-            per_day[d] = counts(d, g['stride'], lambda o, V=V, d=d: V[at[d][o]], g['conf'], g['gate'], g['alt'], key)
+            per_day[d] = counts(d, g['stride'], lambda o, V=V, d=d: V[at[d][o]], g['conf'], g['gate'], g['alt'], key,
+                                (g.get('birth', False), g.get('death', False), g.get('brad', 1.0), g.get('bmove', False),
+                                 g.get('blen', 0.0), g.get('bdup')))
         res.append(dict(g, per_day=per_day))
         if n % 1000 == 0:
             print(n, 'of', len(grid), '%.0f s' % (time.time() - t0), flush=True)
@@ -265,8 +285,8 @@ def main(fast=False):
     fin = max(res, key=lambda r: (round(f1(total(r, ds)), 4), -simple(r)))
     rep['final_all_days'] = {'setting': {k: fin[k] for k in grid[0]}, 'counts': total(fin, ds), 'f1': round(f1(total(fin, ds)), 3)}
     rep['table'] = table
-    json.dump(rep, open(OUT / 'side_tune.json', 'w'), indent=1)
-    json.dump([dict({k: r[k] for k in grid[0]}, per_day=r['per_day']) for r in res], open(OUT / 'side_tune_all.json', 'w'))
+    json.dump(rep, open(OUT / ('side_tune%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '')), 'w'), indent=1)
+    json.dump([dict({k: r[k] for k in grid[0]}, per_day=r['per_day']) for r in res], open(OUT / ('side_tune_all%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '')), 'w'))
     print('done %.0f s' % (time.time() - t0), flush=True)
 
 

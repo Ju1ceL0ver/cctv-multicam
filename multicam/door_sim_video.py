@@ -44,6 +44,11 @@ def main(day='20260919', n='3', out=None):
         B = dd.binary_events(sd['conf'], 0.95, tuple(f['stitch']))
         if sd.get('gate', True):
             B = C.gate(B, np.array(f['u']), np.array(f['zone']), f['move'], f['rad'])
+        if sd.get('birth') or sd.get('death'):           # tracks born / lost at the door
+            trs = {'%s:%s' % k: v for k, v in dd.tracks(tuple(f['stitch'])).items()}
+            B = B + C.birth_death(trs, sd['conf'], 0.95, np.array(f['zone']), f['rad'] * sd.get('brad', 1.0), bool(sd.get('birth')),
+                                  bool(sd.get('death')), L.SHIFT, u=np.array(f['u']) if sd.get('bmove') else None,
+                                  move=f['move'] if sd.get('bmove') else None, min_len=sd.get('blen', 0.0), dup=sd.get('bdup'))
         if sd.get('alt', 'none') != 'none':
             B = C.alternate(B, sd['alt'])
     else:
