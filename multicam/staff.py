@@ -32,6 +32,7 @@ W, H = 1280, 720
 LABELS = {1: 'покупатель', 2: 'сотрудник', 0: 'не понять / не человек'}
 MIN_EACH = 5
 PCA_CLOTH, PCA_SHAPE = 128, 64
+MASKED = os.environ.get('RA_STAFF_MASKED', '1') == '1'   # 08.10: mask vectors 86.4 % vs box 86.2 %, counter 74 vs 65 %
 _model = {'n': -1, 'p': None, 'cv': None}
 _lock = threading.Lock()
 
@@ -89,6 +90,14 @@ def build(root):
             i = str(i)
             if i in cm:
                 ids.append(i); meta[i] = cm[i]; cloth.append(c); shape.append(s_)
+    mz = folder(root) / 'masked_emb.npz'                # 08.10: vectors of the crop on the person's mask (staff_masked.py)
+    if MASKED and mz.exists():
+        z = np.load(mz)
+        mc, ms = z['cloth'], z['shape']                  # once: every z[...] unpacks the whole array again
+        at = {str(i): k for k, i in enumerate(z['ids'])}
+        for k, i in enumerate(ids):
+            if i in at:
+                cloth[k], shape[k] = mc[at[i]], ms[at[i]]
     C = _norm(_pca(_norm(np.array(cloth)), PCA_CLOTH))
     S = _norm(_pca(_norm(np.array(shape)), PCA_SHAPE))
     box = np.array([meta[i]['box'] for i in ids], np.float32)
@@ -280,7 +289,8 @@ def register(app, root):
                 cv2.rectangle(img, (x1 - 3, y1 - 3), (x2 + 3, y2 + 3), (66, 197, 245), 3)
                 img = cv2.resize(img, (960, int(960 * img.shape[0] / img.shape[1])))
             else:
-                img = cv2.imread(s['crop'])
+                mc = folder(here()) / 'counter_masked' / (pid + '.jpg')
+                img = cv2.imread(str(mc) if mc.exists() else s['crop'])
             ok, buf = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 90])
             resp = Response(buf.tobytes(), mimetype='image/jpeg')
             resp.headers['Cache-Control'] = 'private, max-age=3600'
