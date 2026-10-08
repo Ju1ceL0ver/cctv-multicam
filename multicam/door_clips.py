@@ -11,8 +11,11 @@ the live system disagree goes to the owner (/doorside); where they agree is trai
 import glob
 import json
 import os
+import queue
 import random
+import shutil
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -31,8 +34,67 @@ def ffmpeg():
         return hits[0] if hits else 'ffmpeg'
 
 
+RING = ROOT / 'data' / 'live' / 'ring'
+RING_S = 240.0                  # seconds of 12.5 fps frames kept for the clips (the live ticks are only ~2 a second)
+RING_DT = 0.08
+
+
+class Ring(threading.Thread):
+    """The last RING_S seconds of the camera at 12.5 frames a second, 1280 x 720 JPEGs named by their clock time in ms --
+    so the clips (for the owner and the night teacher) are smooth, not the live tick rate. Fed by the grabber; written in
+    its own thread, dropping frames rather than slowing the camera read."""
+
+    def __init__(self, folder=RING):
+        super().__init__(daemon=True)
+        self.folder = Path(folder)
+        shutil.rmtree(self.folder, ignore_errors=True)
+        self.folder.mkdir(parents=True, exist_ok=True)
+        self.q = queue.Queue(maxsize=50)
+        self.last = 0.0
+        self.last_clean = 0.0
+
+    def offer(self, t, frame):
+        if t - self.last < RING_DT - 0.005:
+            return
+        self.last = t
+        try:
+            self.q.put_nowait((t, frame))
+        except queue.Full:
+            pass
+
+    def run(self):
+        import cv2
+        while True:
+            t, f = self.q.get()
+            try:
+                cv2.imwrite(str(self.folder / ('%d.jpg' % int(t * 1000))), cv2.resize(f, (1280, 720), interpolation=cv2.INTER_AREA),
+                            [cv2.IMWRITE_JPEG_QUALITY, 88])
+            except Exception:
+                pass
+            if t - self.last_clean > 10:
+                self.last_clean = t
+                for p in self.folder.glob('*.jpg'):
+                    try:
+                        if int(p.stem) / 1000.0 < t - RING_S:
+                            p.unlink()
+                    except (ValueError, OSError):
+                        pass
+
+    def frames(self, t0, t1):
+        out = []
+        for p in self.folder.glob('*.jpg'):
+            try:
+                ts = int(p.stem) / 1000.0
+            except ValueError:
+                continue
+            if t0 <= ts <= t1:
+                out.append((ts, p))
+        return sorted(out)
+
+
 class Clipper:
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, ring=None):
+        self.ring = ring
         self.want = []                                  # [t0, t1, why, info]
         self.made = []                                  # (t0, t1) already cut
         self.hours = {}
@@ -121,17 +183,31 @@ class Clipper:
             (OUT / day).mkdir(parents=True, exist_ok=True)
             why = 'event' if 'event' in whys else whys[0]
             name = '%s_%s' % (time.strftime('%H%M%S', time.localtime(t0)), why)
-            fps = 1.0 / max(1e-3, (win.times[ks[-1]] - win.times[ks[0]]) / max(1, len(ks) - 1))
-            cmd = [self.exe, '-y', '-loglevel', 'error', '-framerate', '%.3f' % fps, '-start_number', str(ks[0]),
-                   '-i', str(win.dir / 'frames' / '%05d.jpg'), '-frames:v', str(len(ks)), '-vf', 'scale=1280:720',
-                   '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', str(OUT / day / (name + '.mp4'))]
+            rf = self.ring.frames(t0, t1) if self.ring is not None else []
+            if len(rf) >= 0.6 * (t1 - t0) / RING_DT:     # 12.5 fps from the ring
+                lst = OUT / day / (name + '.ffconcat')
+                lines = ['ffconcat version 1.0']
+                for i, (ts, p) in enumerate(rf):
+                    lines += ["file '%s'" % str(p).replace('\\', '/'),
+                              'duration %.3f' % ((rf[i + 1][0] - ts) if i + 1 < len(rf) else RING_DT)]
+                lst.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+                cmd = [self.exe, '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', str(lst), '-vsync', 'vfr',
+                       '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', str(OUT / day / (name + '.mp4'))]
+                times = [round(ts, 3) for ts, _ in rf]
+            else:                                         # the live ticks (no ring: a test on a file without it)
+                fps = 1.0 / max(1e-3, (win.times[ks[-1]] - win.times[ks[0]]) / max(1, len(ks) - 1))
+                cmd = [self.exe, '-y', '-loglevel', 'error', '-framerate', '%.3f' % fps, '-start_number', str(ks[0]),
+                       '-i', str(win.dir / 'frames' / '%05d.jpg'), '-frames:v', str(len(ks)), '-vf', 'scale=1280:720',
+                       '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', str(OUT / day / (name + '.mp4'))]
+                times = [round(win.times[k], 3) for k in ks]
             try:
                 subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                  creationflags=getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0))
             except OSError:
                 continue
             json.dump({'t0': t0, 't1': t1, 'why': whys, 'info': infos, 'window': win.id, 'ticks': ks,
-                       'times': [round(win.times[k], 3) for k in ks], 'size': [1280, 720]},
+                       'times': times, 'fps': round(len(times) / max(1e-3, times[-1] - times[0]), 2) if len(times) > 1 else None,
+                       'size': [1280, 720]},
                       open(OUT / day / (name + '.json'), 'w'))
             self.made.append((t0, t1))
             made.append(name)

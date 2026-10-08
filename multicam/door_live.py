@@ -69,9 +69,9 @@ class Grabber(threading.Thread):
     """Reads the stream as fast as it comes; at every tick hands over the newest frame (or a file, for a test, at its
     own pace)."""
 
-    def __init__(self, source, out):
+    def __init__(self, source, out, ring=None):
         super().__init__(daemon=True)
-        self.source, self.out = source, out
+        self.source, self.out, self.ring = source, out, ring
         self.latest, self.lock, self.stop = None, threading.Lock(), False
 
     def run(self):
@@ -90,15 +90,21 @@ class Grabber(threading.Thread):
                 if not ok:
                     break
                 if file_mode:                        # a recorded file: every second frame of 25 is a tick
+                    t0 = os.environ.get('RA_SOURCE_T0')           # 07.10: a test on a record -- the record's own clock
+                    tf = float(t0) + k / fps if t0 else time.time()
+                    if self.ring is not None:
+                        self.ring.offer(tf, f)
                     if k % max(1, int(round(fps * TICK))) == 0:
-                        t0 = os.environ.get('RA_SOURCE_T0')       # 07.10: a test on a record -- the record's own clock
-                        self.out.put((float(t0) + k / fps if t0 else time.time(), f))
+                        self.out.put((tf, f))
                         while self.out.qsize() > 600:
                             time.sleep(0.05)
                     k += 1
                 else:
+                    now = time.time()
                     with self.lock:
-                        self.latest = (time.time(), f)
+                        self.latest = (now, f)
+                    if self.ring is not None:
+                        self.ring.offer(now, f)
             cap.release()
             if file_mode:
                 self.out.put(None)
@@ -317,14 +323,16 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         except Exception as exc:
             roles = bank = None
             log('role: off (%s)' % str(exc)[:200])
-    clipper = None
+    clipper = ring = None
     if os.environ.get('RA_DOOR_CLIPS', '1') == '1':      # 08.10: short clips for the night teacher and the owner
         import door_clips
-        clipper = door_clips.Clipper()
+        ring = door_clips.Ring()                       # the clips at 12.5 fps from the last 4 minutes of the camera
+        ring.start()
+        clipper = door_clips.Clipper(ring=ring)
     pred = DM.build(student, heads if heads not in ('-', 'none') else None)
     q = queue.Queue()
     src = source or camera_url()
-    g = Grabber(src, q)
+    g = Grabber(src, q, ring)
     g.start()
     if str(src).startswith('rtsp'):
         threading.Thread(target=g.ticker, daemon=True).start()
