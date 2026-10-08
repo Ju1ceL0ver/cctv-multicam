@@ -20,6 +20,7 @@ PID = LIVE / 'door_live.pid'
 SAM3 = r'C:\Users\ArykovAA\cctv_ai\venv_sam3\Scripts\python.exe'
 STUDENT = r'runs\s31micro_a\last.pt'
 RULE = 'micro1s3_live3'                 # only a fallback name: with side_final.json the door rule is not used
+VCVARS = r'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\Build\vcvars64.bat'
 
 
 def alive(pid):
@@ -59,9 +60,16 @@ def start(until='21:00'):
         return
     log = open(LIVE / 'door_live.out', 'a', encoding='utf-8')
     log.write('\n==== start %s ====\n' % time.strftime('%Y-%m-%d %H:%M:%S'))
-    p = subprocess.Popen([SAM3, str(ROOT / 'door_live.py'), STUDENT, '-', RULE], cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT,
-                         env=dict(os.environ, PYTHONIOENCODING='utf-8', RA_DOOR_PIECES='1',
-                                  RA_DOOR_UNTIL=os.environ.get('RA_DOOR_UNTIL', until)),
+    sf = ROOT / 'data' / 'door_v2' / 'side_final.json'
+    side = json.load(open(sf)) if sf.exists() else {}
+    env = dict(os.environ, PYTHONIOENCODING='utf-8', RA_DOOR_PIECES='1', RA_DOOR_UNTIL=os.environ.get('RA_DOOR_UNTIL', until))
+    if side.get('fps_scale'):                     # 08.10: SAM 3.1's track rules counted in frames of this stride
+        env['RA_S31_FPS_SCALE'] = str(side.get('stride', 6))
+    args = [SAM3, str(ROOT / 'door_live.py'), STUDENT, '-', RULE]
+    if side.get('compile'):                       # 08.10: SAM 3.1's own torch.compile -- needs the MSVC environment
+        env['RA_S31_COMPILE'] = '1'
+        args = 'call "%s" >nul && %s' % (VCVARS, subprocess.list2cmdline(args))
+    p = subprocess.Popen(args, cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT, env=env, shell=isinstance(args, str),
                          creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0))
     PID.write_text(str(p.pid))
     print('started, pid', p.pid, '-- log', LIVE / 'live_cam1.log')

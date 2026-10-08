@@ -59,7 +59,7 @@ def frames(tag, n, stride, dst):
     return ks
 
 
-def found(tag, ks, dst):
+def found(tag, ks, dst, size=(2176, 1224)):
     """teacher people (SAM 3.1 on this stretch) matched by the variant at IoU >= 0.5, on the same frames"""
     import sam31_reid as R
     T = R.Masks(ROOT / 'data' / 'sam31_door' / tag / 'cam1' / 'chunks.npz')
@@ -70,17 +70,22 @@ def found(tag, ks, dst):
     for r in range(len(S.rows)):
         by_s.setdefault(int(S.rows[r, 1]), []).append(r)
 
-    def full(M, r):
-        m = np.zeros((1224, 2176), bool)
+    import cv2
+
+    def full(M, r, own=(2176, 1224)):
+        """the mask on the frame `size` (masks stored at `own`)"""
+        m = np.zeros((own[1], own[0]), np.uint8)
         x1, y1 = int(M.rows[r, 4]), int(M.rows[r, 5])
-        c = M.crop(r).astype(bool)
-        m[y1:y1 + c.shape[0], x1:x1 + c.shape[1]] = c[:1224 - y1, :2176 - x1]
-        return m
+        c = M.crop(r).astype(np.uint8)
+        m[y1:y1 + c.shape[0], x1:x1 + c.shape[1]] = c[:own[1] - y1, :own[0] - x1]
+        if own != (1280, 720):
+            m = cv2.resize(m, (1280, 720), interpolation=cv2.INTER_NEAREST)
+        return m.astype(bool)
     n_t = n_hit = n_s = 0
     ious = []
     for j, kf in enumerate(ks):
         tm = [full(T, r) for r in by_t.get(kf, []) if T.crop(r).sum() > 1500]
-        sm = [full(S, r) for r in by_s.get(j, []) if S.crop(r).sum() > 1500]
+        sm = [full(S, r, size) for r in by_s.get(j, []) if S.crop(r).sum() * (2176 * 1224) / (size[0] * size[1]) > 1500]
         n_t += len(tm); n_s += len(sm)
         used = set()
         for a in tm:
@@ -116,6 +121,8 @@ def main(tag='door_20260919_32350', n='160'):
                     ('base, 8 objects', None, {'max_obj': 8})]
         if os.environ.get('RA_SPEED_VARIANTS') == 'compile':          # 08.10: SAM 3.1's own torch.compile
             variants = [('base', None, {}), ('compiled', None, {'RA_S31_COMPILE': '1'})]
+        if os.environ.get('RA_SPEED_VARIANTS') == 'fast':             # compiled + masks at 1280 + post-processing in threads
+            variants = [('compiled fast', None, {'RA_S31_COMPILE': '1', 'fast': True})]
         for name, heads, opt in variants:
             for k_, v_ in opt.items():
                 if k_.startswith('RA_'):
@@ -137,12 +144,17 @@ def main(tag='door_20260919_32350', n='160'):
             th.start()
             torch.cuda.synchronize()
             t0 = time.time()
-            SG.label(pred, dst, sess, None)
+            if opt.get('fast'):
+                st = {}
+                for s_ in sess:                                   # session by session, like the live window
+                    SG.label(pred, dst, [s_], None, out_size=(1280, 720), compress=False, state=st)
+            else:
+                SG.label(pred, dst, sess, None)
             torch.cuda.synchronize()
             sec = time.time() - t0
             stop.set(); th.join()
             frames_done = sum(e - s for s, e, _ in sess)
-            q = found(tag, ks, dst)
+            q = found(tag, ks, dst, (1280, 720) if opt.get('fast') else (2176, 1224))
             res[name] = dict(q, s_per_frame=round(sec / frames_done, 3), gpu_util=round(float(np.mean([u for u, _ in util])), 1) if util else None,
                              gpu_mem=round(float(np.max([m for _, m in util]))) if util else None)
             print(name, json.dumps(res[name]), flush=True)

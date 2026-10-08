@@ -185,17 +185,35 @@ def build():
     return pred
 
 
-def label(pred, out, sess, deadline, prev=None):
+def label(pred, out, sess, deadline, prev=None, out_size=None, compress=True, state=None):
+    """state (08.10, the live door): a dict kept by the caller across sessions -- rows/buf/offs live in memory instead of
+    being read back from chunks.npz every session; out_size: the masks' frame (W, H) -- 1280 x 720 live; compress=False
+    writes chunks.npz uncompressed. The masks of a frame are resized and packed in worker threads while SAM goes on."""
     import cv2
     import torch
     import sam31_video as SV
-    rows, buf, offs, done = [], [], [0], []
-    if prev is not None:                         # an unfinished camera: keep what was done, go on after it
+    from concurrent.futures import ThreadPoolExecutor
+    OW, OH = out_size or (W, H)
+    if state is not None and 'rows' in state:
+        rows, buf, offs, done = state['rows'], state['buf'], state['offs'], state['done']
+    else:
+        rows, buf, offs, done = [], [], [0], []
+    if prev is not None and not rows:            # an unfinished camera: keep what was done, go on after it
         rows = [tuple(r) for r in prev['rows']]
         o = prev['offs']
         buf = [prev['buf'][o[k]:o[k + 1]] for k in range(len(o) - 1)]
         offs = list(o)
         done = [list(x) for x in prev['done']]
+
+    def post(kl, items):
+        res = []
+        for i, p, m in items:
+            m = cv2.resize(m.astype(np.uint8), (OW, OH), interpolation=cv2.INTER_NEAREST).astype(bool)
+            pk = SV.pack(m)
+            if pk is not None:
+                res.append((kl, i, p, pk))
+        return res
+    pool = ThreadPoolExecutor(max_workers=4)
     finished = {(a, b) for a, b, _ in done}
     for s, e, shared in sess:
         if (s, e) in finished:
@@ -210,10 +228,11 @@ def label(pred, out, sess, deadline, prev=None):
         with torch.autocast('cuda', dtype=torch.bfloat16):
             sid = pred.handle_request(dict(type='start_session', resource_path=str(sub), offload_video_to_cpu=True))['session_id']
             first = pred.handle_request(dict(type='add_prompt', session_id=sid, frame_index=0, text='person'))
-            local[0] = SV.masks_of(first.get('outputs', {}) or {}, (SAM_IN, SAM_IN))
+            local[0] = pool.submit(post, 0, SV.masks_of(first.get('outputs', {}) or {}, (SAM_IN, SAM_IN)))
             try:
                 for resp in pred.handle_stream_request(dict(type='propagate_in_video', session_id=sid, propagation_direction='forward')):
-                    local[int(resp.get('frame_index', len(local)))] = SV.masks_of(resp.get('outputs', {}) or {}, (SAM_IN, SAM_IN))
+                    kl = int(resp.get('frame_index', len(local)))
+                    local[kl] = pool.submit(post, kl, SV.masks_of(resp.get('outputs', {}) or {}, (SAM_IN, SAM_IN)))
             except RuntimeError as exc:                 # 07.10: a session with nobody found -- SAM raises instead of
                 if 'No points are provided' not in str(exc):    # returning nothing (the small detector, 19.09)
                     raise
@@ -222,18 +241,19 @@ def label(pred, out, sess, deadline, prev=None):
         torch.cuda.empty_cache()
         shutil.rmtree(sub, ignore_errors=True)
         for kl in sorted(local):
-            for i, p, m in local[kl]:
-                m = cv2.resize(m.astype(np.uint8), (W, H), interpolation=cv2.INTER_NEAREST).astype(bool)
-                pk = SV.pack(m)
-                if pk is None:
-                    continue
-                (x1, y1, x2, y2), bits = pk
-                rows.append((s, s + kl, i, p, x1, y1, x2, y2))
+            for kl_, i, p, ((x1, y1, x2, y2), bits) in local[kl].result():
+                rows.append((s, s + kl_, i, p, x1, y1, x2, y2))
                 buf.append(bits); offs.append(offs[-1] + len(bits))
         done.append([s, e, shared])
         print('session', s, e, time.strftime('%H:%M:%S'), flush=True)
-    np.savez_compressed(out / 'chunks.npz', rows=np.array(rows, dtype=np.float64).reshape(-1, 8),
-                        buf=np.concatenate(buf) if buf else np.zeros(0, np.uint8), offs=np.array(offs, dtype=np.int64))
+    pool.shutdown(wait=True)
+    save = np.savez_compressed if compress else np.savez
+    tmp = out / 'chunks.tmp.npz'
+    save(tmp, rows=np.array(rows, dtype=np.float64).reshape(-1, 8),
+         buf=np.concatenate(buf) if buf else np.zeros(0, np.uint8), offs=np.array(offs, dtype=np.int64))
+    os.replace(tmp, out / 'chunks.npz')
+    if state is not None:
+        state.update(rows=rows, buf=buf, offs=offs, done=done)
     return done
 
 

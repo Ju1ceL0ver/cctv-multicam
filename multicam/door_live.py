@@ -34,6 +34,10 @@ WINDOW_SESSIONS = 30
 LAG = 20.0                       # a crossing is told once the window has this many seconds after it
 KEEP_WINDOWS = 2
 W, H, SAM_IN = 2176, 1224, 1008
+_SF = Path(__file__).resolve().parent / 'data' / 'door_v2' / 'side_final.json'
+SMALL = (json.load(open(_SF)).get('small_masks', False) if _SF.exists() else False) or os.environ.get('RA_LIVE_SMALL') == '1'
+if SMALL:                                        # 08.10: masks at 1280 x 720 (all the door needs), kept in memory per window
+    W, H = 1280, 720
 RF = r'C:\Users\ArykovAA\cctv_ai\venv_rfdetr\Scripts\python.exe'
 os.environ.setdefault('OPENCV_FFMPEG_CAPTURE_OPTIONS', 'rtsp_transport;tcp')
 
@@ -167,6 +171,15 @@ class Window:
 def segment(pred, win, sess):
     """One more session of the window with sam31_segment.label (it keeps the window's earlier sessions)."""
     import sam31_segment as SG
+    if SMALL:                                    # 08.10: the window's masks stay in memory; written uncompressed
+        if not hasattr(win, 'chunk_state'):
+            win.chunk_state = {}
+        done = SG.label(pred, win.dir, win.sessions + [sess], None, out_size=(W, H), compress=False, state=win.chunk_state)
+        win.sessions = [tuple(x) for x in done]
+        json.dump({'day': time.strftime('%Y%m%d', time.localtime(win.t0)), 'cam': 'cam1', 'size': [W, H], 'tick': TICK,
+                   'ticks': win.n, 'sessions': [list(x) for x in win.sessions], 'live': True},
+                  open(win.dir / 'info.json', 'w'))
+        return
     prev = None
     if (win.dir / 'chunks.npz').exists():
         z = np.load(win.dir / 'chunks.npz')
@@ -200,7 +213,7 @@ def people(win, combo=None, bank=None):
             return []
         rep = json.load(open(win.dir / 'report.json'))
         person = {int(p): v for p, v in rep['person_of_piece'].items()}
-    static = DS.static_people(M, owned, person, win.n)
+    static = DS.static_people(M, owned, person, win.n, max_px=8.0 * W / 2176)
     t_link = time.time() - t_people
     prof = dict(foot=0.0, frame=0.0, mask=0.0, side=0.0, bank=0.0, n=0)
     if not hasattr(win, 'foot'):
@@ -255,15 +268,15 @@ def people(win, combo=None, bank=None):
                         bx = M.rows[r_, 4:8].astype(float)
                         iso = all(door_role.box_iou(bx, ob) <= door_role.ISOLATED_IOU for orr, ob in boxes_at.get(k, []) if orr != r_)
                         cut = bx[0] <= 2 or bx[1] <= 2 or bx[2] >= W - 3 or bx[3] >= H - 3
-                        sc = door_role.score(int(c_.sum()), iso, cut)
+                        sc = door_role.score(int(c_.sum() * (2176.0 / W) ** 2), iso, cut)   # areas in the 2176 frame
                         if bank.wants('%s:%d' % (win.id, w), sc):
                             import staff_masked as SM
                             bs = [bx[0] * sx, bx[1] * sy, bx[2] * sx, bx[3] * sy]   # the view from the 1280 x 720 frame
                             bank.offer('%s:%d' % (win.id, w), sc, lambda: SM.crop_masked(fr[:, :, ::-1], ms > 0, bs), bs)
                     prof['bank'] += time.time() - _t
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
-                                           'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
-                                                   round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
+                                           'box': [round((x1 + x2) / 2 / W, 4), round((y1 + y2) / 2 / (H * 1248 / 1224), 4),
+                                                   round((x2 - x1) / W, 4), round((y2 - y1) / (H * 1248 / 1224), 4)],
                                            'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p)})
     win.timing = dict({'link': round(t_link, 1), 'rows': round(time.time() - t_people - t_link, 1)},
                       **{k_: round(v_, 1) for k_, v_ in prof.items()})
