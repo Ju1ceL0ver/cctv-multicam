@@ -121,6 +121,8 @@ class Window:
     def __init__(self, t0):
         self.id = time.strftime('w%Y%m%d_%H%M%S', time.localtime(t0))
         self.dir = LIVE / 'cam1' / self.id / 'cam1'
+        if self.dir.parent.exists():                    # 08.10: a window of the same name left over (a re-run of a record):
+            shutil.rmtree(self.dir.parent, ignore_errors=True)   # its chunks.npz would be appended to
         (self.dir / 'frames').mkdir(parents=True, exist_ok=True)
         (self.dir / 'sam_in').mkdir(exist_ok=True)
         self.t0, self.n, self.sessions, self.told = t0, 0, [], []
@@ -130,7 +132,7 @@ class Window:
         self._fr = {}
 
     def frame(self, k):
-        """The tick's frame as RGB (2176 x 1224), a few cached."""
+        """The tick's frame as RGB (1280 x 720 since 08.10: clips and role views need no more), a few cached."""
         import cv2
         if k not in self._fr:
             if len(self._fr) > 64:
@@ -141,9 +143,10 @@ class Window:
 
     def add(self, t, frame):
         import cv2
-        g = cv2.resize(frame, (W, H), interpolation=cv2.INTER_AREA)
-        cv2.imwrite(str(self.dir / 'frames' / ('%05d.jpg' % self.n)), g, [cv2.IMWRITE_JPEG_QUALITY, 85])
-        cv2.imwrite(str(self.dir / 'sam_in' / ('%05d.jpg' % self.n)), cv2.resize(g, (SAM_IN, SAM_IN), interpolation=cv2.INTER_AREA),
+        size = (1280, 720) if PIECES else (W, H)      # ReID (RA_DOOR_PIECES=0) crops its views from full-size frames
+        cv2.imwrite(str(self.dir / 'frames' / ('%05d.jpg' % self.n)), cv2.resize(frame, size, interpolation=cv2.INTER_AREA),
+                    [cv2.IMWRITE_JPEG_QUALITY, 90])
+        cv2.imwrite(str(self.dir / 'sam_in' / ('%05d.jpg' % self.n)), cv2.resize(frame, (SAM_IN, SAM_IN), interpolation=cv2.INTER_AREA),
                     [cv2.IMWRITE_JPEG_QUALITY, 93])
         self.times.append(t)
         self.n += 1
@@ -193,6 +196,7 @@ def people(win, combo=None, bank=None):
         person = {int(p): v for p, v in rep['person_of_piece'].items()}
     static = DS.static_people(M, owned, person, win.n)
     t_link = time.time() - t_people
+    prof = dict(foot=0.0, frame=0.0, mask=0.0, side=0.0, bank=0.0, n=0)
     if not hasattr(win, 'foot'):
         win.foot = {}                                   # 08.10: (k, row) -> foot, once (it was redone for the whole window)
     boxes_at = {}
@@ -200,28 +204,46 @@ def people(win, combo=None, bank=None):
         for r_ in rs:
             boxes_at.setdefault(int(M.rows[r_, 1]), []).append((r_, M.rows[r_, 4:8].astype(float)))
     rows = {}
-    for p, rs in owned.items():
-        if (person.get(int(p)) or 0) in static:
-            continue
+    order = sorted(((int(M.rows[r_, 1]), int(p), r_) for p, rs in owned.items() for r_ in rs
+                    if (person.get(int(p)) or 0) not in static), key=lambda z: z[0])   # 08.10: tick by tick, one frame read each
+    for _k, p, r_ in order:
         w = int(person.get(int(p)) or 0)
-        for r_ in rs:
+        if True:
             k = int(M.rows[r_, 1])
             x1, y1, x2, y2 = M.rows[r_, 4:8].astype(int)
             if (k, r_) not in win.foot:
+                _t = time.time()
                 win.foot[(k, r_)] = DS.foot_of(M.crop(r_))
+                prof['foot'] += time.time() - _t
             f = win.foot[(k, r_)]
             t = round(win.times[k], 2) if k < len(win.times) else round(win.t0 + k * TICK, 2)
             if combo is not None:
                 win.person_of[(win.id, k, r_)] = '%s:%d' % (win.id, w)
             if combo is not None and (k, r_) not in win.seen:
                 win.seen.add((k, r_))
+                _t = time.time()
                 fr = win.frame(k)
+                prof['frame'] += time.time() - _t
                 if fr is not None:
-                    m = np.zeros((H, W), np.uint8)
+                    import cv2
+                    _t = time.time()
                     c_ = M.crop(r_)
-                    m[y1:y1 + c_.shape[0], x1:x1 + c_.shape[1]] = c_[:H - y1, :W - x1]
+                    # 08.10: the side is judged at 1280 x 720 (the model works there anyway; the line is drawn there):
+                    # full-size masks of every person on every tick took ~40 ms each
+                    win.small = (k, fr)
+                    sx, sy = 1280.0 / W, 720.0 / H
+                    X1, Y1 = int(x1 * sx), int(y1 * sy)
+                    cs = cv2.resize(c_.astype(np.uint8), (max(1, int(round(c_.shape[1] * sx))), max(1, int(round(c_.shape[0] * sy)))),
+                                    interpolation=cv2.INTER_NEAREST)
+                    ms = np.zeros((720, 1280), np.uint8)
+                    ms[Y1:Y1 + cs.shape[0], X1:X1 + cs.shape[1]] = cs[:720 - Y1, :1280 - X1]
                     fx, fy = (x1 + f[0], y1 + f[1]) if f else ((x1 + x2) / 2, y2)
-                    combo.add((win.id, k, r_), t, fr, m, [fx / W, fy / H])
+                    prof['mask'] += time.time() - _t
+                    _t = time.time()
+                    combo.add((win.id, k, r_), t, win.small[1], ms, [fx / W, fy / H])
+                    prof['side'] += time.time() - _t
+                    prof['n'] += 1
+                    _t = time.time()
                     if bank is not None:
                         import door_role
                         bx = M.rows[r_, 4:8].astype(float)
@@ -230,14 +252,15 @@ def people(win, combo=None, bank=None):
                         sc = door_role.score(int(c_.sum()), iso, cut)
                         if bank.wants('%s:%d' % (win.id, w), sc):
                             import staff_masked as SM
-                            bank.offer('%s:%d' % (win.id, w), sc,
-                                       lambda: SM.crop_masked(fr[:, :, ::-1], m > 0, bx),
-                                       [bx[0] * 1280 / W, bx[1] * 720 / H, bx[2] * 1280 / W, bx[3] * 720 / H])
+                            bs = [bx[0] * sx, bx[1] * sy, bx[2] * sx, bx[3] * sy]   # the view from the 1280 x 720 frame
+                            bank.offer('%s:%d' % (win.id, w), sc, lambda: SM.crop_masked(fr[:, :, ::-1], ms > 0, bs), bs)
+                    prof['bank'] += time.time() - _t
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
                                                    round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
                                            'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p)})
-    win.timing = {'link': round(t_link, 1), 'rows': round(time.time() - t_people - t_link, 1)}
+    win.timing = dict({'link': round(t_link, 1), 'rows': round(time.time() - t_people - t_link, 1)},
+                      **{k_: round(v_, 1) for k_, v_ in prof.items()})
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
 
 

@@ -98,7 +98,7 @@ class Clipper:
             else:
                 keep.append(w)
         self.want = keep
-        todo.sort()
+        todo.sort(key=lambda w: (w[0], w[1]))
         merged = []
         for w in todo:                                  # overlapping requests -> one clip with all reasons
             w = [max(w[0], ta), min(w[1], tb), w[2], w[3]]
