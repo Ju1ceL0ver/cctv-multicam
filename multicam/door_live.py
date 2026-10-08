@@ -169,13 +169,17 @@ class Window:
         self.times.append(t)
         self.n += 1
 
-    def carry(self, old, c0):
+    def carry(self, old, c0, move_from=None):
         """08.10: a new window starts with the old one's last frames from tick c0 (copied), so the crossings the old
         window could not tell yet (within LAG of its end) are seen again here, with a lead for SAM to settle; and the
         frames that came after the old window's last session are not lost."""
         for j in range(c0, old.n):
             for sub in ('frames', 'sam_in'):
-                shutil.copyfile(old.dir / sub / ('%05d.jpg' % j), self.dir / sub / ('%05d.jpg' % self.n))
+                a, b = old.dir / sub / ('%05d.jpg' % j), self.dir / sub / ('%05d.jpg' % self.n)
+                if move_from is not None and j >= move_from:   # 09.10: the queue after the old window's sessions
+                    os.replace(a, b)                           # (nothing of the old window reads it any more)
+                else:
+                    shutil.copyfile(a, b)
             self.times.append(old.times[j])
             self.n += 1
 
@@ -331,6 +335,32 @@ def save_obs(win, combo):
             f.write('\n'.join(lines) + '\n')
 
 
+def prewarm(pred, sf):
+    """09.10: the compiled SAM recompiles for every new shape it meets (more people in the frame, longer memory), and a
+    240-tick session then costs 0.45-0.85 s per tick instead of 0.22. Warmed on two full sessions of a busy recorded
+    door stretch, it keeps 0.22-0.24 s. side_final's "prewarm": the stretch (data/sam31_door/<tag>), "prewarm_sessions"."""
+    side = json.load(open(sf)) if sf.exists() else {}
+    tag = os.environ.get('RA_LIVE_PREWARM') or side.get('prewarm')
+    if not tag or os.environ.get('RA_S31_COMPILE') != '1':
+        return
+    import sam31_segment as SG
+    import sam_speed as SP
+    t0 = time.time()
+    dst = ROOT / 'data' / 'live' / 'prewarm'
+    try:
+        n = int(side.get('prewarm_sessions', 2)) * SESSION
+        ks = SP.frames(tag, n, int(round(TICK / 0.08)), dst)
+        sess = [(s, e, sh) for s, e, sh in __import__('door_micro').sessions_of(len(ks), SESSION, OVERLAP)]
+        SG.label(pred, dst, sess, None, out_size=(W, H), compress=False, state={})
+        log('prewarm: %d ticks of %s in %.0f s' % (len(ks), tag, time.time() - t0))
+    except Exception as exc:                       # never keeps the door from starting
+        log('prewarm failed: %s' % str(exc)[:200])
+    finally:
+        shutil.rmtree(dst, ignore_errors=True)
+        import torch
+        torch.cuda.empty_cache()
+
+
 def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     global TICK
     sf = ROOT / 'data' / 'door_v2' / 'side_final.json'
@@ -362,6 +392,51 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         except Exception as exc:
             roles = bank = None
             log('role: off (%s)' % str(exc)[:200])
+    role_q = queue.Queue()
+
+    def role_loop():
+        """09.10: the role of each told event (door_role.Roles over the person's accumulated views) and the owner's
+        /liveevents answers, in their own thread: the role model runs on the processor (the card is SAM's alone), ~0.7 s
+        a view, and must never hold the count. Results -> data/live/records/roles_<day>.jsonl (/liveevents shows the
+        last line of each event)."""
+        import live_events as LE
+
+        def write(lines):
+            (LIVE / 'records').mkdir(parents=True, exist_ok=True)
+            with open(LIVE / 'records' / ('roles_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fr:
+                for x in lines:
+                    fr.write(json.dumps(x) + '\n')
+        while True:
+            item = role_q.get()
+            if item is None:
+                return
+            what, arg = item
+            try:
+                if what == 'event':
+                    e = arg
+                    out = roles.role(list(e['tracks']))
+                    e.update(out)
+                    write([dict(out, key=LE.key_of(e), t=e['t'], kind=e['kind'], was=None, at=time.strftime('%H:%M:%S'))])
+                    continue
+                took = roles.feedback(told_all, LE.load(time.strftime('%Y%m%d')), LE.key_of)
+                if took:
+                    log('role: %d answers of the owner taken into the staff gallery' % took)
+                # 09.10: the day's earlier events again once the owner's answers changed the gallery. Not on the
+                # model's own seeds: on the /staff answers a whole-day gallery of the model's sure views did not
+                # beat the model (86.9 % = 86.9 %; during the day 87.7 %), the owner's views did (96.6 % vs 90.7 %)
+                mode = os.environ.get('RA_ROLE_RESCORE', 'owner')
+                ch = roles.rescore(told_all) if (mode == 'always' or (mode == 'owner' and took)) else []
+                if ch:
+                    write([dict(out, key=LE.key_of(e_), t=e_['t'], kind=e_['kind'], was=was, final=bool(arg),
+                                at=time.strftime('%H:%M:%S')) for e_, was, out in ch])
+                    log('role: %d earlier events decided again: %s' % (len(ch), ', '.join(
+                        '%s %s %s->%s' % (e_['kind'], e_['clock'][11:19], was, out['role']) for e_, was, out in ch[:8])))
+            except Exception as exc:
+                log('role failed: %s' % str(exc)[:200])
+    role_thread = None
+    if roles is not None:
+        role_thread = threading.Thread(target=role_loop, daemon=True)
+        role_thread.start()
     clipper = ring = None
     if os.environ.get('RA_DOOR_CLIPS', '1') == '1':      # 08.10: short clips for the night teacher and the owner
         import door_clips
@@ -369,6 +444,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         ring.start()
         clipper = door_clips.Clipper(ring=ring)
     pred = DM.build(student, heads if heads not in ('-', 'none') else None)
+    prewarm(pred, sf)
     q = queue.Queue()
     src = source or camera_url()
     g = Grabber(src, q, ring)
@@ -394,6 +470,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         def __init__(self):
             super().__init__(daemon=True)
             self.win, self.lock, self.done, self.skipping, self.k = None, threading.Lock(), False, False, 0
+            self.busy_until = 0.0
+
+        def idle(self):
+            return self.busy_until < time.time()
 
         def backlog(self):
             w = self.win
@@ -409,7 +489,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                     self.done = True
                     return
                 t, f = item
-                if live_mode and os.environ.get('RA_DEGRADE', '1') == '1':
+                if live_mode and os.environ.get('RA_DEGRADE', '0') == '1':   # 09.10 owner: never skip frames -- off by default
                     bl = self.backlog()            # with hysteresis: skip from 1.5 sessions behind until under half of one
                     behind = bl > DEGRADE_SESSIONS * SESSION or (self.skipping and bl > 0.5 * SESSION)
                     if behind != self.skipping:
@@ -422,6 +502,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                     while self.backlog() > 2 * SESSION:
                         time.sleep(0.05)
                 with self.lock:
+                    self.busy_until = time.time() + 1.0
                     if self.win is None:
                         self.win = Window(t)
                     self.win.add(t, f)
@@ -451,9 +532,6 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                     if any(x['kind'] == e['kind'] and abs(x['t'] - e['t']) <= 2.0 for x in told_all):
                         continue
                     e = {k_: v_ for k_, v_ in e.items() if k_ not in ('xy', 'disp')}
-                    if roles is not None and (e.get('bw') or e.get('w')) is not None:   # 08.10: the role by accumulation
-                        who = str(e.get('bw') or e.get('w'))
-                        e.update(roles.role(getattr(combo, 'members', {}).get(who, [who])))
                     if combo is not None:                      # 08.10: what decided it, for checking and re-running later
                         who = str(e.get('bw') or e.get('w'))
                         e['tracks'] = [str(x) for x in getattr(combo, 'members', {}).get(who, [who])]
@@ -464,29 +542,12 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                         clipper.event(e)
                     with open(events_path, 'a', encoding='utf-8') as fo:
                         fo.write(json.dumps(e) + '\n')
-            if roles is not None:                         # 09.10: the owner's answers on /liveevents -> the staff gallery
-                try:
-                    import live_events as LE
-                    took = roles.feedback(told_all, LE.load(time.strftime('%Y%m%d')), LE.key_of)
-                    if took:
-                        log('role: %d answers of the owner taken into the staff gallery' % took)
-                    # 09.10: the day's earlier events again once the owner's answers changed the gallery. Not on the
-                    # model's own seeds: on the /staff answers a whole-day gallery of the model's sure views did not
-                    # beat the model (86.9 % = 86.9 %; during the day 87.7 %), the owner's views did (96.6 % vs 90.7 %)
-                    mode = os.environ.get('RA_ROLE_RESCORE', 'owner')
-                    ch = roles.rescore(told_all) if (mode == 'always' or (mode == 'owner' and took)) else []
-                    if ch:
-                        (LIVE / 'records').mkdir(parents=True, exist_ok=True)
-                        with open(LIVE / 'records' / ('roles_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fr:
-                            for e_, was, out in ch:
-                                fr.write(json.dumps(dict(out, key=LE.key_of(e_), t=e_['t'], kind=e_['kind'], was=was,
-                                                         final=bool(final), at=time.strftime('%H:%M:%S'))) + '\n')
-                        log('role: %d earlier events decided again: %s' % (len(ch), ', '.join(
-                            '%s %s %s->%s' % (e_['kind'], e_['clock'][11:19], was, out['role']) for e_, was, out in ch[:8])))
-                    if bank is not None:
-                        bank.dump()
-                except Exception as exc:
-                    log('role feedback failed: %s' % str(exc)[:200])
+                    if roles is not None and e.get('tracks'):
+                        role_q.put(('event', e))      # 09.10: the role comes a few seconds later, never holds the count
+            if roles is not None:
+                if bank is not None:
+                    bank.dump()
+                role_q.put(('feedback', final))
             t_events = time.time() - t_ev0
             if combo is not None and getattr(combo, 'raw', None):   # 08.10: every observation's votes, no pictures
                 save_obs(win, combo)
@@ -528,7 +589,13 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     final = False
     while True:
         until = os.environ.get('RA_DOOR_UNTIL')        # 08.10: the shop closes -- the last session and its events, then exit
-        closing = bool(until) and live_mode and time.strftime('%H:%M') >= until
+        closing = bool(until) and str(src).startswith('rtsp') and time.strftime('%H:%M') >= until
+        if closing and not g.stop:                     # 09.10: no new frames; whatever is queued is still counted
+            g.stop = True
+            log('closing: the camera is off, %d ticks still to count' % writer.backlog())
+        if closing and (not q.empty() or not writer.idle()):
+            time.sleep(0.2)                            # the writer is still putting the last frames down
+            continue
         ending = writer.done or (t_end and time.time() > t_end) or closing
         with writer.lock:
             win = writer.win
@@ -568,7 +635,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             c0 = min(c0, win.sessions[-1][1] - OVERLAP)
             with writer.lock:
                 nw = Window(win.times[c0] if c0 < win.n else time.time())
-                nw.carry(win, c0)
+                nw.carry(win, c0, move_from=win.sessions[-1][1])
                 nw.tell_from = bound
                 writer.win = nw
             log('window %s -> %s: carried %d ticks, tells after %s' % (win.id, nw.id, nw.n, time.strftime('%H:%M:%S', time.localtime(bound))))
@@ -580,6 +647,9 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     for f_ in pending:
         f_.result()
     post_pool.shutdown(wait=True)
+    if role_thread is not None:                       # the last roles before leaving
+        role_q.put(None)
+        role_thread.join(timeout=300)
     g.stop = True
     log('stop: %d events (%d in, %d out)' % (len(told_all), sum(e['kind'] == 'in' for e in told_all), sum(e['kind'] == 'out' for e in told_all)))
     os._exit(0)

@@ -217,7 +217,11 @@ def serve():
     import staff_model
     import track_emb as T
     clf = staff_model.load_current(ROOT)
-    embed = T.teachers()
+    dev = os.environ.get('RA_ROLE_DEVICE', 'cuda')    # 09.10: 'cpu' keeps the card for SAM alone (~0.7 s a view)
+    if dev == 'cpu':
+        import torch
+        torch.set_num_threads(int(os.environ.get('RA_ROLE_THREADS', '8')))
+    embed = T.teachers(dev)
     print(json.dumps({'ready': float(getattr(clf, 'threshold', 0.45))}), flush=True)
     for line in sys.stdin:
         try:

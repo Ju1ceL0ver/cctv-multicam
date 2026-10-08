@@ -167,6 +167,50 @@ def refill(out, s, e):
     cap.release()
 
 
+def _structure_copy(x):
+    """dicts, lists, tuples, sets and numpy arrays copied; tensors, numpy scalars and numbers shared"""
+    if isinstance(x, dict):                       # dict subclasses too (defaultdict keeps its default factory)
+        y = x.copy()
+        for k in y:
+            y[k] = _structure_copy(y[k])
+        return y
+    if isinstance(x, list):
+        return [_structure_copy(v) for v in x]
+    if isinstance(x, tuple):
+        return tuple(_structure_copy(v) for v in x)
+    if isinstance(x, set):
+        return set(x)
+    if isinstance(x, np.ndarray):
+        return x.copy()
+    return x
+
+
+def fast_planning_copy():
+    """09.10: SAM 3.1 deep-copies the tracker metadata on every frame, the per-frame scores of every frame of the session
+    with their tensors included (~200 000 tensor copies in a 240-frame session, ~15 % of the time and growing with the
+    session). The planning phase only adds and replaces entries -- it never changes a tensor in place -- so copying the
+    containers and sharing the tensors gives the same result (checked frame by frame: sam31_fastcopy_check.py)."""
+    import sam3.model.sam3_video_base as VB
+    if getattr(VB.Sam3VideoBase, '_fast_copy', False):
+        return
+
+    def _create_planning_metadata(self, tracker_metadata_prev):
+        score_key = 'obj_id_to_tracker_score_frame_wise'
+        if score_key not in tracker_metadata_prev:
+            score_key = 'obj_id_to_sam2_score_frame_wise'
+        return {
+            'obj_ids_per_gpu': _structure_copy(tracker_metadata_prev['obj_ids_per_gpu']),
+            'obj_ids_all_gpu': None,
+            'num_obj_per_gpu': _structure_copy(tracker_metadata_prev['num_obj_per_gpu']),
+            'obj_id_to_score': _structure_copy(tracker_metadata_prev['obj_id_to_score']),
+            score_key: _structure_copy(tracker_metadata_prev[score_key]),
+            'obj_id_to_last_occluded': {},
+            'max_obj_id': _structure_copy(tracker_metadata_prev['max_obj_id']),
+        }
+    VB.Sam3VideoBase._create_planning_metadata = _create_planning_metadata
+    VB.Sam3VideoBase._fast_copy = True
+
+
 def build():
     import inspect
     import torch
@@ -174,8 +218,22 @@ def build():
     import sam3.model.decoder as sam3_decoder        # it asks for Flash Attention only; PyTorch on Windows has none
     from torch.nn.attention import sdpa_kernel, SDPBackend
     sam3_decoder.sdpa_kernel = lambda *a, **k: sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH])
-    pred = build_sam3_predictor(checkpoint_path=str(CKPT), version='sam3.1', use_fa3=False, max_num_objects=16,
-                                compile=os.environ.get('RA_S31_COMPILE') == '1')   # 08.10: torch.compile, "~2x" per Meta
+    _compile = torch.compile
+    if os.environ.get('RA_S31_CUDAGRAPHS', '1') == '0':
+        # 09.10: "max-autotune" records a CUDA graph per new shape (number of people, memory length), and their pools
+        # stay on the card; without them the compiled kernels are kept and the memory does not creep over the day
+        def _no_graphs(*a, **k):
+            if k.get('mode') == 'max-autotune':
+                k['mode'] = 'max-autotune-no-cudagraphs'
+            return _compile(*a, **k)
+        torch.compile = _no_graphs
+    try:
+        pred = build_sam3_predictor(checkpoint_path=str(CKPT), version='sam3.1', use_fa3=False, max_num_objects=16,
+                                    compile=os.environ.get('RA_S31_COMPILE') == '1')   # 08.10: torch.compile, "~2x" per Meta
+    finally:
+        torch.compile = _compile
+    if os.environ.get('RA_S31_FASTCOPY', '0') == '1':      # on after sam31_fastcopy_check.py
+        fast_planning_copy()
     parts = os.environ.get('RA_S31_COMPILE_PARTS', 'all')
     if os.environ.get('RA_S31_COMPILE') == '1' and parts != 'all':
         # 09.10: compile only the detector or only the tracker -- the rest goes back to its plain forward

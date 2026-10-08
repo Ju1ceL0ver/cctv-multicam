@@ -43,7 +43,10 @@ def teachers(dev='cuda'):
     cfg = cmod._C.clone(); cfg.MODEL.EXTRA_DIM = int(sd['mlp.fc2.weight'].shape[0])
     cs = sys.modules['csci_ez'].eva02_img_extra_token(pretrained=False, config=cfg, num_classes=sd['head.weight'].shape[0],
                                                      cloth=sd['cloth_embed'].shape[0] if 'cloth_embed' in sd else 300, cloth_xishu=3, spatial_avg=None)
-    cs.load_state_dict(sd, strict=False); cs = cs.to(dev).eval().half()
+    cs.load_state_dict(sd, strict=False); cs = cs.to(dev).eval()
+    half = str(dev).startswith('cuda')        # 09.10: on the processor (the live door's role) in float32
+    if half:
+        cs = cs.half()
     mean = torch.tensor([0.48145466, 0.4578275, 0.40821073], device=dev).view(1, 3, 1, 1)
     std = torch.tensor([0.26862954, 0.26130258, 0.27577711], device=dev).view(1, 3, 1, 1)
 
@@ -53,7 +56,8 @@ def teachers(dev='cuda'):
             a = torch.stack([torch.from_numpy(np.ascontiguousarray(cv2.resize(c, (128, 256)))) for c in rgb]).to(dev).permute(0, 3, 1, 2).float() / 255.0
             v1 = torch.cat([tr(a[k:k + 64], cam_label=torch.zeros(len(a[k:k + 64]), dtype=torch.long, device=dev)) for k in range(0, len(a), 64)])
             b = torch.stack([torch.from_numpy(np.ascontiguousarray(cv2.resize(c, (224, 224)))) for c in rgb]).to(dev).permute(0, 3, 1, 2).float() / 255.0
-            b = ((b - mean) / std).half()
+            b = ((b - mean) / std)
+            b = b.half() if half else b
             v2 = torch.cat([cs(b[k:k + 32]) for k in range(0, len(b), 32)]).float()
         n = lambda v: torch.nn.functional.normalize(v.float(), dim=1).cpu().numpy()
         return n(v1), n(v2)
