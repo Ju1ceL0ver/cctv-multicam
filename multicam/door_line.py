@@ -32,3 +32,19 @@ def inside(line, mask, min_px=None):
     n = int((s == want).sum())
     need = (min_px if min_px is not None else line.get('min_px', 20)) / (sx * sy)
     return n >= max(1, need)
+
+
+def depth(line, mask):
+    """How deep the mask goes past the line, in pixels of the 1280 x 720 frame: > 0 -- its deepest pixel is that far on
+    the inside; < 0 -- the whole mask stays on the outside, its nearest pixel that far from the line (08.10: for a
+    side with hysteresis, so a person standing on the line does not flicker)."""
+    if line is None or not mask.any():
+        return None
+    h, w = mask.shape
+    ys, xs = np.nonzero(mask)
+    sx, sy = 1280.0 / w, 720.0 / h
+    (x1, y1), (x2, y2) = line['p1'], line['p2']
+    n = float(np.hypot(x2 - x1, y2 - y1))
+    want = side_sign(line, *line['inside'])
+    d = ((x2 - x1) * (ys * sy - y1) - (y2 - y1) * (xs * sx - x1)) / n * want
+    return float(d.max())

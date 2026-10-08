@@ -35,8 +35,8 @@ def main():
         inside = lambda t: any(x - 1 <= t <= y + 1 for x, y in spans)
         out = {'truth_in': sum(t['kind'] == 'in' for t in truth), 'truth_out': sum(t['kind'] == 'out' for t in truth)}
         for src in ('micro1s3', 'sam31'):
-            C.SRC, C.POS_SUF = src, ('' if src == 'sam31' else src + '_')
-            C.SUF = C.POS_SUF + os.environ.get('RA_BIN_VER', '')
+            C.SRC, C.POS_SUF = src, ('' if src == 'sam31' else src + '_') + os.environ.get('RA_POS_VER', '')
+            C.SUF = ('' if src == 'sam31' else src + '_') + os.environ.get('RA_BIN_VER', '')
             if not (ROOT / 'data' / 'door_v2' / ('binary_%s%s.json' % (C.SUF, day))).exists():
                 continue
             dd = C.Day(day)

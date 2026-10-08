@@ -26,10 +26,13 @@ def people(base):
     person = {int(p): v for p, v in rep['person_of_piece'].items()}
     static = DS.static_people(M, owned, person, info['ticks'])
     by_tick = {}
+    pieces = os.environ.get('RA_DOOR_PIECES') == '1'      # 08.10: SAM's own tracks, no ReID joining (ReID mixes people)
     for p, rs in owned.items():
         pid = int(person.get(int(p)) or 0)
         if pid in static:
             continue
+        if pieces:
+            pid = 1000 + int(p)
         for r in rs:
             by_tick.setdefault(int(M.rows[r, 1]), []).append((r, pid))
     return M, by_tick, info

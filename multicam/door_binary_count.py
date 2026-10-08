@@ -20,7 +20,7 @@ STRIDE = 3
 import os
 SRC = os.environ.get('RA_BIN_SRC', 'sam31')        # 07.10: or a small-SAM run under data/micro_door/<name>
 SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_BIN_VER', '')   # 07.10: v2 = the refitted model
-POS_SUF = '' if SRC == 'sam31' else SRC + '_'
+POS_SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_POS_VER', '')   # 08.10: pc = SAM pieces
 
 
 def src_base(tag):
@@ -73,7 +73,10 @@ def predict(day):
                     if LINE_ONLY:                         # 08.10, the owner: only the line, no model at all
                         if not m.any():
                             continue
-                        obs.append([round(a + k * D.TICK, 2), int(pid), 1.0 if door_line.inside(line, m > 0) else 0.0])
+                        if os.environ.get('RA_LINE_DEPTH') == '1':   # the signed depth past the line (door_line_tune.py)
+                            obs.append([round(a + k * D.TICK, 2), int(pid), round(door_line.depth(line, m > 0), 1)])
+                        else:
+                            obs.append([round(a + k * D.TICK, 2), int(pid), 1.0 if door_line.inside(line, m > 0) else 0.0])
                         continue
                     try:
                         p = clf.predict_rgb(rgb, m)['p_inside']

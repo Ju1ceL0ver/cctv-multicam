@@ -21,7 +21,7 @@ OUT = ROOT / 'data' / 'door_v2'
 DAYS = ('20260917', '20260918', '20260919')
 SRC = os.environ.get('RA_BIN_SRC', 'micro1s3')
 SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_BIN_VER', '')
-POS_SUF = '' if SRC == 'sam31' else SRC + '_'
+POS_SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_POS_VER', '')   # 08.10: pc = SAM pieces
 
 
 def rules():
@@ -33,7 +33,7 @@ def rules():
 
 
 
-def stitch_tracks(tr, stitch):
+def stitch_tracks(tr, stitch, roots=None):
     """{pid: [(t, p, xy)]} -> the same with pieces joined: one that starts where and when another ended (<= gap s,
     feet <= dist apart, the earlier one never seen after) takes the earlier one's number."""
     gap, dist = stitch
@@ -59,6 +59,8 @@ def stitch_tracks(tr, stitch):
     merged = {}
     for k, v in tr.items():
         merged.setdefault(root(k), []).extend(v)
+        if roots is not None:
+            roots[k] = root(k)
     return {k: sorted(v) for k, v in merged.items()}
 
 
@@ -188,7 +190,7 @@ def combine(B, R, lo, hi, join=4.0):
     out, absorbed = [], set()
     for r_i, r in enumerate(R):
         if r['p'] >= hi or (r['p'] >= lo and r_i in pairs):
-            out.append(dict(r))
+            out.append(dict(r, bw=B[pairs[r_i]]['w']) if r_i in pairs else dict(r))   # bw: the side track (role)
             if r_i in pairs:
                 absorbed.add(pairs[r_i])
     if hi <= 1:
@@ -276,13 +278,21 @@ class Live:
         self.obs = {}                                       # row key -> (t, p_inside, foot)
         import door_line
         self.line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
+        lf = OUT / 'line_final.json'
+        self.line_cfg = json.load(open(lf)) if lf.exists() and os.environ.get('RA_LINE_ONLY') == '1' else None
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
         if self.line is not None and os.environ.get('RA_LINE_ONLY') == '1':   # 08.10: only the owner's line
             import door_line
             m = np.asarray(mask) > 0
             if m.any():
-                self.obs[key] = (t, 1.0 if door_line.inside(self.line, m) else 0.0, foot_xy)
+                lf = self.line_cfg
+                if lf:                                      # with hysteresis (door_line_tune.py -> line_final.json)
+                    d = door_line.depth(self.line, m)
+                    p = 1.0 if d >= lf['h_in'] else (0.0 if d <= -lf['h_out'] else 0.5)
+                else:
+                    p = 1.0 if door_line.inside(self.line, m) else 0.0
+                self.obs[key] = (t, p, foot_xy)
             return
         try:
             p = self.clf.predict_rgb(frame_rgb, mask)['p_inside']
@@ -302,9 +312,18 @@ class Live:
             if key in self.obs:
                 tr.setdefault(w, []).append(self.obs[key])
         tr = {k: sorted(v) for k, v in tr.items()}
+        roots = {k: k for k in tr}
         if c['stitch']:
-            tr = stitch_tracks(tr, tuple(c['stitch']))
-        B = gate(flip_events({str(k): v for k, v in tr.items()}, c['conf'], c['thr']), self.u, self.hz, c['move'], c['rad'])
+            tr = stitch_tracks(tr, tuple(c['stitch']), roots)
+        self.members = {}                                   # 08.10: the person -> its stitched keys (for the role)
+        for k, r in roots.items():
+            self.members.setdefault(str(r), []).append(k)
+        lf = self.line_cfg or {}
+        B = flip_events({str(k): v for k, v in tr.items()}, lf.get('conf', c['conf']), c['thr'])
+        if lf.get('gate', True):
+            B = gate(B, self.u, self.hz, c['move'], c['rad'])
+        if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None:   # the side model (or line) alone
+            return B
         return combine(B, rule_cands, c['lo'], c['hi'])
 
 

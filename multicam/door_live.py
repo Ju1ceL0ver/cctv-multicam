@@ -169,21 +169,32 @@ def segment(pred, win, sess):
               open(win.dir / 'info.json', 'w'))
 
 
-def people(win, combo=None):
-    """ReID over the window -> door_v2 ticks (t = clock seconds of the tick). With combo (door_combo.Live), every
-    person row not seen yet also goes through the owner's inside/outside model (07.10)."""
+PIECES = os.environ.get('RA_DOOR_PIECES', '1') == '1'   # 08.10: SAM's own tracks (+ stitching), no ReID subprocess
+
+
+def people(win, combo=None, bank=None):
+    """SAM's tracks of the window (or ReID people, RA_DOOR_PIECES=0) -> door_v2 ticks (t = clock seconds of the tick).
+    With combo (door_combo.Live), every person row not seen yet also goes through the side decision (the owner's
+    model and/or the shop line); with bank (door_role.Bank), its best views are kept for the role (08.10)."""
     import door_sam as DS
     import sam31_reid as R
-    r = subprocess.run([RF, 'sam31_reid.py', '%s/cam1' % win.id, '0.35'], cwd=str(ROOT), capture_output=True, text=True,
-                       env=dict(os.environ, RA_S31_ROOT=str(LIVE / 'cam1'), RA_S31_VIDEO='0'))
-    if r.returncode or not (win.dir / 'report.json').exists():
-        log('ReID failed: %s' % (r.stderr or r.stdout)[-300:])
-        return []
-    rep = json.load(open(win.dir / 'report.json'))
     M = R.Masks(win.dir / 'chunks.npz')
     owned, _ = R.link_seams(M, {int(s): int(sh) for s, e, sh in win.sessions})
-    person = {int(p): v for p, v in rep['person_of_piece'].items()}
+    if PIECES:
+        person = {int(p): 1000 + int(p) for p in owned}
+    else:
+        r = subprocess.run([RF, 'sam31_reid.py', '%s/cam1' % win.id, '0.35'], cwd=str(ROOT), capture_output=True, text=True,
+                           env=dict(os.environ, RA_S31_ROOT=str(LIVE / 'cam1'), RA_S31_VIDEO='0'))
+        if r.returncode or not (win.dir / 'report.json').exists():
+            log('ReID failed: %s' % (r.stderr or r.stdout)[-300:])
+            return []
+        rep = json.load(open(win.dir / 'report.json'))
+        person = {int(p): v for p, v in rep['person_of_piece'].items()}
     static = DS.static_people(M, owned, person, win.n)
+    boxes_at = {}
+    for p, rs in owned.items():
+        for r_ in rs:
+            boxes_at.setdefault(int(M.rows[r_, 1]), []).append((r_, M.rows[r_, 4:8].astype(float)))
     rows = {}
     for p, rs in owned.items():
         if (person.get(int(p)) or 0) in static:
@@ -205,6 +216,17 @@ def people(win, combo=None):
                     m[y1:y1 + c_.shape[0], x1:x1 + c_.shape[1]] = c_[:H - y1, :W - x1]
                     fx, fy = (x1 + f[0], y1 + f[1]) if f else ((x1 + x2) / 2, y2)
                     combo.add((win.id, k, r_), t, fr, m, [fx / W, fy / H])
+                    if bank is not None:
+                        import door_role
+                        bx = M.rows[r_, 4:8].astype(float)
+                        iso = all(door_role.box_iou(bx, ob) <= door_role.ISOLATED_IOU for orr, ob in boxes_at.get(k, []) if orr != r_)
+                        cut = bx[0] <= 2 or bx[1] <= 2 or bx[2] >= W - 3 or bx[3] >= H - 3
+                        sc = door_role.score(int(c_.sum()), iso, cut)
+                        if bank.wants('%s:%d' % (win.id, w), sc):
+                            import staff_masked as SM
+                            bank.offer('%s:%d' % (win.id, w), sc,
+                                       lambda: SM.crop_masked(fr[:, :, ::-1], m > 0, bx),
+                                       [bx[0] * 1280 / W, bx[1] * 720 / H, bx[2] * 1280 / W, bx[3] * 720 / H])
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / 2176, 4), round((y1 + y2) / 2 / 1248, 4),
                                                    round((x2 - x1) / 2176, 4), round((y2 - y1) / 1248, 4)],
@@ -225,6 +247,16 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
     if os.environ.get('RA_DOOR_COMBO', '1') == '1' and (ROOT / 'data' / 'door_v2' / 'combo_final.json').exists():
         import door_combo
         combo = door_combo.Live()          # the rule + the owner's model + movement + door zone, counted on agreement
+    roles = bank = None
+    if combo is not None and os.environ.get('RA_DOOR_ROLE', '1') == '1':
+        import door_role
+        try:
+            bank = door_role.Bank(LIVE / 'role_views' / time.strftime('%Y%m%d_%H%M%S'))
+            roles = door_role.Roles(bank, door_role.Worker())
+            log('role: staff model loaded (threshold %.2f)' % roles.threshold)
+        except Exception as exc:
+            roles = bank = None
+            log('role: off (%s)' % str(exc)[:200])
     pred = DM.build(student, heads if heads not in ('-', 'none') else None)
     q = queue.Queue()
     src = source or camera_url()
@@ -269,19 +301,24 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
         t0 = time.time()
         segment(pred, win, sess)
         t_sam = time.time() - t0
-        ticks = people(win, combo)
+        ticks = people(win, combo, bank)
         t_reid = time.time() - t0 - t_sam
         new = []
         if ticks:
-            D.add_io(ticks)
             last = ticks[-1]['t']
-            evs = DR.apply(ticks, rule) if combo is None else combo.events(DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
+            alone = combo is not None and (os.environ.get('RA_COMBO_ALONE') == '1' or combo.cfg['lo'] > 1)
+            if not alone:
+                D.add_io(ticks)
+            evs = DR.apply(ticks, rule) if combo is None else combo.events(None if alone else DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
             for e in evs:
                 if e['t'] > last - LAG and not final:
                     continue
                 if any(x['kind'] == e['kind'] and abs(x['t'] - e['t']) <= 2.0 for x in told_all):
                     continue
                 e = {k_: v_ for k_, v_ in e.items() if k_ not in ('xy', 'disp')}
+                if roles is not None and (e.get('bw') or e.get('w')) is not None:   # 08.10: the role by accumulation
+                    who = str(e.get('bw') or e.get('w'))
+                    e.update(roles.role(getattr(combo, 'members', {}).get(who, [who])))
                 e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
                 told_all.append(e); new.append(e)
                 with open(events_path, 'a', encoding='utf-8') as fo:
@@ -290,7 +327,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
         n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
         log('session %s %d-%d: SAM %.1f s (%.0f ms/tick), ReID+rule %.1f s, behind the camera %.0f s, people %d, new events %s' % (
             win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), t_reid, behind, n_people,
-            ', '.join('%s %s' % (e['kind'], e['clock'][11:]) for e in new) or '-'))
+            ', '.join('%s %s%s' % (e['kind'], e['clock'][11:], ' ' + e['role'] if e.get('role') else '') for e in new) or '-'))
         json.dump({'updated': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': win.n, 'behind_s': round(behind),
                    'ms_per_tick': round(1000 * t_sam / (sess[1] - sess[0])), 'events_total': len(told_all),
                    'in': sum(e['kind'] == 'in' for e in told_all), 'out': sum(e['kind'] == 'out' for e in told_all)},
