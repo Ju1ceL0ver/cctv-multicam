@@ -38,6 +38,9 @@ def predict(day):
     import door_v2 as D
     from binary_door import BinaryDoorClassifier
     clf = BinaryDoorClassifier(os.environ.get('RA_BIN_MODEL') or None)
+    import door_line
+    line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
+    print('shop line', line, flush=True)
     res = {}
     tags = sorted(p.parent.name for p in (ROOT / 'data' / 'sam31_door').glob('door_%s_*/cam1' % day))
     if os.environ.get('RA_BIN_TAGS'):
@@ -67,10 +70,12 @@ def predict(day):
                     c = M.crop(r)
                     m[y1:y1 + c.shape[0], x1:x1 + c.shape[1]] = c[:H - y1, :W - x1]
                     try:
-                        p = clf.predict_rgb(rgb, m)
+                        p = clf.predict_rgb(rgb, m)['p_inside']
                     except ValueError:
                         continue
-                    obs.append([round(a + k * D.TICK, 2), int(pid), round(p['p_inside'], 4)])
+                    if line is not None and door_line.inside(line, m > 0):
+                        p = 1.0                           # the owner's shop line: a piece of mask past it = inside
+                    obs.append([round(a + k * D.TICK, 2), int(pid), round(p, 4)])
             k += 1
         cap.release()
         res[tag] = {'a': a, 'end': a + k * D.TICK, 'obs': obs}

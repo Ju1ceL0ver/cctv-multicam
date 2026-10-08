@@ -274,12 +274,18 @@ class Live:
         self.cfg = json.load(open(OUT / 'combo_final.json'))
         self.u, self.hz = np.array(self.cfg['u']), np.array(self.cfg['zone'])
         self.obs = {}                                       # row key -> (t, p_inside, foot)
+        import door_line
+        self.line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
         try:
             p = self.clf.predict_rgb(frame_rgb, mask)['p_inside']
         except ValueError:
             return
+        if self.line is not None:
+            import door_line
+            if door_line.inside(self.line, np.asarray(mask) > 0):
+                p = 1.0                                     # the owner's shop line: a piece of mask past it = inside
         self.obs[key] = (t, p, foot_xy)
 
     def events(self, rule_cands, person_of):
