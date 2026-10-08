@@ -103,22 +103,22 @@ class Roles:
     def __init__(self, bank, worker, threshold=None):
         self.bank, self.worker = bank, worker
         self.threshold = threshold if threshold is not None else getattr(worker, 'threshold', 0.45)
-        self.cache = {}                                       # frozenset of view paths -> p
+        self.cache = {}                                       # view path -> p_staff of that view
 
     def role(self, keys):
         v = self.bank.best(keys)
         if not v:
             return {'role': None, 'p_staff': None, 'views': 0}
-        sig = frozenset(p for _, p, _ in v)
-        if sig not in self.cache:
+        new = [(p, b) for _, p, b in v if p not in self.cache]   # one model pass per view, ever (08.10: was per set)
+        if new:
             try:
-                ps = self.worker.probs([p for _, p, _ in v], [b for _, _, b in v])
-                if not ps:
-                    raise RuntimeError('no probabilities')
-                self.cache[sig] = float(np.mean(ps))
+                ps = self.worker.probs([p for p, _ in new], [b for _, b in new])
+                if len(ps) != len(new):
+                    raise RuntimeError('%d probabilities for %d views' % (len(ps), len(new)))
+                self.cache.update({p: float(x) for (p, _), x in zip(new, ps)})
             except Exception as exc:                          # the role never blocks the door
                 return {'role': None, 'p_staff': None, 'views': len(v), 'error': str(exc)[:100]}
-        p = self.cache[sig]
+        p = float(np.mean([self.cache[p_] for _, p_, _ in v]))
         return {'role': 'staff' if p >= self.threshold else 'customer', 'p_staff': round(p, 3), 'views': len(v)}
 
 

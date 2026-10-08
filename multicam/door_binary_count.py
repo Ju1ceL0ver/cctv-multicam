@@ -7,6 +7,7 @@ eval: a track's side changes only after `conf` trusted votes in a row (p >= thr 
   days, scored on the third (as door_learn); next to it the learned door rule on the same days (door_learn.evaluate's
   numbers in compare/fuse outputs are on the same truth). -> data/door_v2/binary_eval.json"""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,8 +17,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'inout_lab'))
 OUT = ROOT / 'data' / 'door_v2'
-STRIDE = 3
-import os
+STRIDE = int(os.environ.get('RA_BIN_STRIDE', '3'))   # 08.10: 6 = what the live camera can do (every 2nd tick)
 SRC = os.environ.get('RA_BIN_SRC', 'sam31')        # 07.10: or a small-SAM run under data/micro_door/<name>
 SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_BIN_VER', '')   # 07.10: v2 = the refitted model
 POS_SUF = ('' if SRC == 'sam31' else SRC + '_') + os.environ.get('RA_POS_VER', '')   # 08.10: pc = SAM pieces
@@ -73,8 +73,10 @@ def predict(day):
                     if LINE_ONLY:                         # 08.10, the owner: only the line, no model at all
                         if not m.any():
                             continue
-                        if os.environ.get('RA_LINE_DEPTH') == '1':   # the signed depth past the line (door_line_tune.py)
-                            obs.append([round(a + k * D.TICK, 2), int(pid), round(door_line.depth(line, m > 0), 1)])
+                        if os.environ.get('RA_LINE_DEPTH') == '1':   # the signed depth past the line + the mask's top
+                            top, hh = door_line.extent(m > 0)       # and height, and the x of its bottom (door_line_tune.py)
+                            obs.append([round(a + k * D.TICK, 2), int(pid), round(door_line.depth(line, m > 0), 1),
+                                        round(top, 1), round(hh, 1), round(door_line.bottom_x(m > 0), 1)])
                         else:
                             obs.append([round(a + k * D.TICK, 2), int(pid), 1.0 if door_line.inside(line, m > 0) else 0.0])
                         continue

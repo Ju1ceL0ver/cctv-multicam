@@ -92,6 +92,24 @@ def flip_events(tracks, conf, thr, shift=0.0):
     return ev
 
 
+def alternate(events, keep='first'):
+    """08.10: a person's counted events alternate -- an 'in' right after a counted 'in' (the 'out' between them was
+    dropped by the gate, or never was) is not counted again; keep='last' keeps the later one of such a run instead."""
+    out, last = [], {}
+    for e in sorted(events, key=lambda e: e['t']):
+        w = e.get('bw') or e.get('w')
+        if w is not None and w in last and out[last[w]]['kind'] == e['kind']:
+            if keep == 'last':
+                out[last[w]] = None
+                out.append(e)
+                last[w] = len(out) - 1
+            continue
+        out.append(e)
+        if w is not None:
+            last[w] = len(out) - 1
+    return [e for e in out if e is not None]
+
+
 # ------------------------------------------------------------------ data of a day
 
 class Day:
@@ -280,16 +298,33 @@ class Live:
         self.line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
         lf = OUT / 'line_final.json'
         self.line_cfg = json.load(open(lf)) if lf.exists() and os.environ.get('RA_LINE_ONLY') == '1' else None
+        sf = OUT / 'side_final.json'                        # 08.10: the setting door_side_tune.py chose (mode, ...)
+        self.side = json.load(open(sf)) if sf.exists() and os.environ.get('RA_SIDE_FINAL', '1') == '1' and self.line else None
+        self.raw = {}
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
+        if self.side is not None:                            # 08.10: model and/or line by side_final.json
+            import door_line
+            m = np.asarray(mask) > 0
+            if not m.any():
+                return
+            p = None
+            if self.side['mode'] != 'line':
+                try:
+                    p = self.clf.predict_rgb(frame_rgb, mask)['p_inside']
+                except ValueError:
+                    p = None
+            top, hh = door_line.extent(m)
+            self.raw[key] = (t, door_line.depth(self.line, m), top, hh, door_line.bottom_x(m), p, foot_xy)
+            return
         if self.line is not None and os.environ.get('RA_LINE_ONLY') == '1':   # 08.10: only the owner's line
             import door_line
             m = np.asarray(mask) > 0
             if m.any():
                 lf = self.line_cfg
-                if lf:                                      # with hysteresis (door_line_tune.py -> line_final.json)
-                    d = door_line.depth(self.line, m)
-                    p = 1.0 if d >= lf['h_in'] else (0.0 if d <= -lf['h_out'] else 0.5)
+                if lf:                                      # hysteresis + hidden legs (door_line_tune.py -> line_final.json)
+                    top, hh = door_line.extent(m)
+                    p = door_line.vote(lf, lf.get('table'), door_line.depth(self.line, m), top, hh)
                 else:
                     p = 1.0 if door_line.inside(self.line, m) else 0.0
                 self.obs[key] = (t, p, foot_xy)
@@ -307,6 +342,12 @@ class Live:
     def events(self, rule_cands, person_of):
         """person_of: row key -> the person's current number (ReID numbers change as the window grows)."""
         c = self.cfg
+        if self.side is not None:
+            import door_line
+            sd = self.side
+            for key, (t, d, top, hh, bx, p, foot) in self.raw.items():
+                if key not in self.obs:
+                    self.obs[key] = (t, door_line.side_vote(sd, sd.get('table'), self.line, d, top, hh, bx, p), foot)
         tr = {}
         for key, w in person_of.items():
             if key in self.obs:
@@ -318,13 +359,13 @@ class Live:
         self.members = {}                                   # 08.10: the person -> its stitched keys (for the role)
         for k, r in roots.items():
             self.members.setdefault(str(r), []).append(k)
-        lf = self.line_cfg or {}
+        lf = self.side or self.line_cfg or {}
         B = flip_events({str(k): v for k, v in tr.items()}, lf.get('conf', c['conf']), c['thr'])
         if lf.get('gate', True):
             B = gate(B, self.u, self.hz, c['move'], c['rad'])
-        if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None:   # the side model (or line) alone
-            return B
-        return combine(B, rule_cands, c['lo'], c['hi'])
+        if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None or self.side is not None:   # no door rule
+            return alternate(B, lf.get('alt', 'first'))
+        return alternate(combine(B, rule_cands, c['lo'], c['hi']), lf.get('alt', 'first'))
 
 
 if __name__ == '__main__':

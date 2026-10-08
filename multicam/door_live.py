@@ -234,8 +234,11 @@ def people(win, combo=None, bank=None):
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
 
 
-def main(student, heads, rule_name, source=None, minutes=None, stride=3):
+def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     global TICK
+    sf = ROOT / 'data' / 'door_v2' / 'side_final.json'
+    if stride is None:                             # 08.10: the stride the side setting was chosen for
+        stride = json.load(open(sf)).get('stride', 3) if sf.exists() else 3
     TICK = 0.08 * int(stride)                      # the rule was fitted on runs with every stride-th tick (door_micro --stride)
     import door_micro as DM
     import door_rule as DR
@@ -306,7 +309,7 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=3):
         new = []
         if ticks:
             last = ticks[-1]['t']
-            alone = combo is not None and (os.environ.get('RA_COMBO_ALONE') == '1' or combo.cfg['lo'] > 1)
+            alone = combo is not None and (os.environ.get('RA_COMBO_ALONE') == '1' or combo.cfg['lo'] > 1 or combo.side is not None)
             if not alone:
                 D.add_io(ticks)
             evs = DR.apply(ticks, rule) if combo is None else combo.events(None if alone else DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
