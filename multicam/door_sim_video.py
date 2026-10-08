@@ -48,7 +48,8 @@ def main(day='20260919', n='3', out=None):
             trs = {'%s:%s' % k: v for k, v in dd.tracks(tuple(f['stitch'])).items()}
             B = B + C.birth_death(trs, sd['conf'], 0.95, np.array(f['zone']), f['rad'] * sd.get('brad', 1.0), bool(sd.get('birth')),
                                   bool(sd.get('death')), L.SHIFT, u=np.array(f['u']) if sd.get('bmove') else None,
-                                  move=f['move'] if sd.get('bmove') else None, min_len=sd.get('blen', 0.0), dup=sd.get('bdup'))
+                                  move=f['move'] if sd.get('bmove') else None, min_len=sd.get('blen', 0.0), dup=sd.get('bdup'),
+                                  starts=[st['a'] for st in dd.S.values()], gain=sd.get('bgain', 0.03))
         if sd.get('alt', 'none') != 'none':
             B = C.alternate(B, sd['alt'])
     else:

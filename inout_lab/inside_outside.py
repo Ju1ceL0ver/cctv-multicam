@@ -60,6 +60,46 @@ class InsideOutside:
         return dict(label=('outside','inside')[side], confidence=float(p[side]),
                     uncertain=bool(p[side]<self.threshold), p_inside=float(p[1]))
 
+    def _small(self, frame):
+        """the frame at 1280 x 720 and 320 x 180, once per frame (08.10: was per person -- the live door's slowest part)"""
+        key = (id(frame), frame.shape, frame.ctypes.data)
+        c = getattr(self, '_frame_cache', None)
+        if c is None or c[0] != key:
+            rgb = cv2.resize(frame, (1280, 720), interpolation=cv2.INTER_LINEAR)
+            small = cv2.resize(rgb.astype(np.float32), (320, 180), interpolation=cv2.INTER_AREA).astype(np.uint8)
+            self._frame_cache = c = (key, rgb, small)
+        return c[1], c[2]
+
+    def features_rgb(self, frame, person_mask):
+        """the feature vector predict_rgb would classify (no box/foot/floor overrides) -- for p_inside_batch"""
+        if frame.ndim != 3 or frame.shape[2] != 3 or frame.dtype != np.uint8:
+            raise ValueError('frame must be HxWx3 RGB uint8')
+        if person_mask.shape != frame.shape[:2]:
+            raise ValueError('mask shape must equal frame shape')
+        rgb, small_rgb = self._small(frame)
+        mask = cv2.resize((person_mask != 0).astype(np.uint8) * 255, (1280, 720), interpolation=cv2.INTER_NEAREST)
+        rr, cc = np.where(mask)
+        if not len(rr): raise ValueError('Empty person mask')
+        x1, y1, x2, y2 = cc.min(), rr.min(), cc.max() + 1, rr.max() + 1
+        _, lab, stats, _ = cv2.connectedComponentsWithStats(mask)
+        blob = lab == (1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])); br, bc = np.where(blob)
+        fy = float(br.max()); fx = float(bc[br >= fy - 2].mean())
+        floor_px = round(float(self.floor_distance[int(np.clip(fy, 0, 719)), int(np.clip(fx, 0, 1279))]), 1)
+        g = [x1/1280, y1/720, x2/1280, y2/720, (x2-x1)/1280, (y2-y1)/720, fx/1280, fy/720, floor_px/100]
+        a, b = max(0, int(x1-(x2-x1)/2)), max(0, int(y1-(y2-y1)*.125))
+        c, d = min(1280, int(np.ceil(x2+(x2-x1)/2))), min(720, int(np.ceil(y2+(y2-y1)*.125)))
+        if c <= a or d <= b: raise ValueError('Invalid box')
+        small_mask = cv2.resize(mask.astype(np.float32), (320, 180), interpolation=cv2.INTER_AREA).astype(np.uint8)
+        crop = cv2.resize(mask[b:d, a:c].astype(np.float32), (96, 160), interpolation=cv2.INTER_AREA).astype(np.uint8)
+        full = np.dstack([small_rgb, small_mask, self.small_floor])
+        return self._features(full, crop, g, self.signed)
+
+    def p_inside_batch(self, X):
+        """p_inside of many feature vectors in one forest call"""
+        if not len(X):
+            return np.zeros(0)
+        return self.model.predict_proba(np.stack(X))[:, 1]
+
     def predict_rgb(self, frame, person_mask, *, box=None, foot=None, floor_px=None):
         """box/foot in source-frame pixels. Optional original tracker geometry preferred.
         Mask must isolate ONE person; nonzero values are foreground. Camera 1 only.

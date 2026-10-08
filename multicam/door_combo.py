@@ -92,7 +92,8 @@ def flip_events(tracks, conf, thr, shift=0.0):
     return ev
 
 
-def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, u=None, move=None, min_len=0.0, dup=None):
+def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, u=None, move=None, min_len=0.0, dup=None,
+                starts=(), gain=0.03, horizon=4.0):
     """08.10, the owner: a track whose first side is inside counts as an entry when it starts at the door (someone who
     came in while the tracker had nobody -- e.g. went out and came back as a new track); one found deep in the hall
     (lost and re-found) counts nothing. death: a track last inside that vanishes at the door counts as an exit."""
@@ -140,9 +141,16 @@ def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, 
                     if xy2 is not None and abs(t2 - t) <= 0.5 and np.hypot(xy2[0] - xy[0], xy2[1] - xy[1]) <= dup:
                         return False
             return True
-        if birth and v0 == 1:
+        def walks_in():
+            """within `horizon` s of its start the track gets `gain` (frame share) deeper along u at some point --
+            someone who stands in the doorway a moment and then walks in passes, one standing there does not"""
+            if u is None:
+                return True
+            pr = [float(np.asarray(xy) @ u) for t, _, xy in xs if xy is not None and t - xs[0][0] <= horizon]
+            return len(pr) >= 2 and max(pr) - pr[0] >= gain
+        if birth and v0 == 1 and not any(abs(xs[0][0] - s0) <= 1.0 for s0 in starts):   # not where the data starts
             first_xy = next((xy for _, _, xy in xs if xy is not None), None)
-            if near(first_xy) and moved(0, 1) and alone(xs[0][0], first_xy):
+            if near(first_xy) and walks_in() and alone(xs[0][0], first_xy):
                 ev.append({'kind': 'in', 't': xs[0][0] + shift, 'w': name, 'xy': first_xy, 'disp': None, 'birth': True})
         if death and sides[-1][1] == 1:
             last_xy = next((xy for _, _, xy in reversed(xs) if xy is not None), None)
@@ -360,6 +368,7 @@ class Live:
         sf = OUT / 'side_final.json'                        # 08.10: the setting door_side_tune.py chose (mode, ...)
         self.side = json.load(open(sf)) if sf.exists() and os.environ.get('RA_SIDE_FINAL', '1') == '1' and self.line else None
         self.raw = {}
+        self.pending = {}                                   # row key -> features for the model, predicted in one batch
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
         if self.side is not None:                            # 08.10: model and/or line by side_final.json
@@ -367,14 +376,18 @@ class Live:
             m = np.asarray(mask) > 0
             if not m.any():
                 return
-            p = None
-            if self.side['mode'] != 'line':
+            d = door_line.depth(self.line, m)
+            mode = self.side['mode']
+            # the model is needed unless the line alone already decides (a piece past the line = inside in these modes)
+            need = mode != 'line' and not (mode in ('either_in+both_out', 'line_in+both_out', 'line_in+model_out', 'model+line_in')
+                                           and d is not None and d >= self.side['h_in'])
+            if need:
                 try:
-                    p = self.clf.predict_rgb(frame_rgb, mask)['p_inside']
+                    self.pending[key] = self.clf.features_rgb(frame_rgb, mask)   # the forest runs once per session
                 except ValueError:
-                    p = None
+                    pass
             top, hh = door_line.extent(m)
-            self.raw[key] = (t, door_line.depth(self.line, m), top, hh, door_line.bottom_x(m), p, foot_xy)
+            self.raw[key] = (t, d, top, hh, door_line.bottom_x(m), None, foot_xy)
             return
         if self.line is not None and os.environ.get('RA_LINE_ONLY') == '1':   # 08.10: only the owner's line
             import door_line
@@ -405,6 +418,13 @@ class Live:
         if self.side is not None:
             import door_line
             sd = self.side
+            if self.pending:                                # 08.10: one forest call for the whole session
+                keys = list(self.pending)
+                ps = self.clf.p_inside_batch([self.pending[k] for k in keys])
+                for k, p in zip(keys, ps):
+                    r = self.raw[k]
+                    self.raw[k] = r[:5] + (float(p),) + r[6:]
+                self.pending = {}
             for key, (t, d, top, hh, bx, p, foot) in self.raw.items():
                 if key not in self.obs:
                     self.obs[key] = (t, door_line.side_vote(sd, sd.get('table'), self.line, d, top, hh, bx, p), foot)
@@ -424,10 +444,14 @@ class Live:
         if lf.get('gate', True):
             B = gate(B, self.u, self.hz, c['move'], c['rad'])
         if lf.get('birth') or lf.get('death'):              # 08.10: tracks born / lost at the door
+            starts = {}
+            for key, (t, *_r) in self.obs.items():         # the first tick of every live window
+                starts[key[0]] = min(t, starts.get(key[0], t))
             B = B + birth_death({str(k): v for k, v in tr.items()}, lf.get('conf', c['conf']), c['thr'], self.hz,
                                 c['rad'] * lf.get('brad', 1.0), bool(lf.get('birth')), bool(lf.get('death')),
                                 u=self.u if lf.get('bmove') else None, move=c['move'] if lf.get('bmove') else None,
-                                min_len=lf.get('blen', 0.0), dup=lf.get('bdup'))
+                                min_len=lf.get('blen', 0.0), dup=lf.get('bdup'), starts=list(starts.values()),
+                                gain=lf.get('bgain', 0.03))
         if os.environ.get('RA_COMBO_ALONE') == '1' or rule_cands is None or self.side is not None:   # no door rule
             return alternate(B, lf.get('alt', 'first'))
         return alternate(combine(B, rule_cands, c['lo'], c['hi']), lf.get('alt', 'first'))
