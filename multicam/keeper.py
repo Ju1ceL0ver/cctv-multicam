@@ -44,7 +44,9 @@ PLAN = os.path.join(ROOT, 'data', 'keeper_plan.json')
 # 25.09: 'raw': false stops the raw recording of both cameras; the live counter keeps running.
 # 06.10: 'live': false -- the owner retired the live counter (retail_analytics run_live.py): it is not started and a
 # running one is stopped; the system that replaces it is built on SAM 3.1's design (AGENTS.md section 52).
-PLAN_DEFAULT = {'teachers': True, 'student_seg': True, 'raw': True, 'live': True}
+PLAN_DEFAULT = {'teachers': True, 'student_seg': True, 'raw': True, 'live': True, 'door': False, 'door_hours': '10:00-21:00'}
+# 08.10: 'door': true -- the new live door (door_live.py: small SAM 3.1, the owner's inside/outside model and shop line,
+# the role by accumulation) runs on camera 1 in door_hours, restarted when it dies; it ends itself at closing time.
 
 
 def plan():
@@ -144,6 +146,16 @@ def camera_up(addr=CAMERA1, timeout=3):
         log('camera 1 %s: %s' % ('answers' if up else 'does not answer', '%s:%d' % addr))
         _camera_was[0] = up
     return up
+
+
+def start_door():
+    import door_live_ctl
+    door_live_ctl.start(until=plan().get('door_hours', '10:00-21:00').split('-')[1])
+
+
+def door_hours(now):
+    a, b = plan().get('door_hours', '10:00-21:00').split('-')
+    return a <= now.strftime('%H:%M') < b
 
 
 def start_live():
@@ -398,6 +410,8 @@ def main():
                 stop_live()
             elif camera_up():           # the counter's own RetailAnalytics task restarts it anyway; do not fight it
                 ensure('live counter', 'run_live.py', start_live)
+            if p.get('door') and door_hours(datetime.now()) and camera_up():
+                ensure('live door', 'door_live.py', start_door)
             ensure('review site', 'label_pieces.py', start_labeler)
             ensure_jupyter()
             tunnel_up(5070, 'labeler')

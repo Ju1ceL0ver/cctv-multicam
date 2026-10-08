@@ -1,0 +1,121 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>События двери</title><link rel="stylesheet" href="/static/review.css">
+<style>
+#stage{display:flex;gap:12px;margin-top:8px;align-items:flex-start;flex-wrap:wrap}
+#list{flex:0 0 330px;max-height:78vh;overflow:auto;border-radius:8px;background:#0b0f1310}
+#list .ev{display:flex;gap:8px;align-items:center;padding:6px 8px;cursor:pointer;border-bottom:1px solid #8882;font-variant-numeric:tabular-nums}
+#list .ev.cur{background:#f5c54233}
+#list .kind{font-weight:800;width:62px}
+#list .in{color:#1f9d55}#list .out{color:#c0392b}
+#list .role{font-size:12px;opacity:.8;width:70px}
+#list .v{margin-left:auto;font-size:12px;padding:1px 6px;border-radius:5px;background:#8883}
+#list .v1{background:#1f9d5555}#list .v2,#list .v3,#list .v4{background:#c0392b55}
+#list h4{margin:10px 8px 4px}
+#right{flex:1 1 560px;min-width:320px}
+video{width:100%;border-radius:8px;background:#000}
+.choices{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.choices button{padding:8px 10px;font-size:15px}
+.choices b{font-size:18px;margin-right:6px}
+#what{font:700 18px system-ui;margin-top:6px}
+#sum{font-variant-numeric:tabular-nums}
+</style></head>
+<body class="labeller">
+<header><div class="top"><strong>События двери</strong>
+<select id="day" onchange="load(this.value)"></select>
+<span id="sum" class="muted"></span><span class="spacer"></span><span class="muted">Камера 1, живая система</span></div>
+<div id="notice" role="status"></div></header>
+<main><div id="stage">
+  <div id="list"></div>
+  <div id="right">
+    <video id="v" controls muted playsinline></video>
+    <div id="what"></div>
+    <div class="choices">{% for k in [1, 2, 3, 4, 0] %}<button onclick="give({{ k }})"><b>{{ k }}</b>{{ verdicts[k] }}</button>{% endfor %}</div>
+    <div class="hint muted" style="margin-top:8px">Клип начинается за 3 с до события (весь клип — ±10 с). Ответ одной клавишей, дальше — следующее
+      событие. Ответы хранятся отдельно от событий. Ниже списка — спорные места и случайные минуты: на них видно, что система
+      пропустила (их пока только смотреть).</div>
+  </div>
+</div></main>
+<div class="keybar">
+  <button onclick="give(1)"><kbd>1</kbd>верно</button><button onclick="give(2)"><kbd>2</kbd>никто не прошёл</button>
+  <button onclick="give(3)"><kbd>3</kbd>наоборот</button><button onclick="give(4)"><kbd>4</kbd>роль неверна</button>
+  <button onclick="give(0)"><kbd>0</kbd>не понять</button><button onclick="replay()"><kbd>R</kbd>сначала</button>
+  <button onclick="go(-1)"><kbd>←</kbd>назад</button><button onclick="go(1)"><kbd>→</kbd>дальше</button>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const V = {{ verdicts | tojson }};
+let day = null, evs = [], others = [], cur = 0, mode = 'ev';
+const today = () => { const d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
+
+async function load(d) {
+  day = d || day || today();
+  const j = await (await fetch('/api/live/events/' + day)).json();
+  evs = j.events; others = j.other_clips;
+  const sel = $('#day'); const ds = j.days.includes(day) ? j.days : [day, ...j.days];
+  sel.innerHTML = ds.map(x => `<option ${x === day ? 'selected' : ''}>${x}</option>`).join('');
+  summary(j.summary);
+  cur = Math.max(0, evs.findIndex(e => !e.verdict)); if (cur < 0) cur = 0;
+  draw(); show();
+}
+function summary(s) {
+  $('#sum').textContent = `входов ${s.in}, выходов ${s.out} (сотрудники ${s.staff}); проверено ${s.checked}, верно ${s.right}` +
+    (s.checked ? ` (${Math.round(100 * s.right / s.checked)} %)` : '');
+}
+function draw() {
+  const L = evs.map((e, i) => `<div class="ev ${mode === 'ev' && i === cur ? 'cur' : ''}" onclick="pick(${i})">
+    <span>${e.clock}</span><span class="kind ${e.kind}">${e.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}</span>
+    <span class="role">${e.role === 'staff' ? 'сотрудник' : e.role === 'customer' ? 'покупатель' : ''}</span>
+    ${e.verdict ? `<span class="v v${e.verdict.v}">${V[e.verdict.v]}</span>` : (e.clip ? '' : '<span class="v">нет клипа</span>')}</div>`);
+  const O = others.map((c, i) => `<div class="ev ${mode === 'o' && i === cur ? 'cur' : ''}" onclick="pickO(${i})">
+    <span>${c.name.slice(0, 2)}:${c.name.slice(2, 4)}:${c.name.slice(4, 6)}</span><span class="kind">${c.why.includes('random') ? 'случайная' : 'спорное'}</span></div>`);
+  $('#list').innerHTML = (L.join('') || '<div class="ev muted">событий нет</div>') + (O.length ? '<h4>Спорные и случайные</h4>' + O.join('') : '');
+  const c = $('#list .cur'); if (c) c.scrollIntoView({block: 'nearest'});
+}
+function show() {
+  const v = $('#v');
+  if (mode === 'o') {
+    const c = others[cur]; if (!c) return;
+    v.src = `/api/live/clip/${day}/${c.name}`; v.currentTime = 0; v.play().catch(() => {});
+    $('#what').textContent = (c.why.includes('random') ? 'случайная минута ' : 'спорное место ') + c.name.slice(0, 6);
+    return;
+  }
+  const e = evs[cur]; if (!e) { $('#what').textContent = ''; return; }
+  $('#what').textContent = `${e.clock}  ${e.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}  ${e.role === 'staff' ? '(сотрудник' : '(покупатель'}` +
+    `${e.p_staff != null ? ' ' + e.p_staff : ''})`;
+  if (!e.clip) { v.removeAttribute('src'); v.load(); return; }
+  const src = `/api/live/clip/${day}/${e.clip}`;
+  if (!v.src.endsWith(src)) v.src = src;
+  const go = () => { v.currentTime = Math.max(0, e.offset - 3); v.play().catch(() => {}); };
+  if (v.readyState >= 1) go(); else v.onloadedmetadata = go;
+}
+function replay() { show(); }
+function pick(i) { mode = 'ev'; cur = i; draw(); show(); }
+function pickO(i) { mode = 'o'; cur = i; draw(); show(); }
+function go(d) { const n = mode === 'ev' ? evs.length : others.length; cur = Math.min(Math.max(0, cur + d), n - 1); draw(); show(); }
+async function give(k) {
+  if (mode !== 'ev' || !evs[cur]) return;
+  const e = evs[cur];
+  e.verdict = {v: k};
+  const r = await fetch('/api/live/events/' + day, {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({key: e.key, verdict: k})});
+  if (r.ok) summary((await r.json()).summary); else { $('#notice').textContent = 'не сохранилось'; e.verdict = null; }
+  if (cur < evs.length - 1) cur++;
+  draw(); show();
+}
+document.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'SELECT') return;
+  const k = ev.key, c = ev.code;
+  if (/^[0-4]$/.test(k) || /^Digit[0-4]$/.test(c)) { give(+(/^[0-4]$/.test(k) ? k : c.slice(5))); ev.preventDefault(); }
+  else if (k === 'ArrowRight') { go(1); ev.preventDefault(); }
+  else if (k === 'ArrowLeft') { go(-1); ev.preventDefault(); }
+  else if (k === 'r' || k === 'R' || k === 'к' || c === 'KeyR') replay();
+  else if (k === ' ') { const v = $('#v'); v.paused ? v.play() : v.pause(); ev.preventDefault(); }
+});
+load();
+setInterval(() => { if (day === today()) fetch('/api/live/events/' + day).then(r => r.json()).then(j => {
+  const had = evs.length; const keep = new Map(evs.map(e => [e.key, e.verdict]));
+  evs = j.events.map(e => Object.assign(e, {verdict: e.verdict || keep.get(e.key)})); others = j.other_clips; summary(j.summary);
+  if (evs.length !== had) draw(); }); }, 60000);
+</script>
+</body></html>

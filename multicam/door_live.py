@@ -343,7 +343,9 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             item = 'idle'
         if final:
             break
-        if item is None or (t_end and time.time() > t_end):
+        until = os.environ.get('RA_DOOR_UNTIL')        # 08.10: the shop closes -- the last session and its events, then exit
+        closing = bool(until) and str(src).startswith('rtsp') and time.strftime('%H:%M') >= until
+        if item is None or (t_end and time.time() > t_end) or closing:
             # 07.10: the end of a record -- the last, short session too, and every event without waiting LAG
             if win is None or (not win.sessions and win.n < 2 * OVERLAP) or \
                     (win.sessions and win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP):
