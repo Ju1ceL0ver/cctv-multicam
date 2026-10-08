@@ -234,12 +234,39 @@ def people(win, combo=None, bank=None):
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
 
 
+def save_obs(win, combo):
+    """data/live/records/<day>.jsonl: one line per person per tick, once -- the track, where on the frame (window,
+    tick, row of chunks.npz), the model's p_inside, the mask's depth past the shop line, its top/height/bottom x, the
+    vote and the feet. With these the door can be re-decided by any setting without the GPU."""
+    import door_line
+    done = getattr(win, 'saved', set())
+    rec = LIVE / 'records'
+    rec.mkdir(parents=True, exist_ok=True)
+    lines = []
+    for key, (t, d, top, hh, bx, p, foot) in combo.raw.items():
+        if key in done or key[0] != win.id:
+            continue
+        done.add(key)
+        sd = combo.side or {}
+        lines.append(json.dumps({'t': round(t, 2), 'win': key[0], 'k': int(key[1]), 'row': int(key[2]),
+                                 'track': win.person_of.get(key), 'p': None if p is None else round(float(p), 4),
+                                 'd': None if d is None else round(d, 1), 'top': None if top is None else round(top, 1),
+                                 'h': None if hh is None else round(hh, 1), 'bx': None if bx is None else round(bx, 1),
+                                 'vote': combo.obs.get(key, (None, None))[1], 'foot': foot, 'cfg': sd.get('at')}))
+    win.saved = done
+    if lines:
+        with open(rec / (time.strftime('%Y%m%d', time.localtime(win.t0)) + '.jsonl'), 'a', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+
+
 def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     global TICK
     sf = ROOT / 'data' / 'door_v2' / 'side_final.json'
     if stride is None:                             # 08.10: the stride the side setting was chosen for
         stride = json.load(open(sf)).get('stride', 3) if sf.exists() else 3
     TICK = 0.08 * int(stride)                      # the rule was fitted on runs with every stride-th tick (door_micro --stride)
+    global SESSION
+    SESSION = int(os.environ.get('RA_LIVE_SESSION', max(60, 240 * 3 // int(stride))))   # 08.10: ~58 s of video per session
     import door_micro as DM
     import door_rule as DR
     import door_v2 as D
@@ -260,6 +287,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         except Exception as exc:
             roles = bank = None
             log('role: off (%s)' % str(exc)[:200])
+    clipper = None
+    if os.environ.get('RA_DOOR_CLIPS', '1') == '1':      # 08.10: short clips for the night teacher and the owner
+        import door_clips
+        clipper = door_clips.Clipper()
     pred = DM.build(student, heads if heads not in ('-', 'none') else None)
     q = queue.Queue()
     src = source or camera_url()
@@ -284,9 +315,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             break
         if item is None or (t_end and time.time() > t_end):
             # 07.10: the end of a record -- the last, short session too, and every event without waiting LAG
-            if win is None or not win.sessions or win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP:
+            if win is None or (not win.sessions and win.n < 2 * OVERLAP) or \
+                    (win.sessions and win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP):
                 break
-            final = True
+            final = True                           # 08.10: also a record shorter than one session
             item = 'idle'
         if item != 'idle':
             t, f = item
@@ -297,8 +329,8 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             continue
         sess = win.next_session()
         if final:
-            s0 = win.sessions[-1][1] - OVERLAP
-            sess = (s0, win.n, OVERLAP)
+            s0 = win.sessions[-1][1] - OVERLAP if win.sessions else 0
+            sess = (s0, win.n, OVERLAP if win.sessions else 0)
         if sess is None:
             continue
         t0 = time.time()
@@ -322,15 +354,41 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                 if roles is not None and (e.get('bw') or e.get('w')) is not None:   # 08.10: the role by accumulation
                     who = str(e.get('bw') or e.get('w'))
                     e.update(roles.role(getattr(combo, 'members', {}).get(who, [who])))
+                if combo is not None:                      # 08.10: what decided it, for checking and re-running later
+                    who = str(e.get('bw') or e.get('w'))
+                    e['tracks'] = [str(x) for x in getattr(combo, 'members', {}).get(who, [who])]
+                    e['side_cfg'] = (combo.side or {}).get('at')
                 e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
                 told_all.append(e); new.append(e)
+                if clipper is not None:
+                    clipper.event(e)
                 with open(events_path, 'a', encoding='utf-8') as fo:
                     fo.write(json.dumps(e) + '\n')
+        if combo is not None and getattr(combo, 'raw', None):   # 08.10: every observation's votes, no pictures
+            save_obs(win, combo)
+        if clipper is not None:
+            try:
+                if combo is not None and getattr(combo, 'raw', None):
+                    clipper.disputes(combo, {x for e in told_all for x in e.get('tracks', [])} | {str(e.get('bw') or e.get('w')) for e in told_all})
+                clipper.random_minute(win.times[0], win.times[-1])
+                made = clipper.cut(win, final)
+                if made:
+                    log('clips: %s' % ', '.join(made))
+            except Exception as exc:                      # clips never stop the door
+                log('clips failed: %s' % str(exc)[:200])
         behind = time.time() - win.times[sess[1] - 1]
         n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
         log('session %s %d-%d: SAM %.1f s (%.0f ms/tick), ReID+rule %.1f s, behind the camera %.0f s, people %d, new events %s' % (
             win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), t_reid, behind, n_people,
             ', '.join('%s %s%s' % (e['kind'], e['clock'][11:], ' ' + e['role'] if e.get('role') else '') for e in new) or '-'))
+        try:                                                # 08.10: the health log, one line per session
+            (LIVE / 'records').mkdir(parents=True, exist_ok=True)
+            with open(LIVE / 'records' / ('health_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fh:
+                fh.write(json.dumps({'at': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': [sess[0], sess[1]],
+                                     'sam_ms_tick': round(1000 * t_sam / max(1, sess[1] - sess[0])), 'reid_rule_s': round(t_reid, 1),
+                                     'behind_s': round(behind), 'people': n_people, 'events': len(new)}) + '\n')
+        except OSError:
+            pass
         json.dump({'updated': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': win.n, 'behind_s': round(behind),
                    'ms_per_tick': round(1000 * t_sam / (sess[1] - sess[0])), 'events_total': len(told_all),
                    'in': sum(e['kind'] == 'in' for e in told_all), 'out': sum(e['kind'] == 'out' for e in told_all)},

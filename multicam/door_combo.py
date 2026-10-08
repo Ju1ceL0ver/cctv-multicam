@@ -342,6 +342,7 @@ class Live:
     def events(self, rule_cands, person_of):
         """person_of: row key -> the person's current number (ReID numbers change as the window grows)."""
         c = self.cfg
+        self.last_person_of = person_of                     # 08.10: door_clips.disputes reads the tracks
         if self.side is not None:
             import door_line
             sd = self.side

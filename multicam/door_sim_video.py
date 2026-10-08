@@ -29,7 +29,25 @@ def main(day='20260919', n='3', out=None):
     import door_v2 as D
     f = json.load(open(ROOT / 'data' / 'door_v2' / 'combo_final.json'))
     dd = C.Day(day)
-    B = C.gate(dd.binary_events(f['conf'], f['thr'], tuple(f['stitch'])), np.array(f['u']), np.array(f['zone']), f['move'], f['rad'])
+    side = os.environ.get('RA_SIM_SIDE')                # 08.10: a door_side_tune.py setting (json file): votes of model/line
+    if side:
+        import door_line
+        sd = json.load(open(side))
+        line = door_line.load()
+        mo = json.load(open(ROOT / 'data' / 'door_v2' / ('binary_micro1s3_%s%s.json' % (os.environ.get('RA_TUNE_MODEL', 'mpcv'), day))))
+        pm = {(tag, round(t, 2), pid): p for tag, st in mo.items() for t, pid, p in st['obs']}
+        for tag, st in dd.S.items():
+            st['obs'] = [[o[0], o[1], door_line.side_vote(sd, sd['table'], line, o[2], o[3], o[4], o[5] if len(o) > 5 else None,
+                                                          pm.get((tag, round(o[0], 2), o[1])))]
+                         for o in st['obs'] if int(round((o[0] - st['a']) / 0.08)) % sd.get('stride', 3) == 0]
+        dd.cache = {}
+        B = dd.binary_events(sd['conf'], 0.95, tuple(f['stitch']))
+        if sd.get('gate', True):
+            B = C.gate(B, np.array(f['u']), np.array(f['zone']), f['move'], f['rad'])
+        if sd.get('alt', 'none') != 'none':
+            B = C.alternate(B, sd['alt'])
+    else:
+        B = C.gate(dd.binary_events(f['conf'], f['thr'], tuple(f['stitch'])), np.array(f['u']), np.array(f['zone']), f['move'], f['rad'])
     st = S.load(day)
     marked = {t for t, s in st.items() if s.get('sides')}
     cand = [x for x in DM.stretches(day) if x['tag'] not in marked and x['tag'] in dd.S]
