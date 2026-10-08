@@ -278,6 +278,12 @@ class Live:
         self.line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
+        if self.line is not None and os.environ.get('RA_LINE_ONLY') == '1':   # 08.10: only the owner's line
+            import door_line
+            m = np.asarray(mask) > 0
+            if m.any():
+                self.obs[key] = (t, 1.0 if door_line.inside(self.line, m) else 0.0, foot_xy)
+            return
         try:
             p = self.clf.predict_rgb(frame_rgb, mask)['p_inside']
         except ValueError:

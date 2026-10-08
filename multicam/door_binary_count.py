@@ -41,6 +41,7 @@ def predict(day):
     import door_line
     line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
     print('shop line', line, flush=True)
+    LINE_ONLY = os.environ.get('RA_LINE_ONLY') == '1' and line is not None
     res = {}
     tags = sorted(p.parent.name for p in (ROOT / 'data' / 'sam31_door').glob('door_%s_*/cam1' % day))
     if os.environ.get('RA_BIN_TAGS'):
@@ -69,6 +70,11 @@ def predict(day):
                     m = np.zeros((H, W), np.uint8)
                     c = M.crop(r)
                     m[y1:y1 + c.shape[0], x1:x1 + c.shape[1]] = c[:H - y1, :W - x1]
+                    if LINE_ONLY:                         # 08.10, the owner: only the line, no model at all
+                        if not m.any():
+                            continue
+                        obs.append([round(a + k * D.TICK, 2), int(pid), 1.0 if door_line.inside(line, m > 0) else 0.0])
+                        continue
                     try:
                         p = clf.predict_rgb(rgb, m)['p_inside']
                     except ValueError:

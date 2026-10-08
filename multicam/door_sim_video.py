@@ -35,6 +35,20 @@ def main(day='20260919', n='3', out=None):
     cand = [x for x in DM.stretches(day) if x['tag'] not in marked and x['tag'] in dd.S]
     cand.sort(key=lambda x: -len([a for a in x['answers'] if a['kind'] in ('in', 'out')]))
     pick = cand[:int(n)]
+    if os.environ.get('RA_SIM_TAGS'):                 # 08.10: the same stretches as an earlier film
+        want = os.environ['RA_SIM_TAGS'].split(',')
+        pick = [x for x in DM.stretches(day) if x['tag'] in want]
+    if os.environ.get('RA_SIM_LIST'):
+        print(','.join(x['tag'] for x in pick), flush=True)
+        return
+    import door_line
+    line = door_line.load() if os.environ.get('RA_DOOR_LINE', '1') == '1' else None
+    role = None
+    if os.environ.get('RA_SIM_STAFF', '1') == '1':     # 08.10: the owner's staff/customer model (data/staff/current_role.pkl)
+        import staff_masked as SM
+        import staff_model
+        import track_emb as T
+        role, embed = staff_model.load_current(ROOT), T.teachers()
     out = out or str(ROOT / 'data' / 'logs' / ('door_sim_%s.mp4' % day))
     enc = subprocess.Popen([day_proxy._ffmpeg(), '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', '1280x720',
                             '-r', str(12.5 / 3), '-i', '-', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', out],
@@ -51,6 +65,41 @@ def main(day='20260919', n='3', out=None):
             obs.setdefault(pid, []).append((t, p))
         ev = [dict(e, ts=e['t'] - L.SHIFT - a) for e in B if e['w'].startswith(tag + ':')]
         told.append({'tag': tag, 'events': [(e['kind'], round(e['ts'], 1), e['w'].split(':')[-1]) for e in ev]})
+        def mask_of(r, shape):
+            x1, y1 = int(M.rows[r, 4]), int(M.rows[r, 5])
+            m = np.zeros(shape[:2], np.uint8)
+            c_ = M.crop(r)
+            m[y1:y1 + c_.shape[0], x1:x1 + c_.shape[1]] = c_[:shape[0] - y1, :shape[1] - x1]
+            return m.astype(bool)
+
+        who = {}
+        if role is not None:                           # first pass: up to 8 masked crops per person, the biggest masks
+            crops = {}
+            cap = cv2.VideoCapture(str(ROOT / 'data' / 'sam31_door' / tag / 'cam1' / 'video.mp4'))
+            k = 0
+            while True:
+                ok, fr = cap.read()
+                if not ok:
+                    break
+                if k % (stride * 4) == 0:
+                    for r, pid in by_tick.get(k // stride, []):
+                        m = mask_of(r, fr.shape)
+                        if m.sum() < 1500:
+                            continue
+                        ys, xs = np.nonzero(m)
+                        bx = [xs.min(), ys.min(), xs.max(), ys.max()]
+                        c_ = SM.crop_masked(fr, m, bx)
+                        if c_ is not None:
+                            sx_, sy_ = 1280 / fr.shape[1], 720 / fr.shape[0]
+                            crops.setdefault(pid, []).append((int(m.sum()), c_, [bx[0] * sx_, bx[1] * sy_, bx[2] * sx_, bx[3] * sy_]))
+                k += 1
+            cap.release()
+            for pid, cs in crops.items():
+                cs = sorted(cs, key=lambda z: -z[0])[:8]
+                v1, v2 = embed([z[1] for z in cs])
+                pr = role.predict_proba(np.asarray(v1), np.asarray(v2), [z[2] for z in cs], ['cam1'] * len(cs))[:, 1]
+                who[pid] = float(np.mean(pr))
+        told[-1]['staff'] = {str(k_): round(v_, 3) for k_, v_ in who.items()}
         cap = cv2.VideoCapture(str(ROOT / 'data' / 'sam31_door' / tag / 'cam1' / 'video.mp4'))
         k = 0
         while True:
@@ -80,9 +129,14 @@ def main(day='20260919', n='3', out=None):
                     cv2.drawContours(img, cs, -1, col, 5)
                     ys, xs_ = np.where(m)
                     tx, ty = int(xs_.mean()) - 30, max(30, int(ys.min()) - 10)
-                    cv2.putText(img, 'P%d' % pid, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 9)
-                    cv2.putText(img, 'P%d' % pid, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 1.3, col, 3)
+                    lab = 'P%d' % pid
+                    if pid in who:
+                        lab += ' STAFF' if who[pid] >= role.threshold else ' cust'
+                    cv2.putText(img, lab, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 0), 9)
+                    cv2.putText(img, lab, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 165, 255) if lab.endswith('STAFF') else col, 3)
                 img = cv2.addWeighted(img, 0.6, over, 0.4, 0)
+                if line is not None:
+                    cv2.line(img, tuple(int(v) for v in line['p1']), tuple(int(v) for v in line['p2']), (255, 255, 0), 3)
                 on = [e for e in ev if 0 <= ts - e['ts'] <= 3.0]
                 cv2.rectangle(img, (0, 0), (1280, 52), (0, 0, 0), -1)
                 cv2.putText(img, '%s  %s  t=%.1f s   green = inside, magenta = outside, yellow = not sure' % (day, tag.split('_')[2], ts),
