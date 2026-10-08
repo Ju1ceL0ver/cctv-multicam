@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-OUT = ROOT / 'data' / 'live' / 'clips'
+OUT = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live') / 'clips'   # 09.10: tests elsewhere
 PAD = 10.0
 DISPUTE_TICKS = 3               # model and line on opposite sides this many ticks of one track -> a dispute
 
@@ -34,7 +34,7 @@ def ffmpeg():
         return hits[0] if hits else 'ffmpeg'
 
 
-RING = ROOT / 'data' / 'live' / 'ring'
+RING = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live') / 'ring'
 RING_S = 240.0                  # seconds of 12.5 fps frames kept for the clips (the live ticks are only ~2 a second)
 RING_DT = 0.08
 

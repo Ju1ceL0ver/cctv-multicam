@@ -72,6 +72,12 @@ class Bank:
         self.views[key] = v[:self.keep]
         return True
 
+    def dump(self):
+        """09.10: views.json next to the views -- which person (track key) each kept view belongs to, so a day's roles can
+        be decided again later (a better model, the whole day's gallery) without the video."""
+        from storage import atomic_json
+        atomic_json(self.folder / 'views.json', {k: [[round(s, 1), Path(p).name, b] for s, p, b in v] for k, v in self.views.items()})
+
     def best(self, keys, n=KEEP):
         allv = sorted((x for k in keys for x in self.views.get(k, [])), key=lambda z: -z[0])
         return allv[:n]
@@ -118,6 +124,54 @@ class Roles:
         self.cache = {}                                       # view path -> p_staff of that view
         self.vec = {}                                         # view path -> appearance vector
         self.gallery, self.gallery_day, self.seeded = [], None, set()
+        self.owner = {}                                       # 09.10: tuple(track keys) -> 'staff' | 'customer' by the owner
+        self.fed = set()
+
+    def new_day(self):
+        day = time.strftime('%Y%m%d')
+        if day != self.gallery_day:                           # a new day: the staff wear other clothes
+            self.gallery, self.gallery_day, self.seeded, self.owner, self.fed = [], day, set(), {}, set()
+
+    def feedback(self, events, review, key_of):
+        """09.10: the owner's answers on /liveevents feed the day's gallery at once. A staff event marked right, or a
+        customer's role marked wrong -> that person is staff, its views become gallery seeds (before the model's own);
+        a staff role marked wrong -> a customer, its views leave the gallery. review: {key_of(event): {'v': ...}}.
+        Returns how many answers were taken this time."""
+        self.new_day()
+        n = 0
+        for e in events:
+            k = key_of(e)
+            v = (review.get(k) or {}).get('v')
+            if v not in (1, 4) or not e.get('tracks') or not e.get('role') or (k, v) in self.fed:
+                continue
+            self.fed.add((k, v))
+            keys = tuple(e['tracks'])
+            staff = (e['role'] == 'staff') == (v == 1)
+            self.owner[keys] = 'staff' if staff else 'customer'
+            mine = [self.vec[p_] for _, p_, _ in self.bank.best(list(keys)) if p_ in self.vec]
+            self.gallery = [(g, o) for g, o in self.gallery if o != keys]
+            if staff and mine:
+                self.gallery = [(m, keys) for m in mine] + self.gallery
+                self.gallery = self.gallery[:GALLERY_MAX + 40]       # room for the owner's people over the model's
+            n += 1
+        return n
+
+    def rescore(self, events):
+        """09.10: the day's told events once more with the gallery as it is now -- it grows during the day, so a role told
+        in the morning can be decided better later (and at closing, with the whole day). The owner's word stays. Returns
+        [(event, the role before, the new answer)] for the events whose role changed; the events are updated in place."""
+        day = time.strftime('%Y-%m-%d')
+        changed = []
+        for e in events:
+            if not e.get('tracks') or not str(e.get('clock', '')).startswith(day):
+                continue
+            out = self.role(list(e['tracks']))
+            if out.get('role') and (out['role'] != e.get('role') or out.get('by') != e.get('by')):
+                was = e.get('role')
+                e.update(out)
+                if out['role'] != was:
+                    changed.append((e, was, out))
+        return changed
 
     def role(self, keys):
         v = self.bank.best(keys)
@@ -135,9 +189,8 @@ class Roles:
             except Exception as exc:                          # the role never blocks the door
                 return {'role': None, 'p_staff': None, 'views': len(v), 'error': str(exc)[:100]}
         p = float(np.mean([self.cache[p_] for _, p_, _ in v]))
-        day = time.strftime('%Y%m%d')
-        if day != self.gallery_day:                           # a new day: the staff wear other clothes
-            self.gallery, self.gallery_day, self.seeded = [], day, set()
+        self.new_day()
+        said = next((r for k_, r in self.owner.items() if set(k_) & set(keys)), None)   # 09.10: the owner's word wins
         mine = [self.vec[p_] for _, p_, _ in v if p_ in self.vec]
         sim = None
         if len(self.gallery) >= GALLERY_MIN and mine:
@@ -149,7 +202,11 @@ class Roles:
             self.seeded.add(tuple(keys))
             self.gallery += [(m, tuple(keys)) for m in mine[:GALLERY_MAX - len(self.gallery)]]
         staff = p >= self.threshold or (sim is not None and sim >= GALLERY_SIM)
+        if said is not None:
+            staff = said == 'staff'
         out = {'role': 'staff' if staff else 'customer', 'p_staff': round(p, 3), 'views': len(v)}
+        if said is not None:
+            out['by'] = 'owner'
         if sim is not None:
             out['gallery_sim'] = round(sim, 3)
         return out

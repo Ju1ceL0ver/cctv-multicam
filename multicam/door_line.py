@@ -59,6 +59,32 @@ def extent(mask):
     return float(ys[0] * sy), float((ys[-1] - ys[0] + 1) * sy)
 
 
+def depth_pts(line, ys, xs):
+    """depth() for the mask's pixel coordinates in the 1280 x 720 frame (08.10: the live door passes crops)"""
+    if line is None or not len(ys):
+        return None
+    (x1, y1), (x2, y2) = line['p1'], line['p2']
+    n = float(np.hypot(x2 - x1, y2 - y1))
+    want = side_sign(line, *line['inside'])
+    d = ((x2 - x1) * (ys * 1.0 - y1) - (y2 - y1) * (xs * 1.0 - x1)) / n * want
+    return float(d.max())
+
+
+def extent_pts(ys):
+    """extent() for pixel rows in the 1280 x 720 frame"""
+    if not len(ys):
+        return None, None
+    return float(ys.min()), float(ys.max() - ys.min() + 1)
+
+
+def bottom_x_pts(ys, xs):
+    """bottom_x() for pixel coordinates in the 1280 x 720 frame"""
+    if not len(ys):
+        return None
+    lo = ys >= ys.max() - max(1, (ys.max() - ys.min()) // 10)
+    return float(xs[lo].mean())
+
+
 def full_height_table(obs, bin_px=20, q=90):
     """The height a whole person has with the head at a given row: per bin of the mask's top, the q-th percentile of the
     masks' heights (most masks there are whole people) -- from any runs, no labels. obs: [(top, height)]."""

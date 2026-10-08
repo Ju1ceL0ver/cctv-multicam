@@ -251,7 +251,14 @@ def label(pred, out, sess, deadline, prev=None, out_size=None, compress=True, st
     tmp = out / 'chunks.tmp.npz'
     save(tmp, rows=np.array(rows, dtype=np.float64).reshape(-1, 8),
          buf=np.concatenate(buf) if buf else np.zeros(0, np.uint8), offs=np.array(offs, dtype=np.int64))
-    os.replace(tmp, out / 'chunks.npz')
+    for i in range(100):                 # 08.10: the live door reads chunks.npz in another thread; Windows refuses to
+        try:                             # replace a file while it is open -- wait for the reader
+            os.replace(tmp, out / 'chunks.npz')
+            break
+        except PermissionError:
+            if i == 99:
+                raise
+            time.sleep(0.05)
     if state is not None:
         state.update(rows=rows, buf=buf, offs=offs, done=done)
     return done

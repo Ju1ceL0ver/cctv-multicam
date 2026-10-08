@@ -84,6 +84,15 @@ def build(ckpt, heads=None):
     if heads:
         import sam31_heads as SH
         SH.install(pred, torch.load(heads, map_location='cpu', weights_only=False))
+    if os.environ.get('RA_S31_COMPILE') == '1' and os.environ.get('RA_S31_WARMUP', '0') == '1':
+        # 09.10: SAM 3.1's own warm-up -- every number of objects and memory shapes compiled before the first frame
+        # (~5 min). Off by default: the slow sessions it was meant to cure came from long sessions, not recompiling
+        import time
+        t0 = time.time()
+        pred.model._warm_up_complete = False
+        pred.model.warm_up_compilation()
+        pred.model._warm_up_complete = True
+        print('SAM compile warm-up %.0f s' % (time.time() - t0), flush=True)
     return pred
 
 

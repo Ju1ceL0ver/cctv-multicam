@@ -94,6 +94,52 @@ class InsideOutside:
         full = np.dstack([small_rgb, small_mask, self.small_floor])
         return self._features(full, crop, g, self.signed)
 
+    def features_rgb_crop(self, frame, crop, x0, y0):
+        """features_rgb(frame, the full mask) for a mask given as its crop with the top-left at (x0, y0) of a 1280 x 720
+        frame -- the same vector (checked bit for bit), without passes over the whole frame per person (08.10: the live
+        door spent ~20 ms per person here, most of a session's side time)."""
+        H_, W_ = 720, 1280
+        if frame.shape[:2] != (H_, W_):
+            full = np.zeros(frame.shape[:2], np.uint8)
+            full[y0:y0 + crop.shape[0], x0:x0 + crop.shape[1]] = crop[:frame.shape[0] - y0, :frame.shape[1] - x0] != 0
+            return self.features_rgb(frame, full)
+        if frame.ndim != 3 or frame.shape[2] != 3 or frame.dtype != np.uint8:
+            raise ValueError('frame must be HxWx3 RGB uint8')
+        x0, y0 = int(x0), int(y0)
+        cm = (np.asarray(crop) != 0)[max(0, -y0):H_ - y0, max(0, -x0):W_ - x0]   # the part inside the frame
+        x0, y0 = max(0, x0), max(0, y0)
+        cm = (cm.astype(np.uint8) * 255)
+        rgb, small_rgb = self._small(frame)
+        rr, cc = np.where(cm)
+        if not len(rr): raise ValueError('Empty person mask')
+        x1, y1, x2, y2 = cc.min() + x0, rr.min() + y0, cc.max() + 1 + x0, rr.max() + 1 + y0
+        _, lab, stats, _ = cv2.connectedComponentsWithStats(cm)
+        blob = lab == (1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])); br, bc = np.where(blob)
+        fy_l = int(br.max())
+        fy = float(fy_l + y0); fx = float(bc[br >= fy_l - 2].mean() + x0)
+        floor_px = round(float(self.floor_distance[int(np.clip(fy, 0, 719)), int(np.clip(fx, 0, 1279))]), 1)
+        g = [x1/1280, y1/720, x2/1280, y2/720, (x2-x1)/1280, (y2-y1)/720, fx/1280, fy/720, floor_px/100]
+        a, b = max(0, int(x1-(x2-x1)/2)), max(0, int(y1-(y2-y1)*.125))
+        c, d = min(1280, int(np.ceil(x2+(x2-x1)/2))), min(720, int(np.ceil(y2+(y2-y1)*.125)))
+        if c <= a or d <= b: raise ValueError('Invalid box')
+
+        def region(X0, Y0, X1, Y1):                    # the full mask's [Y0:Y1, X0:X1], from the crop
+            out = np.zeros((Y1 - Y0, X1 - X0), np.uint8)
+            ya, yb = max(Y0, y0), min(Y1, y0 + cm.shape[0]); xa, xb = max(X0, x0), min(X1, x0 + cm.shape[1])
+            if ya < yb and xa < xb:
+                out[ya - Y0:yb - Y0, xa - X0:xb - X0] = cm[ya - y0:yb - y0, xa - x0:xb - x0]
+            return out
+        # the 320 x 180 mask: INTER_AREA by 4 is the mean of 4 x 4 blocks -- only the blocks the person touches
+        X0, Y0 = (x1 // 4) * 4, (y1 // 4) * 4
+        X1, Y1 = min(1280, -(-x2 // 4) * 4), min(720, -(-y2 // 4) * 4)
+        small_mask = np.zeros((180, 320), np.uint8)
+        blk = region(X0, Y0, X1, Y1).astype(np.float32)
+        small_mask[Y0 // 4:Y1 // 4, X0 // 4:X1 // 4] = cv2.resize(blk, ((X1 - X0) // 4, (Y1 - Y0) // 4),
+                                                                interpolation=cv2.INTER_AREA).astype(np.uint8)
+        crop96 = cv2.resize(region(a, b, c, d).astype(np.float32), (96, 160), interpolation=cv2.INTER_AREA).astype(np.uint8)
+        full = np.dstack([small_rgb, small_mask, self.small_floor])
+        return self._features(full, crop96, g, self.signed)
+
     def p_inside_batch(self, X):
         """p_inside of many feature vectors in one forest call"""
         if not len(X):

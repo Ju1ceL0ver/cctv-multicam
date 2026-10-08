@@ -7,7 +7,7 @@
 #list .ev.cur{background:#f5c54233}
 #list .kind{font-weight:800;width:62px}
 #list .in{color:#1f9d55}#list .out{color:#c0392b}
-#list .role{font-size:12px;opacity:.8;width:70px}
+#list .role{font-size:12px;opacity:.8;width:130px}
 #list .v{margin-left:auto;font-size:12px;padding:1px 6px;border-radius:5px;background:#8883}
 #list .v1{background:#1f9d5555}#list .v2,#list .v3,#list .v4{background:#c0392b55}
 #list h4{margin:10px 8px 4px}
@@ -66,7 +66,7 @@ function summary(s) {
 function draw() {
   const L = evs.map((e, i) => `<div class="ev ${mode === 'ev' && i === cur ? 'cur' : ''}" onclick="pick(${i})">
     <span>${e.clock}</span><span class="kind ${e.kind}">${e.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}</span>
-    <span class="role">${e.role === 'staff' ? 'сотрудник' : e.role === 'customer' ? 'покупатель' : ''}</span>
+    <span class="role" title="${e.role_was && e.role_was !== e.role ? 'сначала: ' + (e.role_was === 'staff' ? 'сотрудник' : 'покупатель') : ''}">${e.role === 'staff' ? 'сотрудник' : e.role === 'customer' ? 'покупатель' : ''}${e.role_was && e.role_was !== e.role ? ' (уточнено)' : ''}</span>
     ${e.teacher === 'both' ? '<span title="учитель SAM 3.1 согласен">✓</span>' : e.teacher === 'live' ? '<span title="учитель SAM 3.1 этого не видит" style="color:#c0392b">?</span>' : ''}
     ${e.verdict ? `<span class="v v${e.verdict.v}">${V[e.verdict.v]}</span>` : (e.clip ? '' : '<span class="v">нет клипа</span>')}</div>`);
   const M = missed.map((m, i) => `<div class="ev ${mode === 'm' && i === cur ? 'cur' : ''}" onclick="pickM(${i})">

@@ -159,6 +159,37 @@ def birth_death(tracks, conf, thr, hz, rad, birth=True, death=False, shift=0.0, 
     return ev
 
 
+def dwell_filter(events, tracks, min_s):
+    """08.10: a crossing counts only when the person had been on the old side for min_s seconds before it (a one-tick
+    'inside' of someone standing at the glass made a false exit)."""
+    if not min_s:
+        return list(events)
+    out = []
+    for e in events:
+        xs = tracks.get(e.get('w'))
+        if not xs or e.get('birth'):
+            out.append(e)
+            continue
+        old = 0.0 if e['kind'] == 'in' else 1.0
+        t0 = e['t']
+        ts = [t for t, v, _ in xs if v == old and t < t0 - 1e-6]
+        if not ts:
+            continue
+        # the run of the old side just before the crossing: back from the last old vote until the other side appears
+        run_end = max(ts)
+        run_start = run_end
+        for t, v, _ in sorted(xs, key=lambda z: -z[0]):
+            if t > run_end:
+                continue
+            if v == 1.0 - old:
+                break
+            if v == old:
+                run_start = t
+        if run_end - run_start >= min_s - 1e-6:
+            out.append(e)
+    return out
+
+
 def near_line(events, line, px):
     """08.10: only crossings at the door -- the feet at the event within px (1280 x 720) of the owner's segment."""
     if not px or line is None:
@@ -399,24 +430,47 @@ class Live:
         self.pending = {}                                   # row key -> features for the model, predicted in one batch
 
     def add(self, key, t, frame_rgb, mask, foot_xy):
+        """mask: the person's mask on the 1280 x 720 frame, or (crop, x0, y0) -- its crop with the top-left corner there
+        (09.10: the live door passes crops; whole-frame passes per person were most of a session's side time)"""
         if self.side is not None:                            # 08.10: model and/or line by side_final.json
             import door_line
-            m = np.asarray(mask) > 0
-            if not m.any():
-                return
-            d = door_line.depth(self.line, m)
+            if isinstance(mask, tuple):
+                crop, x0, y0 = mask
+                ys, xs = np.nonzero(np.asarray(crop) > 0)
+                ys, xs = ys + int(y0), xs + int(x0)
+                ok = (ys >= 0) & (ys < 720) & (xs >= 0) & (xs < 1280)
+                ys, xs = ys[ok], xs[ok]
+                if not len(ys):
+                    return
+                d = door_line.depth_pts(self.line, ys, xs)
+                top, hh = door_line.extent_pts(ys)
+                bx = door_line.bottom_x_pts(ys, xs)
+                feats = lambda: self.clf.features_rgb_crop(frame_rgb, crop, x0, y0)
+            else:
+                m = np.asarray(mask) > 0
+                if not m.any():
+                    return
+                d = door_line.depth(self.line, m)
+                top, hh = door_line.extent(m)
+                bx = door_line.bottom_x(m)
+                feats = lambda: self.clf.features_rgb(frame_rgb, mask)
             mode = self.side['mode']
             # the model is needed unless the line alone already decides (a piece past the line = inside in these modes)
             need = mode != 'line' and not (mode in ('either_in+both_out', 'line_in+both_out', 'line_in+model_out', 'model+line_in')
                                            and d is not None and d >= self.side['h_in'])
             if need:
                 try:
-                    self.pending[key] = self.clf.features_rgb(frame_rgb, mask)   # the forest runs once per session
+                    self.pending[key] = feats()                  # the forest runs once per session
                 except ValueError:
                     pass
-            top, hh = door_line.extent(m)
-            self.raw[key] = (t, d, top, hh, door_line.bottom_x(m), None, foot_xy)
+            self.raw[key] = (t, d, top, hh, bx, None, foot_xy)
             return
+        if isinstance(mask, tuple):                          # the older settings want the whole-frame mask
+            crop, x0, y0 = mask
+            full = np.zeros(frame_rgb.shape[:2], np.uint8)
+            ya, yb = max(0, y0), min(full.shape[0], y0 + crop.shape[0]); xa, xb = max(0, x0), min(full.shape[1], x0 + crop.shape[1])
+            full[ya:yb, xa:xb] = np.asarray(crop)[ya - y0:yb - y0, xa - x0:xb - x0] > 0
+            mask = full
         if self.line is not None and os.environ.get('RA_LINE_ONLY') == '1':   # 08.10: only the owner's line
             import door_line
             m = np.asarray(mask) > 0

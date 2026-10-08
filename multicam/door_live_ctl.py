@@ -63,6 +63,8 @@ def start(until='21:00'):
     sf = ROOT / 'data' / 'door_v2' / 'side_final.json'
     side = json.load(open(sf)) if sf.exists() else {}
     env = dict(os.environ, PYTHONIOENCODING='utf-8', RA_DOOR_PIECES='1', RA_DOOR_UNTIL=os.environ.get('RA_DOOR_UNTIL', until))
+    if side.get('session'):                       # 09.10: SAM session length in ticks (120 at stride 3)
+        env['RA_LIVE_SESSION'] = str(side['session'])
     if side.get('fps_scale'):                     # 08.10: SAM 3.1's track rules counted in frames of this stride
         env['RA_S31_FPS_SCALE'] = str(side.get('stride', 6))
     args = [SAM3, str(ROOT / 'door_live.py'), STUDENT, '-', RULE]

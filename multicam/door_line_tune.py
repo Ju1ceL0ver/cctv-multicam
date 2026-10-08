@@ -50,16 +50,21 @@ def main():
         dd = C.Day(day)
         raw = {tag: [list(o) for o in st['obs']] for tag, st in dd.S.items()}
         days[day] = (dd, raw) + stretches(day)
+    import door_line
+    table = door_line.full_height_table([(o[3], o[4]) for dd, raw, _, _ in days.values() for v in raw.values() for o in v])
 
-    def run(h_in, h_out, conf, gate=True):
+    def run(h_in, h_out, conf, gate=True, trunc=0.0, alt='none'):
         """{role: [hit_in, pred_in, true_in, hit_out, pred_out, true_out]} over all days"""
         tot = {}
+        cfg = {'h_in': h_in, 'h_out': h_out, 'trunc': trunc}
         for day, (dd, raw, spans, truth) in days.items():
             for tag, st in dd.S.items():
-                st['obs'] = [[t, pid, 1.0 if d >= h_in else (0.0 if d <= -h_out else 0.5)] for t, pid, d in raw[tag]]
+                st['obs'] = [[o[0], o[1], door_line.vote(cfg, table, o[2], o[3], o[4])] for o in raw[tag]]
             dd.cache = {}
             ev = dd.binary_events(conf, 0.95, tuple(f_['stitch']))
             B = C.gate(ev, u, hz, f_['move'], f_['rad']) if gate else ev
+            if alt != 'none':
+                B = C.alternate(B, alt)
             for role in ('train', 'test'):
                 sp = [(x, y) for x, y, r in spans if r == role]
                 inside = lambda t: any(x - 1 <= t <= y + 1 for x, y in sp)
@@ -75,14 +80,25 @@ def main():
         fo = 2 * v[3] / max(1, v[4] + v[5])
         return round((fi + fo) / 2, 3)
 
-    grid = list(itertools.product((0, 5, 10, 20, 30, 50), (0, 5, 10, 20, 30, 50), (1, 2, 3, 4, 6), (True, False)))
+    grid = list(itertools.product((0, 5, 10, 20, 30), (0, 10, 20, 40), (1, 2, 3, 4), (True, False), (0.0, 0.6, 0.7, 0.8),
+                                  ('none', 'first', 'last')))
     res = []
-    for h_in, h_out, conf, g in grid:
-        tot = run(h_in, h_out, conf, g)
-        res.append({'h_in': h_in, 'h_out': h_out, 'conf': conf, 'gate': g, 'train': tot.get('train'), 'test': tot.get('test'),
+    for h_in, h_out, conf, g, tr_, alt in grid:
+        tot = run(h_in, h_out, conf, g, tr_, alt)
+        res.append({'h_in': h_in, 'h_out': h_out, 'conf': conf, 'gate': g, 'trunc': tr_, 'alt': alt,
+                    'train': tot.get('train'), 'test': tot.get('test'),
                     'f1_train': f1(tot['train']) if 'train' in tot else None, 'f1_test': f1(tot['test']) if 'test' in tot else None})
-    base = next(r for r in res if r['h_in'] == 0 and r['h_out'] == 0 and r['conf'] == f_['conf'] and r['gate'])
-    best = max(res, key=lambda r: (r['f1_train'] or 0, -r['h_in'] - r['h_out']))
+    base = next(r for r in res if r['h_in'] == 0 and r['h_out'] == 0 and r['conf'] == f_['conf'] and r['gate']
+                and r['trunc'] == 0 and r['alt'] == 'none')
+    simple = lambda r: (r['h_in'] + r['h_out']) / 100 + r['trunc'] + (r['alt'] != 'none') * 0.1 + (not r['gate']) * 0.1
+    best = max(res, key=lambda r: (r['f1_train'] or 0, -simple(r)))
+    # the effect of each fix alone, from the current setting
+    for name, ch in (('hidden legs 0.7', {'trunc': 0.7}), ('alternate first', {'alt': 'first'}),
+                     ('both', {'trunc': 0.7, 'alt': 'first'})):
+        r = next(x for x in res if all(x[k] == base[k] for k in ('h_in', 'h_out', 'conf', 'gate')) and
+                 x['trunc'] == ch.get('trunc', 0.0) and x['alt'] == ch.get('alt', 'none'))
+        print('%-16s' % name, json.dumps(r), flush=True)
+    best['table'] = table
     print('now (no hysteresis, conf %d, gate):' % f_['conf'], json.dumps(base), flush=True)
     print('best on train:', json.dumps(best), flush=True)
     top = sorted(res, key=lambda r: -(r['f1_train'] or 0))[:10]

@@ -93,7 +93,7 @@ def main(fast=False):
     # stitched tracks once per (day, stride): {name: [obs index...]} with positions
     tracks = {}
     for day, v in days.items():
-        for stride in (3, 6):
+        for stride in (3, 4, 6):
             tr = {}
             for tag, xs in v['obs'].items():
                 per = {}
@@ -112,7 +112,7 @@ def main(fast=False):
 
     fcache = {}
 
-    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03, 0, None)):
+    def counts(day, stride, vote_of, conf, gate, alt, vkey=None, bd=(False, False, 1.0, False, 0.0, None, 0.03, 0, None, 0)):
         v = days[day]
         fk = (vkey, stride, conf)
         if vkey is None or fk not in fcache:
@@ -133,6 +133,11 @@ def main(fast=False):
                                     starts=[st['a'] for st in v['dd'].S.values()], gain=bd[6])
         if bd[8]:
             ev = C.near_line(ev, line, bd[8])
+        if len(bd) > 9 and bd[9]:
+            bk = (vkey, stride, conf, 'bd')
+            if bk not in fcache:
+                fcache[bk] = {name: [(t, vote_of((tag, i)), xy) for t, (tag, i), xy in lst] for name, lst in tracks[(day, stride)].items()}
+            ev = C.dwell_filter(ev, fcache[bk], bd[9])
         if alt != 'none':
             ev = C.alternate(ev, alt)
         if bd[7]:
@@ -163,6 +168,14 @@ def main(fast=False):
                                      gate=gate, alt=alt, stride=stride))
     if os.environ.get('RA_TUNE_SMOKE'):
         grid = grid[::max(1, len(grid) // int(os.environ['RA_TUNE_SMOKE']))]
+    if os.environ.get('RA_TUNE_GRID') == 'errors':          # 08.10: the fixes the error sheets suggested
+        grid = []
+        for mode in ('either_in+both_out', 'model'):
+            for conf, stride, band, near, birth, cancel, dwell in itertools.product(
+                    (1, 2, 3), (3, 4, 6), (None, 60, 100), (None, 150), (False, True), (0, 2, 3, 5), (0, 0.5, 1.0, 2.0)):
+                grid.append(dict(mode=mode, thr=0.9, h_in=0, h_out=0, trunc=0.0, legs='none', conf=conf, gate=True, alt='first',
+                                 stride=stride, birth=birth, death=False, brad=1.0, bmove=True, blen=2.0, bdup=None, bgain=0.05,
+                                 cancel=cancel, band=band, near=near, dwell=dwell))
     if os.environ.get('RA_TUNE_GRID') == 'near':            # 08.10: the line judges / events count only near the door
         grid = []
         for mode in ('either_in+both_out', 'model', 'line_in+both_out'):
@@ -246,7 +259,8 @@ def main(fast=False):
             V = vcache[key]
             per_day[d] = counts(d, g['stride'], lambda o, V=V, d=d: V[at[d][o]], g['conf'], g['gate'], g['alt'], key,
                                 (g.get('birth', False), g.get('death', False), g.get('brad', 1.0), g.get('bmove', False),
-                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03), g.get('cancel', 0), g.get('near')))
+                                 g.get('blen', 0.0), g.get('bdup'), g.get('bgain', 0.03), g.get('cancel', 0), g.get('near'),
+                                 g.get('dwell', 0)))
         res.append(dict(g, per_day=per_day))
         if n % 1000 == 0:
             print(n, 'of', len(grid), '%.0f s' % (time.time() - t0), flush=True)
@@ -302,8 +316,8 @@ def main(fast=False):
     fin = max(res, key=lambda r: (round(f1(total(r, ds)), 4), -simple(r)))
     rep['final_all_days'] = {'setting': {k: fin[k] for k in grid[0]}, 'counts': total(fin, ds), 'f1': round(f1(total(fin, ds)), 3)}
     rep['table'] = table
-    json.dump(rep, open(OUT / ('side_tune%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '')), 'w'), indent=1)
-    json.dump([dict({k: r[k] for k in grid[0]}, per_day=r['per_day']) for r in res], open(OUT / ('side_tune_all%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '')), 'w'))
+    json.dump(rep, open(OUT / ('side_tune%s_%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '', os.environ.get('RA_BIN_SRC', ''))), 'w'), indent=1)
+    json.dump([dict({k: r[k] for k in grid[0]}, per_day=r['per_day']) for r in res], open(OUT / ('side_tune_all%s_%s.json' % ('_' + os.environ['RA_TUNE_GRID'] if os.environ.get('RA_TUNE_GRID') else '', os.environ.get('RA_BIN_SRC', ''))), 'w'))
     print('done %.0f s' % (time.time() - t0), flush=True)
 
 

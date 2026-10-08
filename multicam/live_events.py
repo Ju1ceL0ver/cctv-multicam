@@ -20,7 +20,7 @@ def key_of(e):
     return '%s_%s_%.1f' % (e['kind'], e.get('clock', '')[11:19].replace(':', ''), float(e['t']))
 
 
-def events(day):
+def _events(day):
     p = LIVE / 'events_cam1.jsonl'
     if not p.exists():
         return []
@@ -34,6 +34,34 @@ def events(day):
         if str(e.get('clock', '')).startswith(want):
             out.append(e)
     return sorted(out, key=lambda e: e['t'])
+
+
+def role_updates(day):
+    """09.10: the live door decides the roles of earlier events again as the day's staff gallery grows (door_role.Roles
+    .rescore) -> data/live/records/roles_<day>.jsonl; the last line of an event wins"""
+    p = LIVE / 'records' / ('roles_%s.jsonl' % day)
+    out = {}
+    if p.exists():
+        for line in p.read_text(encoding='utf-8').splitlines():
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            out[r['key']] = r
+    return out
+
+
+def events(day):
+    """the day's events with the roles as last decided (role_was: what was told first)"""
+    up = role_updates(day)
+    out = []
+    for e in _events(day):
+        r = up.get(key_of(e))
+        if r and r.get('role'):
+            e = dict(e, role_was=e.get('role'), role=r['role'], p_staff=r.get('p_staff', e.get('p_staff')),
+                     gallery_sim=r.get('gallery_sim'), role_final=r.get('final', False))
+        out.append(e)
+    return out
 
 
 def clips(day):
@@ -102,6 +130,7 @@ def register(app, root=None):
         for e in evs:
             c = next((c for c in cs if c['t0'] - 0.5 <= e['t'] <= c['t1'] + 0.5), None)
             out.append({'key': key_of(e), 'kind': e['kind'], 'clock': e.get('clock', '')[11:19], 'role': e.get('role'),
+                        'role_was': e.get('role_was'),
                         'p_staff': e.get('p_staff'), 'tracks': e.get('tracks'), 'verdict': st.get(key_of(e)),
                         'clip': c['name'] if c else None, 'offset': round(e['t'] - c['t0'], 2) if c else None,
                         'teacher': by_key.get(key_of(e)) if night else None})

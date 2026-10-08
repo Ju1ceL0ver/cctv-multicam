@@ -27,12 +27,14 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-LIVE = ROOT / 'data' / 'live'
+LIVE = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live')   # 09.10: tests on records write elsewhere
 TICK = 0.08
 SESSION, OVERLAP = 240, 8
-WINDOW_SESSIONS = 30
+WINDOW_SESSIONS = int(os.environ.get('RA_LIVE_WSESS', 30))   # 09.10: smaller in tests, to see a window change
 LAG = 20.0                       # a crossing is told once the window has this many seconds after it
-KEEP_WINDOWS = 2
+KEEP_WINDOWS = 3
+LEAD = 10.0                      # 08.10: seconds of frames a carried window has before what it may tell
+DEGRADE_SESSIONS = 1.5           # 08.10: behind by this many sessions -> every second frame until it catches up
 W, H, SAM_IN = 2176, 1224, 1008
 _SF = Path(__file__).resolve().parent / 'data' / 'door_v2' / 'side_final.json'
 SMALL = (json.load(open(_SF)).get('small_masks', False) if _SF.exists() else False) or os.environ.get('RA_LIVE_SMALL') == '1'
@@ -161,6 +163,16 @@ class Window:
         self.times.append(t)
         self.n += 1
 
+    def carry(self, old, c0):
+        """08.10: a new window starts with the old one's last frames from tick c0 (copied), so the crossings the old
+        window could not tell yet (within LAG of its end) are seen again here, with a lead for SAM to settle; and the
+        frames that came after the old window's last session are not lost."""
+        for j in range(c0, old.n):
+            for sub in ('frames', 'sam_in'):
+                shutil.copyfile(old.dir / sub / ('%05d.jpg' % j), self.dir / sub / ('%05d.jpg' % self.n))
+            self.times.append(old.times[j])
+            self.n += 1
+
     def next_session(self):
         s = 0 if not self.sessions else self.sessions[-1][1] - OVERLAP
         if self.n >= s + SESSION:
@@ -252,14 +264,19 @@ def people(win, combo=None, bank=None):
                     win.small = (k, fr)
                     sx, sy = 1280.0 / W, 720.0 / H
                     X1, Y1 = int(x1 * sx), int(y1 * sy)
-                    cs = cv2.resize(c_.astype(np.uint8), (max(1, int(round(c_.shape[1] * sx))), max(1, int(round(c_.shape[0] * sy)))),
-                                    interpolation=cv2.INTER_NEAREST)
-                    ms = np.zeros((720, 1280), np.uint8)
-                    ms[Y1:Y1 + cs.shape[0], X1:X1 + cs.shape[1]] = cs[:720 - Y1, :1280 - X1]
+                    cs = c_.astype(np.uint8) if W == 1280 else \
+                        cv2.resize(c_.astype(np.uint8), (max(1, int(round(c_.shape[1] * sx))), max(1, int(round(c_.shape[0] * sy)))),
+                                   interpolation=cv2.INTER_NEAREST)
+                    cs = cs[:720 - Y1, :1280 - X1]
+
+                    def full_mask(cs=cs, X1=X1, Y1=Y1):         # only for a role view (rare); the side works on the crop
+                        ms = np.zeros((720, 1280), np.uint8)
+                        ms[Y1:Y1 + cs.shape[0], X1:X1 + cs.shape[1]] = cs
+                        return ms
                     fx, fy = (x1 + f[0], y1 + f[1]) if f else ((x1 + x2) / 2, y2)
                     prof['mask'] += time.time() - _t
                     _t = time.time()
-                    combo.add((win.id, k, r_), t, win.small[1], ms, [fx / W, fy / H])
+                    combo.add((win.id, k, r_), t, win.small[1], (cs, X1, Y1), [fx / W, fy / H])
                     prof['side'] += time.time() - _t
                     prof['n'] += 1
                     _t = time.time()
@@ -272,7 +289,7 @@ def people(win, combo=None, bank=None):
                         if bank.wants('%s:%d' % (win.id, w), sc):
                             import staff_masked as SM
                             bs = [bx[0] * sx, bx[1] * sy, bx[2] * sx, bx[3] * sy]   # the view from the 1280 x 720 frame
-                            bank.offer('%s:%d' % (win.id, w), sc, lambda: SM.crop_masked(fr[:, :, ::-1], ms > 0, bs), bs)
+                            bank.offer('%s:%d' % (win.id, w), sc, lambda: SM.crop_masked(fr[:, :, ::-1], full_mask() > 0, bs), bs)
                     prof['bank'] += time.time() - _t
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / W, 4), round((y1 + y2) / 2 / (H * 1248 / 1224), 4),
@@ -315,7 +332,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
         stride = json.load(open(sf)).get('stride', 3) if sf.exists() else 3
     TICK = 0.08 * int(stride)                      # the rule was fitted on runs with every stride-th tick (door_micro --stride)
     global SESSION
-    SESSION = int(os.environ.get('RA_LIVE_SESSION', max(60, 240 * 3 // int(stride))))   # 08.10: ~58 s of video per session
+    # 08.10: ~58 s of video per session; 09.10: side_final's "session" -- at stride 3 sessions of 240 ticks cost 0.45-0.85 s
+    # per tick on the card, of 120 ticks 0.23-0.25 s (SAM's per-frame work grows with the session's length)
+    side_sess = json.load(open(sf)).get('session') if sf.exists() else None
+    SESSION = int(os.environ.get('RA_LIVE_SESSION') or side_sess or max(60, 240 * 3 // int(stride)))
     import door_micro as DM
     import door_rule as DR
     import door_v2 as D
@@ -352,108 +372,205 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     log('start: student %s, heads %s, rule %s (threshold %.2f), combo %s, source %s' % (student, heads, rule_name, rule['thr'],
                                                                               'on' if combo else 'off',
                                                                               'camera 1' if str(src).startswith('rtsp') else src))
-    win, old = None, []
+    win_old = []
     t_end = time.time() + 60 * float(minutes) if minutes else None
     told_all = []
     events_path = LIVE / 'events_cam1.jsonl'
+    live_mode = str(src).startswith('rtsp')
+    from concurrent.futures import ThreadPoolExecutor
+    post_pool = ThreadPoolExecutor(max_workers=1)     # 08.10: people, events, roles, clips while SAM does the next session
+    pending = []
+
+    class Writer(threading.Thread):
+        """08.10: the camera's frames go to the window's folder as they come (not while SAM waits); behind by more than
+        DEGRADE_SESSIONS sessions, every second frame is skipped (stride x2) until it catches up."""
+
+        def __init__(self):
+            super().__init__(daemon=True)
+            self.win, self.lock, self.done, self.skipping, self.k = None, threading.Lock(), False, False, 0
+
+        def backlog(self):
+            w = self.win
+            if w is None:
+                return 0
+            end = w.sessions[-1][1] if w.sessions else 0
+            return w.n - end
+
+        def run(self):
+            while True:
+                item = q.get()
+                if item is None:
+                    self.done = True
+                    return
+                t, f = item
+                if live_mode and os.environ.get('RA_DEGRADE', '1') == '1':
+                    behind = self.backlog() > DEGRADE_SESSIONS * SESSION
+                    if behind != self.skipping:
+                        self.skipping = behind
+                        log('behind by %d ticks: %s' % (self.backlog(), 'skipping every second frame' if behind else 'every frame again'))
+                    self.k += 1
+                    if self.skipping and self.k % 2:
+                        continue
+                if not live_mode:                       # a record: no further ahead of SAM than two sessions
+                    while self.backlog() > 2 * SESSION:
+                        time.sleep(0.05)
+                with self.lock:
+                    if self.win is None:
+                        self.win = Window(t)
+                    self.win.add(t, f)
+
+    writer = Writer()
+    writer.start()
+
+    def post_session(win, sess, t_sam, final):
+        try:
+            t0 = time.time()
+            ticks = people(win, combo, bank)
+            t_reid = time.time() - t0
+            t_ev0 = time.time()
+            new = []
+            if ticks:
+                last = win.times[sess[1] - 1]          # 08.10: LAG seconds of frames after a crossing (was: of people)
+                tell_from = getattr(win, 'tell_from', None)
+                alone = combo is not None and (os.environ.get('RA_COMBO_ALONE') == '1' or combo.cfg['lo'] > 1 or combo.side is not None)
+                if not alone:
+                    D.add_io(ticks)
+                evs = DR.apply(ticks, rule) if combo is None else combo.events(None if alone else DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
+                for e in evs:
+                    if e['t'] > last - LAG and not final:
+                        continue
+                    if tell_from is not None and e['t'] <= tell_from:   # told by the window before this one
+                        continue
+                    if any(x['kind'] == e['kind'] and abs(x['t'] - e['t']) <= 2.0 for x in told_all):
+                        continue
+                    e = {k_: v_ for k_, v_ in e.items() if k_ not in ('xy', 'disp')}
+                    if roles is not None and (e.get('bw') or e.get('w')) is not None:   # 08.10: the role by accumulation
+                        who = str(e.get('bw') or e.get('w'))
+                        e.update(roles.role(getattr(combo, 'members', {}).get(who, [who])))
+                    if combo is not None:                      # 08.10: what decided it, for checking and re-running later
+                        who = str(e.get('bw') or e.get('w'))
+                        e['tracks'] = [str(x) for x in getattr(combo, 'members', {}).get(who, [who])]
+                        e['side_cfg'] = (combo.side or {}).get('at')
+                    e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
+                    told_all.append(e); new.append(e)
+                    if clipper is not None:
+                        clipper.event(e)
+                    with open(events_path, 'a', encoding='utf-8') as fo:
+                        fo.write(json.dumps(e) + '\n')
+            if roles is not None:                         # 09.10: the owner's answers on /liveevents -> the staff gallery
+                try:
+                    import live_events as LE
+                    took = roles.feedback(told_all, LE.load(time.strftime('%Y%m%d')), LE.key_of)
+                    if took:
+                        log('role: %d answers of the owner taken into the staff gallery' % took)
+                    # 09.10: the day's earlier events again once the owner's answers changed the gallery. Not on the
+                    # model's own seeds: on the /staff answers a whole-day gallery of the model's sure views did not
+                    # beat the model (86.9 % = 86.9 %; during the day 87.7 %), the owner's views did (96.6 % vs 90.7 %)
+                    mode = os.environ.get('RA_ROLE_RESCORE', 'owner')
+                    ch = roles.rescore(told_all) if (mode == 'always' or (mode == 'owner' and took)) else []
+                    if ch:
+                        (LIVE / 'records').mkdir(parents=True, exist_ok=True)
+                        with open(LIVE / 'records' / ('roles_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fr:
+                            for e_, was, out in ch:
+                                fr.write(json.dumps(dict(out, key=LE.key_of(e_), t=e_['t'], kind=e_['kind'], was=was,
+                                                         final=bool(final), at=time.strftime('%H:%M:%S'))) + '\n')
+                        log('role: %d earlier events decided again: %s' % (len(ch), ', '.join(
+                            '%s %s %s->%s' % (e_['kind'], e_['clock'][11:19], was, out['role']) for e_, was, out in ch[:8])))
+                    if bank is not None:
+                        bank.dump()
+                except Exception as exc:
+                    log('role feedback failed: %s' % str(exc)[:200])
+            t_events = time.time() - t_ev0
+            if combo is not None and getattr(combo, 'raw', None):   # 08.10: every observation's votes, no pictures
+                save_obs(win, combo)
+            if clipper is not None:
+                try:
+                    if combo is not None and getattr(combo, 'raw', None):
+                        clipper.disputes(combo, {x for e in told_all for x in e.get('tracks', [])} | {str(e.get('bw') or e.get('w')) for e in told_all})
+                    clipper.random_minute(win.times[0], win.times[-1])
+                    made = clipper.cut(win, final)
+                    if made:
+                        log('clips: %s' % ', '.join(made))
+                except Exception as exc:                      # clips never stop the door
+                    log('clips failed: %s' % str(exc)[:200])
+            behind = time.time() - win.times[sess[1] - 1]
+            n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
+            log('session %s %d-%d: SAM %.1f s (%.0f ms/tick, GPU peak %s GB), people %.1f s %s, events+role %.1f s, behind the camera %.0f s, people %d, new events %s' % (
+                win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), getattr(win, 'gpu_peak', {}).get(tuple(sess)), t_reid, getattr(win, 'timing', ''), t_events, behind, n_people,
+                ', '.join('%s %s%s' % (e['kind'], e['clock'][11:], ' ' + e['role'] if e.get('role') else '') for e in new) or '-'))
+            try:                                                # 08.10: the health log, one line per session
+                (LIVE / 'records').mkdir(parents=True, exist_ok=True)
+                with open(LIVE / 'records' / ('health_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fh:
+                    fh.write(json.dumps({'at': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': [sess[0], sess[1]],
+                                         'sam_ms_tick': round(1000 * t_sam / max(1, sess[1] - sess[0])), 'reid_rule_s': round(t_reid, 1),
+                                         'behind_s': round(behind), 'people': n_people, 'events': len(new),
+                                         'skipping': writer.skipping, 'gpu_gb': getattr(win, 'gpu_peak', {}).get(tuple(sess))}) + '\n')
+            except OSError:
+                pass
+            json.dump({'updated': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': win.n, 'behind_s': round(behind),
+                       'ms_per_tick': round(1000 * t_sam / (sess[1] - sess[0])), 'events_total': len(told_all),
+                       'in': sum(e['kind'] == 'in' for e in told_all), 'out': sum(e['kind'] == 'out' for e in told_all),
+                       'skipping': writer.skipping},
+                      open(LIVE / 'status_cam1.json', 'w'), indent=1)
+        except Exception as exc:
+            import traceback
+            log('session post-processing failed: %s' % traceback.format_exc()[-600:])
+
     final = False
     while True:
-        try:
-            item = q.get(timeout=1.0)
-        except queue.Empty:
-            item = 'idle'
-        if final:
-            break
         until = os.environ.get('RA_DOOR_UNTIL')        # 08.10: the shop closes -- the last session and its events, then exit
-        closing = bool(until) and str(src).startswith('rtsp') and time.strftime('%H:%M') >= until
-        if item is None or (t_end and time.time() > t_end) or closing:
-            # 07.10: the end of a record -- the last, short session too, and every event without waiting LAG
-            if win is None or (not win.sessions and win.n < 2 * OVERLAP) or \
-                    (win.sessions and win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP):
-                break
-            final = True                           # 08.10: also a record shorter than one session
-            item = 'idle'
-        if item != 'idle':
-            t, f = item
-            if win is None:
-                win = Window(t)
-            win.add(t, f)
+        closing = bool(until) and live_mode and time.strftime('%H:%M') >= until
+        ending = writer.done or (t_end and time.time() > t_end) or closing
+        with writer.lock:
+            win = writer.win
         if win is None:
+            if ending:
+                break
+            time.sleep(0.2)
             continue
         sess = win.next_session()
-        if final:
+        if sess is None and ending:
+            # the end of a record / the closing: the last, short session too, and every event without waiting LAG
+            if (not win.sessions and win.n < 2 * OVERLAP) or (win.sessions and win.n - (win.sessions[-1][1] - OVERLAP) <= 2 * OVERLAP):
+                break
             s0 = win.sessions[-1][1] - OVERLAP if win.sessions else 0
             sess = (s0, win.n, OVERLAP if win.sessions else 0)
+            final = True
         if sess is None:
+            time.sleep(0.2)
             continue
         t0 = time.time()
+        torch.cuda.reset_peak_memory_stats()
         segment(pred, win, sess)
         t_sam = time.time() - t0
-        ticks = people(win, combo, bank)
-        t_reid = time.time() - t0 - t_sam
-        t_ev0 = time.time()
-        new = []
-        if ticks:
-            last = ticks[-1]['t']
-            alone = combo is not None and (os.environ.get('RA_COMBO_ALONE') == '1' or combo.cfg['lo'] > 1 or combo.side is not None)
-            if not alone:
-                D.add_io(ticks)
-            evs = DR.apply(ticks, rule) if combo is None else combo.events(None if alone else DR.apply(ticks, dict(rule, thr=combo.cfg['lo'])), win.person_of)
-            for e in evs:
-                if e['t'] > last - LAG and not final:
-                    continue
-                if any(x['kind'] == e['kind'] and abs(x['t'] - e['t']) <= 2.0 for x in told_all):
-                    continue
-                e = {k_: v_ for k_, v_ in e.items() if k_ not in ('xy', 'disp')}
-                if roles is not None and (e.get('bw') or e.get('w')) is not None:   # 08.10: the role by accumulation
-                    who = str(e.get('bw') or e.get('w'))
-                    e.update(roles.role(getattr(combo, 'members', {}).get(who, [who])))
-                if combo is not None:                      # 08.10: what decided it, for checking and re-running later
-                    who = str(e.get('bw') or e.get('w'))
-                    e['tracks'] = [str(x) for x in getattr(combo, 'members', {}).get(who, [who])]
-                    e['side_cfg'] = (combo.side or {}).get('at')
-                e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
-                told_all.append(e); new.append(e)
-                if clipper is not None:
-                    clipper.event(e)
-                with open(events_path, 'a', encoding='utf-8') as fo:
-                    fo.write(json.dumps(e) + '\n')
-        t_events = time.time() - t_ev0
-        if combo is not None and getattr(combo, 'raw', None):   # 08.10: every observation's votes, no pictures
-            save_obs(win, combo)
-        if clipper is not None:
-            try:
-                if combo is not None and getattr(combo, 'raw', None):
-                    clipper.disputes(combo, {x for e in told_all for x in e.get('tracks', [])} | {str(e.get('bw') or e.get('w')) for e in told_all})
-                clipper.random_minute(win.times[0], win.times[-1])
-                made = clipper.cut(win, final)
-                if made:
-                    log('clips: %s' % ', '.join(made))
-            except Exception as exc:                      # clips never stop the door
-                log('clips failed: %s' % str(exc)[:200])
-        behind = time.time() - win.times[sess[1] - 1]
-        n_people = len({qq['w'] for r in ticks[-SESSION:] for qq in r['p']}) if ticks else 0
-        log('session %s %d-%d: SAM %.1f s (%.0f ms/tick), people %.1f s %s, events+role %.1f s, behind the camera %.0f s, people %d, new events %s' % (
-            win.id, sess[0], sess[1], t_sam, 1000 * t_sam / (sess[1] - sess[0]), t_reid, getattr(win, 'timing', ''), t_events, behind, n_people,
-            ', '.join('%s %s%s' % (e['kind'], e['clock'][11:], ' ' + e['role'] if e.get('role') else '') for e in new) or '-'))
-        try:                                                # 08.10: the health log, one line per session
-            (LIVE / 'records').mkdir(parents=True, exist_ok=True)
-            with open(LIVE / 'records' / ('health_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fh:
-                fh.write(json.dumps({'at': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': [sess[0], sess[1]],
-                                     'sam_ms_tick': round(1000 * t_sam / max(1, sess[1] - sess[0])), 'reid_rule_s': round(t_reid, 1),
-                                     'behind_s': round(behind), 'people': n_people, 'events': len(new)}) + '\n')
-        except OSError:
-            pass
-        json.dump({'updated': time.strftime('%H:%M:%S'), 'window': win.id, 'ticks': win.n, 'behind_s': round(behind),
-                   'ms_per_tick': round(1000 * t_sam / (sess[1] - sess[0])), 'events_total': len(told_all),
-                   'in': sum(e['kind'] == 'in' for e in told_all), 'out': sum(e['kind'] == 'out' for e in told_all)},
-                  open(LIVE / 'status_cam1.json', 'w'), indent=1)
+        win.gpu_peak = getattr(win, 'gpu_peak', {})
+        win.gpu_peak[tuple(sess)] = round(torch.cuda.max_memory_allocated() / 2 ** 30, 2)   # 09.10: GB, the card has 12
         torch.cuda.empty_cache()
-        if len(win.sessions) >= WINDOW_SESSIONS:
-            old.append(win)
-            win = None
-            while len(old) > KEEP_WINDOWS:
-                shutil.rmtree(old.pop(0).dir.parent, ignore_errors=True)
+        pending = [f_ for f_ in pending if not f_.done()]
+        while len(pending) >= 2:                       # back-pressure: the post thread is at most one session behind
+            pending[0].result()
+            pending = [f_ for f_ in pending if not f_.done()]
+        pending.append(post_pool.submit(post_session, win, sess, t_sam, final))
+        if len(win.sessions) >= WINDOW_SESSIONS and not final:
+            # 08.10: the next window carries this one's last ~LAG + LEAD seconds (and whatever came after its last
+            # session); it tells only crossings after what this one could tell
+            bound = win.times[win.sessions[-1][1] - 1] - LAG
+            c0 = next((j for j in range(win.n) if win.times[j] >= bound - LEAD), win.n)
+            c0 = min(c0, win.sessions[-1][1] - OVERLAP)
+            with writer.lock:
+                nw = Window(win.times[c0] if c0 < win.n else time.time())
+                nw.carry(win, c0)
+                nw.tell_from = bound
+                writer.win = nw
+            log('window %s -> %s: carried %d ticks, tells after %s' % (win.id, nw.id, nw.n, time.strftime('%H:%M:%S', time.localtime(bound))))
+            win_old.append(win)
+            while len(win_old) > KEEP_WINDOWS:
+                shutil.rmtree(win_old.pop(0).dir.parent, ignore_errors=True)
+        if final:
+            break
+    for f_ in pending:
+        f_.result()
+    post_pool.shutdown(wait=True)
     g.stop = True
     log('stop: %d events (%d in, %d out)' % (len(told_all), sum(e['kind'] == 'in' for e in told_all), sum(e['kind'] == 'out' for e in told_all)))
     os._exit(0)
