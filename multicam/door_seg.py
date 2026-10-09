@@ -513,6 +513,11 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
         st = torch.load(run / 'last.pt', map_location='cpu', weights_only=False)
         net.load(st['model']); opt.load_state_dict(st['opt']); step = st['step']
         say(run, 'продолжаю с шага %d' % step)
+    elif os.environ.get('RA_DS_INIT'):                          # the next version: the previous one's weights, a fresh optimizer
+        net.load(torch.load(os.environ['RA_DS_INIT'], map_location='cpu', weights_only=False)['model'])
+        lr = float(os.environ.get('RA_DS_LR', lr))
+        say(run, 'старт от %s, lr %g, склеенные номера: %s, до %s' % (os.environ['RA_DS_INIT'], lr,
+                                                                    os.environ.get('RA_DS_GLUED') == '1', stop))
     else:
         say(run, 'старт: YOLO26s-seg на %d каналах (кадр, пустой зал, разницы t-5..t+5, люди t-1) 1280x736 + смещения к t-1/t+1, '
                  'учитель SAM 3.1, пачка %d, до %s' % (C, batch, stop))
