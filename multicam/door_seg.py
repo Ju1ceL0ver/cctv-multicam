@@ -446,7 +446,7 @@ def _match(pred, truth, thr=0.5):
     return out
 
 
-def evaluate(net, n=150, seed=7):
+def evaluate(net, n=int(os.environ.get('RA_DS_EVAL_N', 150)), seed=7):
     """against the SAM 3.1 teacher on 23.09 (never trained on): every tick predicted twice in a row (t-1 then t), the
     mask of the people of t-1 is the network's own answer, as live"""
     import torch
