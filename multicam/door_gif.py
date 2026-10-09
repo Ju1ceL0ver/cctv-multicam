@@ -72,7 +72,7 @@ def make(win_dir, times, e, out):
             by_tick.setdefault(int(M.rows[r, 1]), []).append(r)
     times = np.asarray(times, float)
     k0 = int(np.argmin(np.abs(times - float(e['t']))))
-    sc = 1280.0 / SAM_W
+    sc = 1280.0 / float(info.get('size', [SAM_W])[0])      # live windows keep their masks at 1280 x 720 (small_masks)
     col = (60, 220, 60) if e['kind'] == 'in' else (255, 150, 30)
     frames = []
     for k in range(k0 - N, k0 + N + 1):
