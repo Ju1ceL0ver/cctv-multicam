@@ -75,6 +75,54 @@ def outlines(tag):
     return out
 
 
+JUMP_PX = 64.0                        # 1280-px of one tick (0.08 s): a person never steps that far; a track that does
+                                      # has jumped to someone else (SAM's number handed over in a crowd)
+
+
+def auto_cuts(tag):
+    """09.10: {piece: [t, ...]} -- where a SAM track's centre jumps further than a person can walk in the time between
+    its ticks (JUMP_PX per tick): another person from there on. Computed from the outlines (1280 x 720), cached."""
+    f = OUT / 'outlines' / (tag + '_autocuts_v2.json')
+    if f.exists():
+        return json.load(open(f))
+    by = {}
+    for k, xs in outlines(tag).items():
+        for piece, _, poly in xs:
+            P = np.asarray(poly, float)
+            if len(P):
+                by.setdefault(str(piece), []).append((int(k), P[:, 0].mean(), P[:, 1].min(), P[:, 1].max()))
+    out = {}
+    W_ = 5                                              # ticks on each side: the jump must stay, not flicker
+    for piece, xs in by.items():
+        xs.sort()
+        P = np.array([(x, t) for _, x, t, _ in xs])
+        K = [k for k, _, _, _ in xs]
+        last = -1e9
+        for i in range(W_, len(xs) - W_ + 1):
+            n = max(1, K[i] - K[i - 1])
+            if n > 12:                                  # a gap of a second: SAM lost and found it, not a jump
+                continue
+            if np.hypot(*(P[i] - P[i - 1])) <= JUMP_PX * n:
+                continue
+            before, after = np.median(P[i - W_:i], 0), np.median(P[i:i + W_], 0)
+            if np.hypot(*(after - before)) > JUMP_PX * n and K[i] / FPS - last > 1.5:
+                out.setdefault(piece, []).append(round(K[i] / FPS, 2))
+                last = K[i] / FPS
+    f.parent.mkdir(parents=True, exist_ok=True)
+    json.dump(out, open(f, 'w'))
+    return out
+
+
+def _cut(s, piece, t):
+    cuts = s.setdefault('cuts', {})
+    cuts[piece] = sorted(set(cuts.get(piece, []) + [t]))
+    for p in [p for p in list(s['sides']) if str(p).split('.')[0] == piece]:   # marks follow their part
+        for m in s['sides'].pop(p):
+            s['sides'].setdefault(eff(cuts, piece, m[0]), []).append(m)
+    for p in list(s['sides']):
+        s['sides'][p] = sorted(s['sides'][p])
+
+
 def migrate(tag, s):
     """Marks made on ReID numbers (before 07.10 20:15) -> the SAM track that number covered at that moment."""
     if s.get('ids') == 'piece':
@@ -175,14 +223,25 @@ def change(day, body):
             s['points'].pop(pid, None)
             s['sides'].pop(pid, None)
         elif act == 'cut':                         # body: person (the SAM track), t -- another person from t on
-            piece, t = str(body['person']).split('.')[0], round(float(body['t']), 2)
-            cuts = s.setdefault('cuts', {})
-            cuts[piece] = sorted(set(cuts.get(piece, []) + [t]))
-            for p in [p for p in list(s['sides']) if str(p).split('.')[0] == piece]:   # marks follow their part
-                for m in s['sides'].pop(p):
-                    s['sides'].setdefault(eff(cuts, piece, m[0]), []).append(m)
-            for p in list(s['sides']):
-                s['sides'][p] = sorted(s['sides'][p])
+            _cut(s, str(body['person']).split('.')[0], round(float(body['t']), 2))
+        elif act == 'autocut':                     # 09.10: NOT used by the page -- checked by eye on 6 cuts of 18.09: most
+                                                   # were SAM's piece hopping over one person's body (leg -> head) or a
+                                                   # person behind the round sticker, not another person
+            if not s.get('done') and not s.get('auto_applied'):
+                n = 0
+                for piece, ts in auto_cuts(tag).items():
+                    for t in ts:
+                        _cut(s, piece, t)
+                        n += 1
+                s['auto_applied'] = n
+                s['auto_cuts'] = auto_cuts(tag)
+        elif act == 'staff':                       # 09.10: this person is staff (toggle), the whole person over merges
+            r = root_of(s.setdefault('merge', {}), body['person'])
+            sl = s.setdefault('staff', [])
+            if r in sl:
+                sl.remove(r)
+            else:
+                sl.append(r)
         elif act == 'uncut':
             piece = str(body['person']).split('.')[0]
             s.setdefault('cuts', {}).pop(piece, None)
@@ -242,7 +301,9 @@ def register(app, root=None):
             elif s.get('ids') != 'piece':
                 s = migrate(x['tag'], s)
             out.append(dict(x, sides=s['sides'], points=s['points'], done=s['done'], merge=s.get('merge', {}),
-                            noperson=s.get('noperson', []), role=s.get('role', 'test'), cuts=s.get('cuts', {}), events=events(s['sides'], s.get('merge'), s.get('noperson', []))))
+                            noperson=s.get('noperson', []), role=s.get('role', 'test'), cuts=s.get('cuts', {}),
+                            staff=s.get('staff', []), auto_applied=s.get('auto_applied'), auto_cuts=s.get('auto_cuts', {}),
+                            events=events(s['sides'], s.get('merge'), s.get('noperson', []))))
         return jsonify({'day': day, 'stretches': out, 'fps': FPS})
 
     @app.get('/api/doorside/outlines/<tag>')

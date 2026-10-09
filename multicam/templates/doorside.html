@@ -42,6 +42,7 @@ kbd{background:#333;border-radius:3px;padding:0 4px}
       <kbd>C</kbd> с этого кадра в треке другой человек (разрезать) ·
       <kbd>X</kbd> это не человек (скрыть; ещё раз — вернуть) ·
       <kbd>M</kbd> затем щелчок — это тот же человек (ноги и торс, кусок после стойки) · <kbd>U</kbd> расклеить<br>
+      <kbd>W</kbd> выбранный — сотрудник (ещё раз — снять)<br>
       <kbd>Пробел</kbd> пауза · <kbd>←</kbd><kbd>→</kbd> кадр · <kbd>Shift</kbd>+стрелки 1 с · <kbd>[</kbd><kbd>]</kbd> скорость<br>
       <kbd>Tab</kbd> следующий человек в кадре · <kbd>N</kbd> следующий отрезок · <kbd>D</kbd> размечен целиком · <kbd>T</kbd> отрезок для обучения / теста<br>
       Смена «снаружи → внутри» = <b style="color:var(--in)">ВХОД</b>, обратно = <b style="color:var(--out)">ВЫХОД</b>.
@@ -99,7 +100,7 @@ function draw(){
     g.beginPath();poly.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();
     g.fillStyle=col+'33';g.fill();g.lineWidth=String(p)===String(sel)?6:3;g.strokeStyle=String(p)===String(sel)?'#ffd600':col;g.stroke();
     const top=poly.reduce((a,b)=>b[1]<a[1]?b:a);
-    g.font='bold 26px system-ui';g.lineWidth=6;g.strokeStyle='#000';const txt=`${label(p)} ${s=='in'?'ВНУТРИ':s=='out'?'СНАРУЖИ':'?'}`;
+    g.font='bold 26px system-ui';g.lineWidth=6;g.strokeStyle='#000';const txt=`${label(p)}${(cur.staff||[]).includes(String(p))?' СОТР.':''} ${s=='in'?'ВНУТРИ':s=='out'?'СНАРУЖИ':'?'}`;
     g.strokeText(txt,top[0]-50,Math.max(28,top[1]-10));g.fillStyle=col;g.fillText(txt,top[0]-50,Math.max(28,top[1]-10))}
   for(const [pid,[x,y,t0]] of Object.entries(cur.points||{})){
     const s=sideAt(pid,t),col=COL[s];g.beginPath();g.arc(x,y,14,0,7);g.lineWidth=pid===String(sel)?6:4;g.strokeStyle=pid===String(sel)?'#ffd600':col;g.stroke();
@@ -157,6 +158,8 @@ document.addEventListener('keydown',async e=>{
   if(code=='KeyC'||k=='c'||k=='с'){const here=peopleNow().map(x=>String(x[0])).filter(p=>root(eff(p))===String(sel));
     const piece=selPiece&&here.includes(selPiece)?selPiece:here[0];if(!piece){msg('выбери человека в этом кадре');return}
     await send({act:'cut',person:piece,t:now()});sel=root(eff(piece));$('#sel').textContent=label(sel);msg('трек T'+piece+' разрезан: с этого кадра другой человек ('+label(sel)+')');return}
+  if(code=='KeyW'||k=='w'||k=='ц'){if(sel==null){msg('сначала выбери человека');return}const was=(cur.staff||[]).includes(root(sel));
+    await send({act:'staff',person:root(sel)});msg(label(root(sel))+(was?' — не сотрудник':' — СОТРУДНИК'));return}
   if(code=='KeyL'||k=='l'||k=='д'){v.pause();lineMode=1;linePts=[];msg('линия: щёлкни два конца, потом сторону ВНУТРИ магазина');return}
   if(code=='KeyT'||k=='t'||k=='е'){const r=(cur.role||'test')=='train'?'test':'train';await send({act:'role',role:r});msg(r=='train'?'отрезок — ОБУЧЕНИЕ':'отрезок — ТЕСТ');renderLists();return}
   if(code=='KeyU'||k=='u'||k=='г'){if(sel!=null){await send({act:'unmerge',person:root(sel)});msg('расклеено')}return}
