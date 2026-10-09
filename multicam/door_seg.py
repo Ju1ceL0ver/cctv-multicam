@@ -328,7 +328,8 @@ def sample(src, rng, train=True, at=None, cache=None):
                     v[i] = True
         off.append(o4)
         offv.append(v)
-    return {'img': img, 'idx': idx, 'boxes': np.array(boxes, np.float32).reshape(-1, 4),
+    return {'img': img, 'idx': idx, 'meta': {'source': str(src.d), 'session': s, 'tick': k},
+            'boxes': np.array(boxes, np.float32).reshape(-1, 4),
             'off': np.array(off, np.float32).reshape(-1, 4), 'offv': np.array(offv, bool).reshape(-1, 2)}
 
 
@@ -511,6 +512,7 @@ def evaluate(net, n=int(os.environ.get('RA_DS_EVAL_N', 150)), seed=7):
     rng = random.Random(seed)
     srcs = [s for s in (Source(d) for d in sources(test=True)) if s.starts]
     picks = [(src, src.starts[rng.randrange(len(src.starts))]) for src in rng.choices(srcs, k=n)]
+    was_training = net.yolo.training
     net.yolo.eval()
     tot = dict(truth=0, pred=0, hit=0, iou=0.0, links=0, links_ok=0)
     times = []
@@ -549,11 +551,44 @@ def evaluate(net, n=int(os.environ.get('RA_DS_EVAL_N', 150)), seed=7):
                 tot['links'] += 1
                 tot['links_ok'] += who0.get(near) == ids1[j]
             src.close()
-    net.yolo.train()
+    net.yolo.train(was_training)
     f = tot['hit'] / max(1, tot['truth']); p = tot['hit'] / max(1, tot['pred'])
     return {'found': round(f, 4), 'precision': round(p, 4), 'f1': round(2 * f * p / max(1e-9, f + p), 4),
             'mask_iou': round(tot['iou'] / max(1, tot['hit']), 4), 'links': round(tot['links_ok'] / max(1, tot['links']), 4),
             'n_links': tot['links'], 'truth': tot['truth'], 'ms_per_frame': round(1000 * float(np.median(times)), 1) if times else None}
+
+
+def checkpoint_finite(st):
+    """Reject nonfinite model/optimizer state before loading or replacing a good checkpoint."""
+    import torch
+    def visit(x, path):
+        if torch.is_tensor(x):
+            if x.is_floating_point() and not bool(torch.isfinite(x).all()):
+                raise ValueError('nonfinite checkpoint tensor: %s' % path)
+        elif isinstance(x, dict):
+            for k, v in x.items():
+                visit(v, '%s.%s' % (path, k))
+        elif isinstance(x, (list, tuple)):
+            for i, v in enumerate(x):
+                visit(v, '%s.%d' % (path, i))
+    visit(st.get('model', {}), 'model')
+    visit(st.get('opt', {}), 'opt')
+
+
+def plateau(evals, patience=3, min_delta=0.005, interval=2000):
+    """Finite evaluations spaced >= interval; patience failures to improve the running best."""
+    best, stale, last = None, 0, None
+    for step, f1 in evals:
+        if not math.isfinite(f1) or (last is not None and step - last < interval):
+            continue
+        last = step
+        if best is None or f1 >= best + min_delta:
+            best, stale = f1, 0
+        else:
+            stale += 1
+        if stale >= patience:
+            return True
+    return False
 
 
 def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
@@ -564,21 +599,52 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
     dev = 'cuda'
     run = ROOT / 'runs' / name
     run.mkdir(parents=True, exist_ok=True)
+    lr = float(os.environ.get('RA_DS_LR', lr))
     net = DoorSeg(dev)
     opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
     step = 0
-    if (run / 'last.pt').exists():
-        st = torch.load(run / 'last.pt', map_location='cpu', weights_only=False)
-        net.load(st['model']); opt.load_state_dict(st['opt']); step = st['step']
-        say(run, 'продолжаю с шага %d' % step)
+    resume = Path(os.environ.get('RA_DS_RESUME', str(run / 'last.pt')))
+    if resume.exists():
+        st = torch.load(resume, map_location='cpu', weights_only=False)
+        checkpoint_finite(st)
+        net.load(st['model'])
+        if 'opt' in st:
+            opt.load_state_dict(st['opt'])
+        step = st['step']
+        say(run, 'продолжаю с шага %d (%s; optimizer %s)' % (step, resume, 'restored' if 'opt' in st else 'fresh'))
     elif os.environ.get('RA_DS_INIT'):                          # the next version: the previous one's weights, a fresh optimizer
-        net.load(torch.load(os.environ['RA_DS_INIT'], map_location='cpu', weights_only=False)['model'])
-        lr = float(os.environ.get('RA_DS_LR', lr))
+        st = torch.load(os.environ['RA_DS_INIT'], map_location='cpu', weights_only=False)
+        checkpoint_finite(st)
+        net.load(st['model'])
         say(run, 'старт от %s, lr %g, склеенные номера: %s, до %s' % (os.environ['RA_DS_INIT'], lr,
                                                                     os.environ.get('RA_DS_GLUED') == '1', stop))
     else:
         say(run, 'старт: YOLO26s-seg на %d каналах (кадр, пустой зал, разницы t-5..t+5, люди t-1) 1280x736 + смещения к t-1/t+1, '
                  'учитель SAM 3.1, пачка %d, до %s' % (C, batch, stop))
+    net.yolo.train()
+    net.off.train()
+    # Restore the criterion's actual decay, not just the local step counter.
+    net.yolo.criterion = net.yolo.init_criterion()
+    for _ in range(step // 2000):
+        net.yolo.criterion.update()
+    precision = os.environ.get('RA_DS_PRECISION', st.get('precision', 'bf16') if step else 'bf16')
+    if precision not in ('bf16', 'fp32'):
+        raise ValueError('RA_DS_PRECISION must be bf16 or fp32')
+    say(run, 'training mode on; precision %s; nonfinite loss/gradient guard on' % precision)
+    import re
+    evs = []
+    if (run / 'progress.md').exists():
+        text = (run / 'progress.md').read_text(encoding='utf-8')
+        evs = [(int(m[1]), json.loads(m[2])['f1']) for m in
+               re.finditer(r'шаг (\d+): против SAM 3.1 на 23.09 (\{.*\})', text) if int(m[1]) <= step]
+    def save(path, evaluation=None):
+        state = {'model': net.state(), 'opt': opt.state_dict(), 'step': step, 'precision': precision}
+        if evaluation is not None:
+            state['eval'] = evaluation
+        checkpoint_finite(state)
+        tmp = path.with_suffix('.tmp')
+        torch.save(state, tmp)
+        os.replace(tmp, path)
     q = mp.Queue(maxsize=64)
     ps = [mp.Process(target=stream, args=(1000 * step + i, q), daemon=True) for i in range(workers)]
     for p in ps:
@@ -586,8 +652,10 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
     hh, mm = map(int, stop.split(':'))
     t_end = time.time() + ((hh * 60 + mm) - (time.localtime().tm_hour * 60 + time.localtime().tm_min)) % 1440 * 60
     t_save, t_eval, acc, pool, POOL = time.time(), time.time(), {}, [], 96
+    last_eval_step = step
+    eval_steps = int(os.environ.get('RA_DS_EVAL_STEPS', 2000))
     crit_updates = step // 2000
-    while time.time() < t_end and not (run / 'STOP').exists():
+    while time.time() < t_end and not (run / 'STOP').exists() and not (run / 'PAUSE').exists():
         while len(pool) < POOL:                              # examples of one pass are neighbours: mix them
             pool.append(q.get())
         xs = []
@@ -598,15 +666,48 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
         f = min(1.0, (step + 1) / 500) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * min(1.0, step / total))))
         for g in opt.param_groups:
             g['lr'] = lr * f
-        with torch.autocast('cuda', dtype=torch.bfloat16):
-            img = b['img'].float() / 255
-            preds = net.yolo(img)
-            loss, items = net.yolo.loss(b, preds)
-            lo = offset_loss(net.off(net.feat), b, off, offv)
-        total_loss = loss.sum() + 2.0 * batch * lo
-        opt.zero_grad(set_to_none=True)
-        total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 10.0)
+        buffers = {k: v.clone() for k, v in net.yolo.named_buffers()}
+        failed = None
+        for attempt in range(2):
+            opt.zero_grad(set_to_none=True)
+            try:
+                with torch.autocast('cuda', dtype=torch.bfloat16, enabled=precision == 'bf16' and attempt == 0):
+                    img = b['img'].float() / 255
+                    preds = net.yolo(img)
+                    loss, items = net.yolo.loss(b, preds)
+                    lo = offset_loss(net.off(net.feat), b, off, offv)
+                total_loss = loss.sum() + 2.0 * batch * lo
+                if not bool(torch.isfinite(total_loss)):
+                    raise FloatingPointError('nonfinite loss: %s, offset %s' % (items, lo.detach()))
+                total_loss.backward()
+                torch.nn.utils.clip_grad_norm_(net.parameters(), 10.0, error_if_nonfinite=True)
+                if failed:
+                    precision = 'fp32'
+                    say(run, 'шаг %d: same batch finite in FP32; switching subsequent steps to FP32' % step)
+                break
+            except (FloatingPointError, RuntimeError) as exc:
+                if isinstance(exc, RuntimeError) and 'non-finite' not in str(exc):
+                    raise
+                with torch.no_grad():
+                    for k, v in net.yolo.named_buffers():
+                        v.copy_(buffers[k])
+                if failed is None:
+                    failed = str(exc)
+                    bad = [n for n, p in list(net.yolo.named_parameters()) + [('off.' + n, p) for n, p in net.off.named_parameters()]
+                           if p.grad is not None and not bool(torch.isfinite(p.grad).all())]
+                    say(run, 'шаг %d rejected before optimizer: %s; bad grads %s' % (step, failed, bad[:12]))
+                    torch.save({'samples': xs, 'step': step, 'reason': failed, 'bad_grad_names': bad}, run / ('rejected_%d.pt' % step))
+                    save(run / ('before_rejected_%d.pt' % step))
+                if attempt == 1 or precision == 'fp32':
+                    (run / 'STOP').write_text('nonfinite in FP32 at step %d: %s' % (step, exc), encoding='utf-8')
+                    say(run, 'same batch failed in FP32; stopped safely before optimizer')
+                    break
+                # Release the rejected graph before the FP32 retry (otherwise
+                # both graphs would occupy the card during its next forward).
+                preds = loss = lo = total_loss = None
+                net.feat = None
+        if (run / 'STOP').exists():
+            break
         opt.step()
         step += 1
         while step // 2000 > crit_updates:                       # YOLO26: one-to-many weight decays as epochs pass
@@ -620,18 +721,23 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
                                          lr=round(lr * f, 7), t=round(time.time()))) + '\n')
             acc = {}
         if time.time() - t_save > 600:
-            torch.save({'model': net.state(), 'opt': opt.state_dict(), 'step': step}, run / 'last.tmp')
-            os.replace(run / 'last.tmp', run / 'last.pt')
+            save(run / 'last.pt')
             t_save = time.time()
-        if time.time() - t_eval > EVAL_MIN * 60:
+        if step - last_eval_step >= eval_steps:
             r = evaluate(net)
             say(run, 'шаг %d: против SAM 3.1 на 23.09 %s' % (step, json.dumps(r)))
-            torch.save({'model': net.state(), 'step': step, 'eval': r}, run / ('step%d.pt' % step))
+            save(run / ('step%d.pt' % step), r)
+            evs.append((step, r['f1']))
+            if plateau(evs):
+                (run / 'STOP').write_text('plateau: three spaced evaluations without +0.5 percentage points: %s' % evs,
+                                          encoding='utf-8')
             t_eval = time.time()
-    torch.save({'model': net.state(), 'opt': opt.state_dict(), 'step': step}, run / 'last.tmp')
-    os.replace(run / 'last.tmp', run / 'last.pt')
+            last_eval_step = step
+    save(run / 'last.pt')
     if (run / 'STOP').exists():                                  # stopped on a plateau: the last check says it already
         say(run, 'стоп на шаге %d (STOP: %s)' % (step, (run / 'STOP').read_text(encoding='utf-8')[:200]))
+    elif (run / 'PAUSE').exists():
+        say(run, 'пауза на шаге %d: карта уступлена живой двери' % step)
     else:
         r = evaluate(net)
         say(run, 'стоп на шаге %d: против SAM 3.1 на 23.09 %s' % (step, json.dumps(r)))
