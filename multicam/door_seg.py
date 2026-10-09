@@ -572,8 +572,11 @@ def train(name, stop='20:50', batch=6, workers=8, lr=2e-4, total=60000):
             t_eval = time.time()
     torch.save({'model': net.state(), 'opt': opt.state_dict(), 'step': step}, run / 'last.tmp')
     os.replace(run / 'last.tmp', run / 'last.pt')
-    r = evaluate(net)
-    say(run, 'стоп на шаге %d: против SAM 3.1 на 23.09 %s' % (step, json.dumps(r)))
+    if (run / 'STOP').exists():                                  # stopped on a plateau: the last check says it already
+        say(run, 'стоп на шаге %d (STOP: %s)' % (step, (run / 'STOP').read_text(encoding='utf-8')[:200]))
+    else:
+        r = evaluate(net)
+        say(run, 'стоп на шаге %d: против SAM 3.1 на 23.09 %s' % (step, json.dumps(r)))
     for p in ps:
         p.terminate()
 
