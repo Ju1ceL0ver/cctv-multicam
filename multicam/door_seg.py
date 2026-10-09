@@ -41,6 +41,7 @@ GW, GH = W // 8, HP // 8                 # the displacements: stride 8 (160 x 92
 PAST, FUT = (1, 2, 3, 4, 5), (1, 2, 3, 4, 5)   # the owner: every frame from t-5 to t+5 (0.4 s each way)
 C = 3 + 3 + len(PAST) + len(FUT) + 1
 OFF_SCALE = 16.0                         # input pixels per unit of the displacement head
+MAX_STEP = 64.0                          # px of 1280 in one tick (0.08 s): more is two people under one number
 DIFF_GAIN = 4                            # differences are small: x4, clipped to 255
 BGS = ROOT / 'data' / 'seg_datasets' / 'backgrounds'
 EVAL_MIN = 30
@@ -124,6 +125,14 @@ class Source:
         name = d.parent.name
         self.day, self.cam = name[:8], d.name
         self.cap = None
+        self.ident = glued_ids(d, self.M) if os.environ.get('RA_DS_GLUED') == '1' else None
+        if self.ident is not None:                 # numbers across sessions: any row of a tick, one per person
+            self.by_tick = {}
+            for i in range(len(rows)):
+                if i in self.ident:
+                    self.by_tick.setdefault(int(rows[i, 1]), []).append(i)
+            self.starts = [(None, k) for k in self.by_tick
+                           if k - max(PAST) >= 0 and k + max(FUT) < self.n and (k - 1) in self.by_tick and (k + 1) in self.by_tick]
 
     def read(self, a, b):
         """{tick: 1280 x 720 BGR} for ticks a .. b-1, one seek and one pass"""
@@ -147,10 +156,15 @@ class Source:
         return {o: got[k + o] for o in want}
 
     def people(self, s, k):
-        """{obj: (mask 720 x 1280 uint8, box x1 y1 x2 y2 in 1280 x 720)} of session s at tick k"""
+        """{obj: (mask 720 x 1280 uint8, box x1 y1 x2 y2 in 1280 x 720)} of session s at tick k; with glued numbers
+        (RA_DS_GLUED) {person: ...} of every session at k, one row per person"""
         out = {}
         sx, sy = W / self.vw, H / self.vh
-        for r in self.sess[s].get(k, []):
+        rows_k = self.sess[s].get(k, []) if self.ident is None else self.by_tick.get(k, [])
+        for r in rows_k:
+            key = int(self.M.rows[r, 2]) if self.ident is None else self.ident[r]
+            if key in out:
+                continue
             x1, y1, x2, y2 = [float(v) for v in self.M.rows[r, 4:8]]
             c = self.M.crop(r).astype(np.uint8)
             X1, Y1 = int(round(x1 * sx)), int(round(y1 * sy))
@@ -161,13 +175,49 @@ class Source:
             if m.sum() < 30:
                 continue
             ys, xs = np.nonzero(m)
-            out[int(self.M.rows[r, 2])] = (m, np.array([xs.min(), ys.min(), xs.max() + 1, ys.max() + 1], np.float32))
+            out[key] = (m, np.array([xs.min(), ys.min(), xs.max() + 1, ys.max() + 1], np.float32))
         return out
 
     def close(self):
         if self.cap is not None:
             self.cap.release()
             self.cap = None
+
+
+def glued_ids(d, M):
+    """{row of chunks.npz: person} for a source whose people are known across SAM's sessions, else None:
+    - a door stretch the owner went through on /doorside with the role 'train': his people -- SAM's tracks linked over
+      the session seams (door_side.outlines), cut where he cut (door_side.eff), merged where he merged (root_of);
+      tracks he marked 'not a person' have no row here (they are no one to learn);
+    - a SAM 3.1 window with v2 targets: the window's person of each row (ReID glued over sessions, v2_prep)."""
+    TICK = 0.08
+    if d.parent.parent.name == 'sam31_door':
+        tag = d.parent.name
+        f = ROOT / 'data' / 'door_side' / ('%s.json' % tag.split('_')[1])
+        if not f.exists():
+            return None
+        st = json.load(open(f, encoding='utf-8')).get(tag)
+        if not st or not st.get('done') or st.get('role') != 'train':
+            return None
+        import door_side as DSD
+        import sam31_reid as R
+        info = json.load(open(d / 'info.json'))
+        owned, _ = R.link_seams(M, {int(s_): int(sh) for s_, e_, sh in info['sessions']})
+        nop = {str(x) for x in st.get('noperson', [])}
+        out = {}
+        for piece, rs in owned.items():
+            for r in rs:
+                e = DSD.eff(st.get('cuts'), piece, int(M.rows[r, 1]) * TICK)
+                root = DSD.root_of(st.get('merge', {}), e)
+                if e in nop or root in nop or str(piece) in nop:
+                    continue
+                out[int(r)] = 'o' + root
+        return out
+    v2 = ROOT / 'data' / 'v2' / d.parent.name / d.name / 'rows.npz'
+    if v2.exists():
+        z = np.load(v2)
+        return {int(r): 'p%d' % int(p) for r, p in zip(z['r'], z['person'])}
+    return None
 
 
 def spoil(masks, rng):
@@ -214,8 +264,10 @@ def sample(src, rng, train=True, at=None, cache=None):
         for i, other in enumerate((before, after)):
             if o in other:
                 bb = other[o][1]
-                o4[2 * i:2 * i + 2] = [(bb[0] + bb[2]) / 2 - c[0], (bb[1] + bb[3]) / 2 - c[1]]
-                v[i] = True
+                dd = [(bb[0] + bb[2]) / 2 - c[0], (bb[1] + bb[3]) / 2 - c[1]]
+                if max(abs(dd[0]), abs(dd[1])) <= MAX_STEP:      # a jump is a wrong glue, not a step: no target
+                    o4[2 * i:2 * i + 2] = dd
+                    v[i] = True
         off.append(o4)
         offv.append(v)
     return {'img': img, 'idx': idx, 'boxes': np.array(boxes, np.float32).reshape(-1, 4),
@@ -234,7 +286,8 @@ def stream(seed, q, test=False):
             continue
         if s.starts:
             srcs.append(s)
-    weights = [math.sqrt(len(s.starts)) for s in srcs]
+    weights = [math.sqrt(len(s.starts)) * (3.0 if s.ident is not None and s.d.parent.parent.name == 'sam31_door' else 1.0)
+               for s in srcs]
     last = None
     while True:
         src = rng.choices(srcs, weights)[0]
@@ -244,7 +297,7 @@ def stream(seed, q, test=False):
         try:                                               # one pass of 26 frames -> up to 8 examples, 2 ticks apart
             s, k0 = rng.choice(src.starts)
             cache = src.read(k0 - max(PAST), k0 + 15 + max(FUT) + 1)
-            by = src.sess[s]
+            by = src.sess[s] if src.ident is None else src.by_tick
             for k in range(k0, k0 + 16, 2):
                 if (k - 1) in by and k in by and (k + 1) in by:
                     x = sample(src, rng, at=(s, k), cache=cache)
