@@ -458,11 +458,8 @@ class Live:
             # the model is needed unless the line alone already decides (a piece past the line = inside in these modes)
             need = mode != 'line' and not (mode in ('either_in+both_out', 'line_in+both_out', 'line_in+model_out', 'model+line_in')
                                            and d is not None and d >= self.side['h_in'])
-            if need:
-                try:
-                    self.pending[key] = feats()                  # the forest runs once per session
-                except ValueError:
-                    pass
+            if need:                                         # the forest runs once per session; the features of
+                self.pending[key] = self._pool().submit(feats)   # many people at once (09.10: 3300 rows in a crowd)
             self.raw[key] = (t, d, top, hh, bx, None, foot_xy)
             return
         if isinstance(mask, tuple):                          # the older settings want the whole-frame mask
@@ -493,6 +490,13 @@ class Live:
                 p = 1.0                                     # the owner's shop line: a piece of mask past it = inside
         self.obs[key] = (t, p, foot_xy)
 
+    def _pool(self):
+        """09.10: threads for the side features (numpy and OpenCV let go of the interpreter lock)"""
+        if getattr(self, '_feat_pool', None) is None:
+            from concurrent.futures import ThreadPoolExecutor
+            self._feat_pool = ThreadPoolExecutor(max_workers=int(os.environ.get('RA_SIDE_THREADS', '4')))
+        return self._feat_pool
+
     def forget(self, win_id):
         """09.10: a live window's observations once its folder is gone -- at stride 3 a day holds ~800 000 of them, and
         every session went through all of them"""
@@ -508,8 +512,15 @@ class Live:
             import door_line
             sd = self.side
             if self.pending:                                # 08.10: one forest call for the whole session
+                feats = {}
+                for k, f in self.pending.items():            # 09.10: computed in threads (add); same order as added
+                    try:
+                        feats[k] = f.result() if hasattr(f, 'result') else f
+                    except Exception:                        # an empty or odd mask: that row has no model vote
+                        pass
+                self.pending = feats
                 keys = list(self.pending)
-                ps = self.clf.p_inside_batch([self.pending[k] for k in keys])
+                ps = self.clf.p_inside_batch([self.pending[k] for k in keys]) if keys else []
                 for k, p in zip(keys, ps):
                     r = self.raw[k]
                     self.raw[k] = r[:5] + (float(p),) + r[6:]

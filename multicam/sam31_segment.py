@@ -211,6 +211,20 @@ def fast_planning_copy():
     VB.Sam3VideoBase._fast_copy = True
 
 
+def trim_cached_outputs(pred, sid, frame_idx, keep=32):
+    """09.10: SAM 3.1 keeps every frame's finished outputs of a session on the card (state['cached_frame_outputs'],
+    ~8 MB a frame in a busy scene, ~2 GB at the end of 240 frames) although they are handed out already; the frames older
+    than `keep` before the one just handed out are dropped. Checked: the same masks and ids (sam31_trim_check.py)."""
+    try:
+        cache = pred._all_inference_states[sid]['state'].get('cached_frame_outputs')
+    except (AttributeError, KeyError, TypeError):
+        return
+    if not isinstance(cache, dict):
+        return
+    for k in [k for k in cache if isinstance(k, int) and k < frame_idx - keep]:
+        del cache[k]
+
+
 def build():
     import inspect
     import torch
@@ -305,9 +319,12 @@ def label(pred, out, sess, deadline, prev=None, out_size=None, compress=True, st
             first = pred.handle_request(dict(type='add_prompt', session_id=sid, frame_index=0, text='person'))
             local[0] = pool.submit(post, 0, SV.masks_of(first.get('outputs', {}) or {}, (SAM_IN, SAM_IN)))
             try:
+                trim = int(os.environ.get('RA_S31_TRIMCACHE', '0'))   # 09.10: drop handed-out outputs (sam31_trim_check.py)
                 for resp in pred.handle_stream_request(dict(type='propagate_in_video', session_id=sid, propagation_direction='forward')):
                     kl = int(resp.get('frame_index', len(local)))
                     local[kl] = pool.submit(post, kl, SV.masks_of(resp.get('outputs', {}) or {}, (SAM_IN, SAM_IN)))
+                    if trim:
+                        trim_cached_outputs(pred, sid, kl, trim)
             except RuntimeError as exc:                 # 07.10: a session with nobody found -- SAM raises instead of
                 if 'No points are provided' not in str(exc):    # returning nothing (the small detector, 19.09)
                     raise

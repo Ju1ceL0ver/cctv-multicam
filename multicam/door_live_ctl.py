@@ -74,9 +74,11 @@ def start(until='21:00'):
         env['RA_S31_CUDAGRAPHS'] = '0'
     if side.get('keep_poster'):                   # 09.10: no detection dropped on the advertising stand's box
         env['RA_KEEP_POSTER'] = '1'
+    if side.get('trim_cache'):                    # 09.10: SAM's handed-out frame outputs dropped (~2 GB less at 240)
+        env['RA_S31_TRIMCACHE'] = str(int(side['trim_cache']))
     if side.get('fps_scale'):                     # 08.10: SAM 3.1's track rules counted in frames of this stride
         env['RA_S31_FPS_SCALE'] = str(side.get('stride', 6))
-    args = [SAM3, str(ROOT / 'door_live.py'), STUDENT, '-', RULE]
+    args = [SAM3, '-X', 'faulthandler', str(ROOT / 'door_live.py'), STUDENT, '-', RULE]   # 09.10: a crash leaves its stack
     if side.get('compile'):                       # 08.10: SAM 3.1's own torch.compile -- needs the MSVC environment
         env['RA_S31_COMPILE'] = '1'
         args = 'call "%s" >nul && %s' % (VCVARS, subprocess.list2cmdline(args))
