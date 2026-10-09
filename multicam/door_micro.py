@@ -78,7 +78,7 @@ def build(ckpt, heads=None):
     pred = S.build()
     pred.model.detector.backbone.vision_backbone.trunk = SD.load_student(ckpt)
     if os.environ.get('RA_KEEP_POSTER') != '1':
-        no_poster(pred)
+        no_poster(pred, min_iou=float(os.environ.get('RA_POSTER_IOU', 0.5)))   # 09.10: 0.85 = only the stand itself
     import sam31_lite_eval as SL                      # 07.10: RA_S31_NEWDET / RA_S31_SCORE thresholds
     SL.tune(pred)
     if heads:
