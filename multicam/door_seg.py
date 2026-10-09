@@ -63,7 +63,21 @@ def sources(test=False):
         return sorted(p for p in (ROOT / 'data' / 'sam31_seg').glob(TEST_DAY + '*/cam*')
                       if (p / 'video.mp4').exists() and (p / 'chunks.npz').exists())
     import sam31_e2e_det as E
-    return E.sources()
+    out = E.sources()
+    # 10.10: the owner's own /doorside 'train' stretches of 18.09 too (the teacher's 18.09 door stays out otherwise)
+    f = ROOT / 'data' / 'door_side' / '20260918.json'
+    if f.exists():
+        st = json.load(open(f, encoding='utf-8'))
+        for tag, v in st.items():
+            d = ROOT / 'data' / 'sam31_door' / tag / 'cam1'
+            if v.get('done') and v.get('role') == 'train' and (d / 'video.mp4').exists() and (d / 'chunks.npz').exists():
+                out.append(d)
+    test = set()                                       # the owner's 'test' stretches: never seen in training
+    for f in (ROOT / 'data' / 'door_side').glob('2026????.json'):
+        for tag, v in json.load(open(f, encoding='utf-8')).items():
+            if v.get('role', 'test') != 'train':
+                test.add(tag)
+    return [d for d in out if not (d.parent.parent.name == 'sam31_door' and d.parent.name in test)]
 
 
 _BG = {}
@@ -227,7 +241,7 @@ def glued_ids(d, M):
     """{row of chunks.npz: person} for a source whose people are known across SAM's sessions, else None:
     - SAM's tracks linked over the session seams (masks in the overlap, sam31_reid.link_seams) and a track gone and
       back near the same place soon after (relink) -- never by appearance;
-    - a door stretch the owner went through on /doorside with the role 'train': on top, cut where he cut
+    - a door stretch the owner went through on /doorside with the role 'train' (any day: his T): on top, cut where he cut
       (door_side.eff) and merged where he merged (root_of); tracks he marked 'not a person' have no row here."""
     import sam31_reid as R
     TICK = 0.08
@@ -242,8 +256,6 @@ def glued_ids(d, M):
         st = json.load(open(f, encoding='utf-8')).get(tag) if f.exists() else None
         if not st or not st.get('done') or st.get('role') != 'train':
             st = None
-        elif tag.split('_')[1] != '20260917':
-            st = None                                      # 18-19.09 on /doorside stay the check
     out = {}
     if st is not None:
         import door_side as DSD
