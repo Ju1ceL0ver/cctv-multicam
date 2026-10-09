@@ -313,7 +313,8 @@ def people(win, combo=None, bank=None):
             rows.setdefault(t, []).append({'w': w, 's': round(float(M.rows[r_, 3]), 3),
                                            'box': [round((x1 + x2) / 2 / W, 4), round((y1 + y2) / 2 / (H * 1248 / 1224), 4),
                                                    round((x2 - x1) / W, 4), round((y2 - y1) / (H * 1248 / 1224), 4)],
-                                           'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p)})
+                                           'foot': [x1 + f[0], y1 + f[1]] if f else None, 'new': False, 'piece': int(p),
+                                           'row': int(r_)})
     win.timing = dict({'link': round(t_link, 1), 'rows': round(time.time() - t_people - t_link, 1)},
                       **{k_: round(v_, 1) for k_, v_ in prof.items()})
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
@@ -332,7 +333,7 @@ def snapshot(win, ticks, e):
             continue
         for q in r['p']:
             if '%s:%d' % (win.id, q['w']) in want and (best is None or abs(r['t'] - e['t']) < abs(best[0] - e['t'])):
-                best = (r['t'], q['box'])
+                best = (r['t'], q['box'], q.get('row'))
     if best is None:
         return '', ''
     k = min(max(0, bisect.bisect_left(win.times, best[0] - 0.005)), len(win.times) - 1)
@@ -343,6 +344,22 @@ def snapshot(win, ticks, e):
     sy = 720 * 1248 / 1224                               # people() boxes: x by W, y by H * 1248 / 1224
     cx, cy, bw, bh = best[1][0] * 1280, best[1][1] * sy, best[1][2] * 1280, best[1][3] * sy
     x1, y1, x2, y2 = int(cx - bw / 2), int(cy - bh / 2), int(cx + bw / 2), int(cy + bh / 2)
+    if best[2] is not None:                              # 10.10: the person's main piece of the mask, not a stray bit
+        try:                                             # elsewhere (a SAM mask in two parts made a box over two people)
+            import sam31_reid as R
+            M = R.Masks(win.dir / 'chunks.npz')
+            r = best[2]
+            c = M.crop(r).astype(np.uint8)
+            n, lab, st, _ = cv2.connectedComponentsWithStats(c)
+            if n > 2:
+                j = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA]))
+                sc = 1280.0 / W
+                ox, oy = float(M.rows[r, 4]), float(M.rows[r, 5])
+                x1, y1 = int((ox + st[j, 0]) * sc), int((oy + st[j, 1]) * sc)
+                x2, y2 = int((ox + st[j, 0] + st[j, 2]) * sc), int((oy + st[j, 1] + st[j, 3]) * sc)
+                bw, bh = x2 - x1, y2 - y1
+        except Exception:
+            pass
     px, py = int(0.15 * bw) + 4, int(0.08 * bh) + 4
     crop = fr[max(0, y1 - py):min(720, y2 + py), max(0, x1 - px):min(1280, x2 + px)].copy()
     cv2.rectangle(fr, (x1, y1), (x2, y2), (0, 255, 0) if e['kind'] == 'in' else (0, 128, 255), 2)
