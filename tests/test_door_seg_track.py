@@ -98,3 +98,28 @@ def test_export_roundtrip_crop_and_person_number(tmp_path):
     assert owned == {0: [0]}  # reports must key on zero-based pieces
     save_chunks(tmp_path, [], 1280, 720)
     assert Masks(tmp_path / 'chunks.npz').rows.shape == (0, 8)
+
+
+def test_dormant_hypothesis_cannot_break_adjacent_continuation():
+    from door_seg_track import Track
+    tr = Tracker()
+    old = pred(100)
+    current = pred(100)
+    current[0][:, 30:] = False  # normal mask shape change
+    tr.tracks = {1: Track(1, 0, old, np.zeros(2)),
+                 2: Track(2, 1, current, np.zeros(2))}
+    tr.next_id, tr.tick = 3, 1
+    assert ids(tr, 2, [pred(100)]) == [2]
+    assert ids(tr, 3, [pred(100)]) == [2]
+    assert tr.stats['births'] == 0
+
+
+def test_context_transform_runs_once_per_decoded_frame():
+    calls = []
+    def transform(frame):
+        calls.append(frame)
+        return frame * 10
+    got = list(contexts(Cap(20), transform=transform))
+    assert calls == list(range(20))
+    for tick, frames in got:
+        assert frames == {o: max(0, min(19, tick + o)) * 10 for o in range(-5, 6)}

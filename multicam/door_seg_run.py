@@ -18,7 +18,7 @@ import numpy as np
 from door_seg_track import Config, Tracker
 
 
-def contexts(cap, past=5, future=5):
+def contexts(cap, past=5, future=5, transform=None):
     """Bounded sequential decoder, yields all frames with replicated edge context."""
     frames = deque()
     base, n, tick, eof = 0, 0, 0, False
@@ -28,7 +28,7 @@ def contexts(cap, past=5, future=5):
             if not ok:
                 eof = True
                 break
-            frames.append(frame)
+            frames.append(transform(frame) if transform else frame)
             n += 1
         if tick >= n:
             return
@@ -101,8 +101,7 @@ def run(ckpt, name, days, tags=None):
             def observations():
                 nonlocal count, prev
                 with torch.inference_mode(), torch.autocast('cuda', dtype=torch.bfloat16):
-                    for tick, frames in contexts(cap):
-                        frames = {o: cv2.resize(f, (S.W, S.H), interpolation=cv2.INTER_AREA) for o, f in frames.items()}
+                    for tick, frames in contexts(cap, transform=lambda f: cv2.resize(f, (S.W, S.H), interpolation=cv2.INTER_AREA)):
                         image = torch.from_numpy(S.channels(frames, bg, prev))[None].cuda().float() / 255
                         pred = S.predict(net, image)
                         prev.fill(0)

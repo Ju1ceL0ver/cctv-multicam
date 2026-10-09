@@ -94,25 +94,29 @@ class Tracker:
         for i, tr in enumerate(old):
             for j, p in enumerate(predictions):
                 costs[i, j] = self.cost(tr, p, tick)
-        allowed = costs <= c.max_cost
-        # Refuse uncertain identity choices BEFORE global assignment, so the
-        # Hungarian solver cannot turn a rejected choice into a forced second.
-        for i, j in zip(*np.nonzero(allowed)):
-            others_row = np.delete(costs[i], j)
-            others_col = np.delete(costs[:, j], i)
-            rival = min(np.min(others_row, initial=np.inf), np.min(others_col, initial=np.inf))
-            if rival <= c.max_cost and rival - costs[i, j] < c.ambiguity:
-                allowed[i, j] = False
-                self.stats['ambiguous'] += 1
         linked = {}
-        if old and predictions:
-            # One private dummy per track: choosing a new ID is always possible.
-            matrix = np.full((len(old), len(predictions) + len(old)), 1e6)
-            matrix[:, :len(predictions)] = np.where(allowed, costs, 1e6)
-            for i in range(len(old)):
-                matrix[i, len(predictions) + i] = c.max_cost + 1e-6
+        # A dormant hypothesis must not veto a measured adjacent continuation.
+        # Recover gaps only after adjacent tracks have claimed their detections.
+        for adjacent in (True, False):
+            rows = [i for i, tr in enumerate(old) if (tick - tr.tick == 1) == adjacent]
+            cols = [j for j in range(len(predictions)) if j not in linked]
+            if not rows or not cols:
+                continue
+            sub = costs[np.ix_(rows, cols)]
+            allowed = sub <= c.max_cost
+            for i, j in zip(*np.nonzero(allowed)):
+                rival = min(np.min(np.delete(sub[i], j), initial=np.inf),
+                            np.min(np.delete(sub[:, j], i), initial=np.inf))
+                if rival <= c.max_cost and rival - sub[i, j] < c.ambiguity:
+                    allowed[i, j] = False
+                    self.stats['ambiguous'] += 1
+            matrix = np.full((len(rows), len(cols) + len(rows)), 1e6)
+            matrix[:, :len(cols)] = np.where(allowed, sub, 1e6)
+            for i in range(len(rows)):
+                matrix[i, len(cols) + i] = c.max_cost + 1e-6
             ii, jj = linear_sum_assignment(matrix)
-            linked = {j: old[i] for i, j in zip(ii, jj) if j < len(predictions) and allowed[i, j]}
+            linked.update({cols[j]: old[rows[i]] for i, j in zip(ii, jj)
+                           if j < len(cols) and allowed[i, j]})
         out = []
         for j, p in enumerate(predictions):
             if j in linked:
