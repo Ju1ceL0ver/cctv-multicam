@@ -133,6 +133,7 @@ def register(app, root=None):
                         'role_was': e.get('role_was'),
                         'p_staff': e.get('p_staff'), 'tracks': e.get('tracks'), 'verdict': st.get(key_of(e)),
                         'clip': c['name'] if c else None, 'offset': round(e['t'] - c['t0'], 2) if c else None,
+                        'gif': key_of(e) if (LIVE / 'gifs' / day / (key_of(e) + '.gif')).exists() else None,
                         'teacher': by_key.get(key_of(e)) if night else None})
         others = [c for c in cs if 'event' not in c['why']]
         days = sorted({p.name for p in (LIVE / 'clips').glob('20??????')}, reverse=True) if (LIVE / 'clips').exists() else []
@@ -144,6 +145,16 @@ def register(app, root=None):
                                'offset': round(r['t'] - c['t0'], 2) if c else None})
         return jsonify({'day': day, 'events': out, 'summary': summary(day, evs, st), 'other_clips': others, 'days': days,
                         'missed': missed, 'night': (night or {}).get('summary')})
+
+    @app.get('/api/live/gif/<day>/<name>')
+    def liveevents_gif(day, name):
+        valid(day)
+        if not re.fullmatch(r'(in|out)_\d{6}_[\d.]+', name):
+            abort(400)
+        p = LIVE / 'gifs' / day / (name + '.gif')
+        if not p.exists():
+            abort(404)
+        return send_file(str(p), mimetype='image/gif', max_age=3600)
 
     @app.get('/api/live/clip/<day>/<name>')
     def liveevents_clip(day, name):

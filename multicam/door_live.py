@@ -632,6 +632,13 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                         e['photo'], e['crop'] = snapshot(win, ticks, e)
                     except Exception as exc:
                         log('snapshot failed: %s' % str(exc)[:200])
+                    try:                                       # 10.10: the /liveevents GIF, the person masked
+                        import door_gif
+                        import live_events as LE_
+                        day_ = time.strftime('%Y%m%d', time.localtime(e['t']))
+                        e['gif'] = door_gif.make(win.dir, win.times, e, LIVE / 'gifs' / day_ / (LE_.key_of(e) + '.gif'))
+                    except Exception as exc:
+                        log('gif failed: %s' % str(exc)[:200])
                     told_all.append(e); new.append(e)
                     if clipper is not None:
                         clipper.event(e)

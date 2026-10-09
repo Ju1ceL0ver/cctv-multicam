@@ -27,6 +27,7 @@ video{width:100%;border-radius:8px;background:#000}
 <main><div id="stage">
   <div id="list"></div>
   <div id="right">
+    <img id="g" style="width:100%;max-width:600px;border-radius:8px;display:none" alt="">
     <video id="v" controls muted playsinline></video>
     <div id="what"></div>
     <div class="choices">{% for k in [1, 2, 3, 4, 0] %}<button onclick="give({{ k }})"><b>{{ k }}</b>{{ verdicts[k] }}</button>{% endfor %}</div>
@@ -80,6 +81,7 @@ function draw() {
 }
 function show() {
   const v = $('#v');
+  { const g0 = document.getElementById('g'); if (g0) { g0.style.display = 'none'; } v.style.display = ''; }
   if (mode === 'm') {
     const m = missed[cur]; if (!m || !m.clip) return;
     const src = `/api/live/clip/${day}/${m.clip}`; if (!v.src.endsWith(src)) v.src = src;
@@ -97,6 +99,9 @@ function show() {
   const e = evs[cur]; if (!e) { $('#what').textContent = ''; return; }
   $('#what').textContent = `${e.clock}  ${e.kind === 'in' ? 'ВХОД' : 'ВЫХОД'}  ${e.role === 'staff' ? '(сотрудник' : '(покупатель'}` +
     `${e.p_staff != null ? ' ' + e.p_staff : ''})`;
+  const g = document.getElementById('g');
+  if (e.gif) { g.src = `/api/live/gif/${day}/${e.gif}`; g.style.display = ''; v.style.display = 'none'; v.pause(); return; }
+  g.style.display = 'none'; v.style.display = '';
   if (!e.clip) { v.removeAttribute('src'); v.load(); return; }
   const src = `/api/live/clip/${day}/${e.clip}`;
   if (!v.src.endsWith(src)) v.src = src;
