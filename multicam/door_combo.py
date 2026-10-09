@@ -493,6 +493,13 @@ class Live:
                 p = 1.0                                     # the owner's shop line: a piece of mask past it = inside
         self.obs[key] = (t, p, foot_xy)
 
+    def forget(self, win_id):
+        """09.10: a live window's observations once its folder is gone -- at stride 3 a day holds ~800 000 of them, and
+        every session went through all of them"""
+        for d in (self.raw, self.obs, self.pending):
+            for k in [k for k in d if k[0] == win_id]:
+                del d[k]
+
     def events(self, rule_cands, person_of):
         """person_of: row key -> the person's current number (ReID numbers change as the window grows)."""
         c = self.cfg

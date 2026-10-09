@@ -85,9 +85,11 @@ class Bank:
 
 class Worker:
     def __init__(self):
+        low = os.environ.get('RA_ROLE_DEVICE', 'cuda') == 'cpu'     # 09.10: on the processor, below the count and the user
         self.p = subprocess.Popen([RF, str(ROOT / 'door_role.py'), 'serve'], cwd=str(ROOT), stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding='utf-8',
-                                  env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+                                  env=dict(os.environ, PYTHONIOENCODING='utf-8'),
+                                  creationflags=getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0) if low else 0)
         self.lock = threading.Lock()
         self.threshold = float(self._read().get('ready', 0.45))   # the model's own threshold
 

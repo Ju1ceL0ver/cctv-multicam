@@ -294,7 +294,11 @@ def label(pred, out, sess, deadline, prev=None, out_size=None, compress=True, st
         sub = out / ('sess_%05d' % s)
         shutil.rmtree(sub, ignore_errors=True); sub.mkdir()
         for k in range(s, e):
-            shutil.copy(out / 'sam_in' / ('%05d.jpg' % k), sub / ('%05d.jpg' % (k - s)))
+            src_, dst_ = out / 'sam_in' / ('%05d.jpg' % k), sub / ('%05d.jpg' % (k - s))
+            try:
+                os.link(src_, dst_)                   # 09.10: a hard link, not 240 copies a session
+            except OSError:
+                shutil.copy(src_, dst_)
         local = {}
         with torch.autocast('cuda', dtype=torch.bfloat16):
             sid = pred.handle_request(dict(type='start_session', resource_path=str(sub), offload_video_to_cpu=True))['session_id']

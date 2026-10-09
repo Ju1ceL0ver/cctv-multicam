@@ -72,6 +72,8 @@ def start(until='21:00'):
         env['RA_S31_FASTCOPY'] = '1'
     if side.get('cudagraphs') is False:           # 09.10: compiled kernels without CUDA graphs (memory does not creep)
         env['RA_S31_CUDAGRAPHS'] = '0'
+    if side.get('keep_poster'):                   # 09.10: no detection dropped on the advertising stand's box
+        env['RA_KEEP_POSTER'] = '1'
     if side.get('fps_scale'):                     # 08.10: SAM 3.1's track rules counted in frames of this stride
         env['RA_S31_FPS_SCALE'] = str(side.get('stride', 6))
     args = [SAM3, str(ROOT / 'door_live.py'), STUDENT, '-', RULE]

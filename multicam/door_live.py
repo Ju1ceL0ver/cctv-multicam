@@ -34,6 +34,7 @@ WINDOW_SESSIONS = int(os.environ.get('RA_LIVE_WSESS', 30))   # 09.10: smaller in
 LAG = 20.0                       # a crossing is told once the window has this many seconds after it
 KEEP_WINDOWS = 3
 LEAD = 10.0                      # 08.10: seconds of frames a carried window has before what it may tell
+STALE_S = 2.0                    # 09.10: the stream's newest frame older than this -- no ticks until it comes back
 DEGRADE_SESSIONS = 1.5           # 08.10: behind by this many sessions -> every second frame until it catches up
 W, H, SAM_IN = 2176, 1224, 1008
 _SF = Path(__file__).resolve().parent / 'data' / 'door_v2' / 'side_final.json'
@@ -124,14 +125,22 @@ class Grabber(threading.Thread):
             log('camera: stream ended, reopening')
 
     def ticker(self):
-        """Live: one frame per tick from the newest one."""
+        """Live: one frame per tick from the newest one. 09.10: while the stream is silent (the newest frame older than
+        STALE_S) nothing is handed over -- not the same frozen frame again and again for SAM to work on."""
         t_next = time.time()
+        stale = False
         while not self.stop:
             t_next += TICK
             time.sleep(max(0.0, t_next - time.time()))
+            if time.time() - t_next > 5 * TICK:          # fell behind (the machine was busy): catch up, no burst
+                t_next = time.time()
             with self.lock:
                 f = self.latest
-            if f is not None:
+            now_stale = f is None or time.time() - f[0] > STALE_S
+            if now_stale != stale:
+                stale = now_stale
+                log('camera: %s' % ('no new frames, ticks paused' if stale else 'frames again'))
+            if not stale:
                 self.out.put((t_next, f[1]))
 
 
@@ -385,13 +394,14 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
     roles = bank = None
     if combo is not None and os.environ.get('RA_DOOR_ROLE', '1') == '1':
         import door_role
+        bank = door_role.Bank(LIVE / 'role_views' / time.strftime('%Y%m%d_%H%M%S'))
         try:
-            bank = door_role.Bank(LIVE / 'role_views' / time.strftime('%Y%m%d_%H%M%S'))
-            roles = door_role.Roles(bank, door_role.Worker())
-            log('role: staff model loaded (threshold %.2f)' % roles.threshold)
-        except Exception as exc:
-            roles = bank = None
-            log('role: off (%s)' % str(exc)[:200])
+            w0 = door_role.Worker()
+            log('role: staff model loaded (threshold %.2f, %s)' % (w0.threshold, os.environ.get('RA_ROLE_DEVICE', 'cuda')))
+        except Exception as exc:                       # 09.10: the role thread starts it again later
+            w0 = None
+            log('role: the model did not start (%s), will try again' % str(exc)[:200])
+        roles = door_role.Roles(bank, w0, threshold=getattr(w0, 'threshold', None) or 0.45)
     role_q = queue.Queue()
 
     def role_loop():
@@ -406,17 +416,60 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             with open(LIVE / 'records' / ('roles_%s.jsonl' % time.strftime('%Y%m%d')), 'a', encoding='utf-8') as fr:
                 for x in lines:
                     fr.write(json.dumps(x) + '\n')
+        last_try = [0.0]
+        waiting = []                                   # events told while the role model was down
+
+        def worker_up():
+            """09.10: the role model's process alive -- started again (at most once a minute) if it died or never came up"""
+            w = roles.worker
+            if w is not None and w.p.poll() is None:
+                return True
+            if time.time() - last_try[0] < 60:
+                return False
+            last_try[0] = time.time()
+            try:
+                if w is not None:
+                    w.p.kill()
+            except Exception:
+                pass
+            try:
+                roles.worker = door_role.Worker()
+                log('role: the model (re)started')
+                return True
+            except Exception as exc:
+                roles.worker = None
+                log('role: the model did not start: %s' % str(exc)[:200])
+                return False
         while True:
-            item = role_q.get()
+            try:
+                item = role_q.get(timeout=30)
+            except queue.Empty:
+                item = ('retry', None)
             if item is None:
                 return
             what, arg = item
             try:
-                if what == 'event':
-                    e = arg
-                    out = roles.role(list(e['tracks']))
-                    e.update(out)
-                    write([dict(out, key=LE.key_of(e), t=e['t'], kind=e['kind'], was=None, at=time.strftime('%H:%M:%S'))])
+                if what in ('event', 'retry'):
+                    if what == 'event':
+                        waiting.append(arg)
+                    if not waiting or not worker_up():
+                        continue
+                    while waiting:
+                        e = waiting[0]
+                        out = roles.role(list(e['tracks']))
+                        if out.get('error'):               # the model failed on it: keep the event, restart the model
+                            last_try[0] = 0.0
+                            if roles.worker is not None:
+                                try:
+                                    roles.worker.p.kill()
+                                except Exception:
+                                    pass
+                            break
+                        waiting.pop(0)
+                        e.update(out)
+                        write([dict(out, key=LE.key_of(e), t=e['t'], kind=e['kind'], was=None, at=time.strftime('%H:%M:%S'))])
+                    continue
+                if not worker_up():
                     continue
                 took = roles.feedback(told_all, LE.load(time.strftime('%Y%m%d')), LE.key_of)
                 if took:
@@ -641,7 +694,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
             log('window %s -> %s: carried %d ticks, tells after %s' % (win.id, nw.id, nw.n, time.strftime('%H:%M:%S', time.localtime(bound))))
             win_old.append(win)
             while len(win_old) > KEEP_WINDOWS:
-                shutil.rmtree(win_old.pop(0).dir.parent, ignore_errors=True)
+                gone = win_old.pop(0)
+                shutil.rmtree(gone.dir.parent, ignore_errors=True)
+                if combo is not None and hasattr(combo, 'forget'):
+                    combo.forget(gone.id)
         if final:
             break
     for f_ in pending:
