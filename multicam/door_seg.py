@@ -184,27 +184,70 @@ class Source:
             self.cap = None
 
 
+GAP_TICKS = 25                           # a track gone longer than 2 s is not linked again
+NEAR_H, WALK_H = 0.3, 0.07               # allowed distance: 0.3 of the person's height + 0.07 of it per tick gone
+                                         # (~1.5 m/s for a 1.7 m person at 12.5 ticks a second)
+
+
+def relink(M, owned):
+    """{piece: root} -- a track that ends and another that starts soon after, near where it ended (the farther the
+    longer it was gone), and nobody else could be either of them: one person. No appearance at all (the owner:
+    gluing by looks merges strangers)."""
+    ends, starts = {}, {}
+    for piece, rs in owned.items():
+        rs = sorted(rs, key=lambda r: M.rows[r, 1])
+        for which, r in (('a', rs[-1]), ('b', rs[0])):
+            x1, y1, x2, y2 = [float(v) for v in M.rows[r, 4:8]]
+            (ends if which == 'a' else starts)[piece] = (int(M.rows[r, 1]), (x1 + x2) / 2, (y1 + y2) / 2, max(1.0, y2 - y1))
+    cand = {}
+    for a, (ka, xa, ya, ha) in ends.items():
+        for b, (kb, xb, yb, hb) in starts.items():
+            g = kb - ka
+            if a == b or g < 1 or g > GAP_TICKS:
+                continue
+            d = np.hypot(xb - xa, yb - ya)
+            if d <= (NEAR_H + WALK_H * g) * ha:
+                cand.setdefault(a, []).append((d, b))
+    back = {}
+    for a, xs in cand.items():
+        for d, b in xs:
+            back.setdefault(b, []).append(a)
+    root = {}
+    for a, xs in sorted(cand.items(), key=lambda z: ends[z[0]][0]):
+        if len(xs) == 1 and len(back[xs[0][1]]) == 1:     # one candidate each way: no guessing between people
+            b = xs[0][1]
+            r = a
+            while r in root:
+                r = root[r]
+            root[b] = r
+    return root
+
+
 def glued_ids(d, M):
     """{row of chunks.npz: person} for a source whose people are known across SAM's sessions, else None:
-    - a door stretch the owner went through on /doorside with the role 'train': his people -- SAM's tracks linked over
-      the session seams (door_side.outlines), cut where he cut (door_side.eff), merged where he merged (root_of);
-      tracks he marked 'not a person' have no row here (they are no one to learn);
-    - a SAM 3.1 window with v2 targets: the window's person of each row (ReID glued over sessions, v2_prep)."""
+    - SAM's tracks linked over the session seams (masks in the overlap, sam31_reid.link_seams) and a track gone and
+      back near the same place soon after (relink) -- never by appearance;
+    - a door stretch the owner went through on /doorside with the role 'train': on top, cut where he cut
+      (door_side.eff) and merged where he merged (root_of); tracks he marked 'not a person' have no row here."""
+    import sam31_reid as R
     TICK = 0.08
+    if not (d / 'info.json').exists():
+        return None
+    info = json.load(open(d / 'info.json'))
+    owned, _ = R.link_seams(M, {int(s_): int(sh) for s_, e_, sh in info['sessions']})
+    st = None
     if d.parent.parent.name == 'sam31_door':
         tag = d.parent.name
         f = ROOT / 'data' / 'door_side' / ('%s.json' % tag.split('_')[1])
-        if not f.exists():
-            return None
-        st = json.load(open(f, encoding='utf-8')).get(tag)
+        st = json.load(open(f, encoding='utf-8')).get(tag) if f.exists() else None
         if not st or not st.get('done') or st.get('role') != 'train':
-            return None
+            st = None
+        elif tag.split('_')[1] != '20260917':
+            st = None                                      # 18-19.09 on /doorside stay the check
+    out = {}
+    if st is not None:
         import door_side as DSD
-        import sam31_reid as R
-        info = json.load(open(d / 'info.json'))
-        owned, _ = R.link_seams(M, {int(s_): int(sh) for s_, e_, sh in info['sessions']})
         nop = {str(x) for x in st.get('noperson', [])}
-        out = {}
         for piece, rs in owned.items():
             for r in rs:
                 e = DSD.eff(st.get('cuts'), piece, int(M.rows[r, 1]) * TICK)
@@ -213,11 +256,14 @@ def glued_ids(d, M):
                     continue
                 out[int(r)] = 'o' + root
         return out
-    v2 = ROOT / 'data' / 'v2' / d.parent.name / d.name / 'rows.npz'
-    if v2.exists():
-        z = np.load(v2)
-        return {int(r): 'p%d' % int(p) for r, p in zip(z['r'], z['person'])}
-    return None
+    link = relink(M, owned)
+    for piece, rs in owned.items():
+        r0 = piece
+        while r0 in link:
+            r0 = link[r0]
+        for r in rs:
+            out[int(r)] = 'p%s' % r0
+    return out
 
 
 def spoil(masks, rng):
