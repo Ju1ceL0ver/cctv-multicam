@@ -319,6 +319,44 @@ def people(win, combo=None, bank=None):
     return [{'s': 0, 't': t, 'p': rows[t]} for t in sorted(rows)]
 
 
+def snapshot(win, ticks, e):
+    """09.10: the picture of a crossing for the CRM card (as the old counter sent): the window's frame closest to the
+    event (1280 x 720, the person boxed) -> data/live/snapshots/<day>/..._full.jpg, the person -> ..._crop.jpg.
+    Returns (full, crop) paths, or ('', '') when the person is not on any tick near it."""
+    import bisect
+    import cv2
+    want = {str(x) for x in e.get('tracks') or []} | {str(e.get('bw') or e.get('w'))}
+    best = None
+    for r in ticks:
+        if abs(r['t'] - e['t']) > 3.0:
+            continue
+        for q in r['p']:
+            if '%s:%d' % (win.id, q['w']) in want and (best is None or abs(r['t'] - e['t']) < abs(best[0] - e['t'])):
+                best = (r['t'], q['box'])
+    if best is None:
+        return '', ''
+    k = min(max(0, bisect.bisect_left(win.times, best[0] - 0.005)), len(win.times) - 1)
+    fr = win.frame(k)
+    if fr is None:
+        return '', ''
+    fr = np.ascontiguousarray(fr[:, :, ::-1])
+    sy = 720 * 1248 / 1224                               # people() boxes: x by W, y by H * 1248 / 1224
+    cx, cy, bw, bh = best[1][0] * 1280, best[1][1] * sy, best[1][2] * 1280, best[1][3] * sy
+    x1, y1, x2, y2 = int(cx - bw / 2), int(cy - bh / 2), int(cx + bw / 2), int(cy + bh / 2)
+    px, py = int(0.15 * bw) + 4, int(0.08 * bh) + 4
+    crop = fr[max(0, y1 - py):min(720, y2 + py), max(0, x1 - px):min(1280, x2 + px)].copy()
+    cv2.rectangle(fr, (x1, y1), (x2, y2), (0, 255, 0) if e['kind'] == 'in' else (0, 128, 255), 2)
+    day = time.strftime('%Y%m%d', time.localtime(e['t']))
+    d = LIVE / 'snapshots' / day
+    d.mkdir(parents=True, exist_ok=True)
+    stem = '%s_%s_%s' % (time.strftime('%H%M%S', time.localtime(e['t'])), e['kind'], str(e.get('w')).replace(':', '_'))
+    full, cut = d / (stem + '_full.jpg'), d / (stem + '_crop.jpg')
+    cv2.imwrite(str(full), fr, [cv2.IMWRITE_JPEG_QUALITY, 88])
+    if crop.size:
+        cv2.imwrite(str(cut), crop, [cv2.IMWRITE_JPEG_QUALITY, 92])
+    return str(full), str(cut) if crop.size else ''
+
+
 def save_obs(win, combo):
     """data/live/records/<day>.jsonl: one line per person per tick, once -- the track, where on the frame (window,
     tick, row of chunks.npz), the model's p_inside, the mask's depth past the shop line, its top/height/bottom x, the
@@ -590,6 +628,10 @@ def main(student, heads, rule_name, source=None, minutes=None, stride=None):
                         e['tracks'] = [str(x) for x in getattr(combo, 'members', {}).get(who, [who])]
                         e['side_cfg'] = (combo.side or {}).get('at')
                     e = dict(e, clock=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e['t'])), window=win.id)
+                    try:                                       # 09.10: the CRM card's pictures; never stops the count
+                        e['photo'], e['crop'] = snapshot(win, ticks, e)
+                    except Exception as exc:
+                        log('snapshot failed: %s' % str(exc)[:200])
                     told_all.append(e); new.append(e)
                     if clipper is not None:
                         clipper.event(e)

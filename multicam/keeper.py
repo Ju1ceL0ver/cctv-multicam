@@ -412,6 +412,14 @@ def main():
                 ensure('live counter', 'run_live.py', start_live)
             if p.get('door') and door_hours(datetime.now()) and camera_up():
                 ensure('live door', 'door_live.py', start_door)
+            # 09.10: the crossings -> the Refloor CRM, all day (cards that did not go are retried until they do)
+            if p.get('crm'):
+                import door_live_ctl
+                ensure('CRM sender', 'door_crm.py', door_live_ctl.crm)
+            else:
+                for l in running('door_crm.py'):
+                    os.system('taskkill /PID %s /F > nul 2>&1' % l.split('|')[0].strip())
+                    log('plan: CRM sender switched off, stopped')
             # 08.10: after closing, the night teacher over the day's clips (door_night.py), once per day
             end = p.get('door_hours', '10:00-21:00').split('-')[1]
             if p.get('door') and p.get('door_night', True) and datetime.now().strftime('%H:%M') >= end and \

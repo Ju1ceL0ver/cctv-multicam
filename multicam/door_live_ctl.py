@@ -123,6 +123,20 @@ def learn(day=None):
     print('role learning started for', day, 'pid', p.pid)
 
 
+def crm():
+    """09.10: the live door's crossings -> the Refloor CRM (door_crm.py, the base python with `requests`, no GPU), kept
+    running by the keeper while keeper_plan.json has "crm": true."""
+    out = LIVE / 'crm'
+    out.mkdir(parents=True, exist_ok=True)
+    log = open(out / 'door_crm.out', 'a', encoding='utf-8')
+    log.write('\n==== %s ====\n' % time.strftime('%Y-%m-%d %H:%M:%S'))
+    py = os.path.join(os.path.dirname(sys.executable), 'python.exe') if sys.executable.lower().endswith('pythonw.exe') else sys.executable
+    p = subprocess.Popen([py, str(ROOT / 'door_crm.py')], cwd=str(ROOT), stdout=log, stderr=subprocess.STDOUT,
+                         env=dict(os.environ, PYTHONIOENCODING='utf-8'),
+                         creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0))
+    print('CRM sender started, pid', p.pid)
+
+
 def stop():
     pid = running()
     if not pid:
