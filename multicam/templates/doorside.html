@@ -28,6 +28,7 @@ kbd{background:#333;border-radius:3px;padding:0 4px}
   <span id="info" class="mut"></span>
   <span class="mut">скорость <b id="rate">1×</b></span>
   <button id="done">отрезок размечен целиком (D)</button>
+  <button id="delpt" title="или Del, или правый щелчок по точке">удалить выбранную точку</button>
   <span id="msg"></span>
 </header>
 <main>
@@ -37,7 +38,7 @@ kbd{background:#333;border-radius:3px;padding:0 4px}
     <div id="help">
       Щелчок по человеку — выбрать. По пустому месту — человек без контура.<br>
       <kbd>1</kbd> с этого кадра <b style="color:var(--in)">внутри</b> · <kbd>2</kbd> <b style="color:var(--out)">снаружи</b><br>
-      <kbd>Backspace</kbd> убрать ближайшую отметку выбранного · <kbd>Del</kbd> удалить точку<br>
+      <kbd>Backspace</kbd> убрать ближайшую отметку выбранного · <kbd>Del</kbd>, кнопка или правый щелчок — удалить точку<br>
       <kbd>L</kbd> нарисовать линию магазина (2 конца + сторона «внутри») ·
       <kbd>C</kbd> с этого кадра в треке другой человек (разрезать) ·
       <kbd>X</kbd> это не человек (скрыть; ещё раз — вернуть) ·
@@ -170,6 +171,11 @@ document.addEventListener('keydown',async e=>{
 $('#tag').onchange=()=>openStretch(+$('#tag').value);
 $('#day').onchange=()=>loadDay($('#day').value);
 $('#done').onclick=()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'d',code:'KeyD'}));
+async function delPoint(pid){await send({act:'unpoint',person:pid});if(String(sel)===String(pid)){sel=null;$('#sel').textContent='никто'}msg(label(pid)+' удалена')}
+$('#delpt').onclick=()=>{if(sel&&String(sel).startsWith('x'))delPoint(sel);else msg('сначала щёлкни по точке')};
+c.addEventListener('contextmenu',ev=>{                      // right click on a point: delete it
+  const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*1280/r.width,y=(ev.clientY-r.top)*720/r.height;
+  for(const [pid,[px,py]] of Object.entries(cur.points||{}))if(Math.hypot(px-x,py-y)<18){ev.preventDefault();delPoint(pid);return}});
 function loop(){if(cur)draw();requestAnimationFrame(loop)}
 const days=['20260919','20260918','20260917'];$('#day').innerHTML=days.map(d=>`<option>${d}</option>`).join('');
 const q=new URLSearchParams(location.search);loadDay(q.get('day')||days[0]).then(()=>{if(q.get('tag')){const i=S.findIndex(s=>s.tag==q.get('tag'));if(i>=0){$('#tag').value=i;openStretch(i)}}});
