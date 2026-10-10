@@ -422,3 +422,57 @@ finite inputs and the successful FP32 retry. Preserve both batches and
 before_rejected for a short guarded no-update replay with diagnostics.
 Evidence: `artifacts/doorseg_research/c_kaggle_final_20261010.json`.
 The automation remains active for independent research and integration.
+
+## Full temporal training (11.10.2026)
+
+Owner explicitly requested full training of both heads and the base in BF16
+AMP, `torch.set_float32_matmul_precision('high')`, and TF32. This separate run
+`doorseg_sequence_full_20261011` starts from immutable final C20604 with its
+Adam history, adds Fingerprint64/ConvGRU48, and trains every parameter on the
+frozen148 TRAIN sources. Four ordered frames preserve recurrent gradients;
+identity loss uses the original within-source person keys. The6 frozen VAL
+sources are evaluated with400 fixed seed7 moments and the same four-frame
+protocol before learning and every2000 successful updates. Compare to this
+run's initial baseline; its warmup differs from the old C proxy protocol.
+
+The CPU controller yields on actual interactive users, busy foreign apps,
+live GPU jobs, and09:35. An idle Photoshop in a disconnected session is no
+longer blocked merely by its name. Foreign apps remain open. A rejected update
+restores parameters, buffers and Adam; checkpoints and STOP are separate from
+C. The source model and labels are unchanged. The old two-update probe is a
+diagnostic tool; it is not the full training job. Transaction/sequence/state
+CPU tests28 passed on Windows and Mac, with hard CUDA initialization blocked.
+
+The previously waiting RTX profile also completed:120 TRAIN ticks per scene,
+light65.89ms and dense68.77ms, excluding side/role queues. Same-input counts
+matched24/24 light and22/24 dense; masks were bit-identical23/24 and11/24.
+Dense fusion therefore does not establish prediction equivalence or release
+quality. Evidence:`artifacts/doorseg_research/night_profile_20261011.json`.
+
+Mixed precision detail: convolutions use BF16 AMP, weights and Adam moments
+remain FP32. The separate sequence loss explicitly disables autocast while
+computing the segmentation criterion from FP32 predictions, displacement
+loss, identity similarities/logsumexp, and final loss. This avoids `.float()`
+inputs being recast by an autocast matmul. Training logs record loss dtype
+and individual loss components. The mixed-autocast CPU backward test checks
+FP32 criterion/loss and finite gradients for all heads;21 tests passed.
+The validation prediction protocol is unchanged by this training-loss fix.
+
+An early sequence worker stopped when a frozen TRAIN source had no four-frame
+ordered window. Its20+ accepted updates preceded the first120s backup and
+were not durable; the last checkpoint remained initial20604. The retry keeps
+the completed validation. Such sources are now recorded in `no_ordered_sources`
+and excluded only from sequence sampling, without changing frozen labels or
+the148 allowed-source manifest. Technical sampling/validation exits now save
+the last accepted model/Adam/step. Numerical rejection still rolls back and
+writes STOP. Do not count the lost early updates as a trained checkpoint.
+
+The retry passed40 real updates. Its first durable checkpoint20636 (32 new
+updates) passed CPU finite model/Adam checks with CUDA blocked. All18 temporal
+parameters have Adam state and changed from initial20604, including both
+Fingerprint and ConvGRU. Immutable SHA0324c9c67b823852b448e8e8afe9d631f728d1c71f1ea31ab32e326d01f94277,
+141136253 bytes; source C unchanged. Two observed TRAIN folders have no ordered
+window, leaving146 currently usable out of148 allowed sources. This proves
+actual head training and backup, not validation improvement. Initial400 VAL
+F1.928571/IoU.903687/links.982796; post-training evaluation follows2000 updates.
+Evidence:`artifacts/doorseg_research/sequence_full_launch_20261011.json`.

@@ -1,0 +1,5030 @@
+{
+  "train": [
+    "data/sam31_seg/20260917_09005/cam1",
+    "data/sam31_seg/20260917_09005/cam2",
+    "data/sam31_seg/20260917_26105/cam1",
+    "data/sam31_seg/20260917_26105/cam2",
+    "data/sam31_seg/20260918_19059/cam1",
+    "data/sam31_seg/20260918_19059/cam2",
+    "data/sam31_seg/20260919_09000/cam1",
+    "data/sam31_seg/20260919_09000/cam2",
+    "data/sam31_seg/20260919_18900/cam1",
+    "data/sam31_seg/20260919_18900/cam2",
+    "data/sam31_seg/20260919_37800/cam1",
+    "data/sam31_seg/20260919_37800/cam2",
+    "data/sam31_seg/20260920_36003/cam1",
+    "data/sam31_seg/20260920_36003/cam2",
+    "data/sam31_seg/20260921_08100/cam1",
+    "data/sam31_seg/20260921_08100/cam2",
+    "data/sam31_seg/20260921_10800/cam1",
+    "data/sam31_seg/20260921_10800/cam2",
+    "data/sam31_seg/20260921_35100/cam1",
+    "data/sam31_seg/20260921_35100/cam2",
+    "data/sam31_seg/20260922_15164/cam1",
+    "data/sam31_seg/20260922_15164/cam2",
+    "data/sam31_seg/20260922_22364/cam1",
+    "data/sam31_seg/20260922_22364/cam2",
+    "data/sam31_seg/20260922_23264/cam1",
+    "data/sam31_seg/20260922_23264/cam2",
+    "data/sam31_door/door_20260917_01786/cam1",
+    "data/sam31_door/door_20260917_02194/cam1",
+    "data/sam31_door/door_20260917_02476/cam1",
+    "data/sam31_door/door_20260917_02671/cam1",
+    "data/sam31_door/door_20260917_04708/cam1",
+    "data/sam31_door/door_20260917_05276/cam1",
+    "data/sam31_door/door_20260917_08428/cam1",
+    "data/sam31_door/door_20260917_08869/cam1",
+    "data/sam31_door/door_20260917_08991/cam1",
+    "data/sam31_door/door_20260917_09095/cam1",
+    "data/sam31_door/door_20260917_09525/cam1",
+    "data/sam31_door/door_20260917_10239/cam1",
+    "data/sam31_door/door_20260917_10584/cam1",
+    "data/sam31_door/door_20260917_12683/cam1",
+    "data/sam31_door/door_20260917_13516/cam1",
+    "data/sam31_door/door_20260917_13784/cam1",
+    "data/sam31_door/door_20260917_14229/cam1",
+    "data/sam31_door/door_20260917_14389/cam1",
+    "data/sam31_door/door_20260917_14644/cam1",
+    "data/sam31_door/door_20260917_15222/cam1",
+    "data/sam31_door/door_20260917_16337/cam1",
+    "data/sam31_door/door_20260917_18151/cam1",
+    "data/sam31_door/door_20260917_18416/cam1",
+    "data/sam31_door/door_20260917_21114/cam1",
+    "data/sam31_door/door_20260917_21866/cam1",
+    "data/sam31_door/door_20260917_22683/cam1",
+    "data/sam31_door/door_20260917_22812/cam1",
+    "data/sam31_door/door_20260917_23329/cam1",
+    "data/sam31_door/door_20260917_23438/cam1",
+    "data/sam31_door/door_20260917_23749/cam1",
+    "data/sam31_door/door_20260917_25016/cam1",
+    "data/sam31_door/door_20260917_25681/cam1",
+    "data/sam31_door/door_20260917_26038/cam1",
+    "data/sam31_door/door_20260917_26171/cam1",
+    "data/sam31_door/door_20260917_26420/cam1",
+    "data/sam31_door/door_20260917_26710/cam1",
+    "data/sam31_door/door_20260917_26903/cam1",
+    "data/sam31_door/door_20260917_27129/cam1",
+    "data/sam31_door/door_20260917_28406/cam1",
+    "data/sam31_door/door_20260917_30835/cam1",
+    "data/sam31_door/door_20260917_31084/cam1",
+    "data/sam31_door/door_20260917_31237/cam1",
+    "data/sam31_door/door_20260917_31481/cam1",
+    "data/sam31_door/door_20260917_32893/cam1",
+    "data/sam31_door/door_20260917_33387/cam1",
+    "data/sam31_door/door_20260917_33517/cam1",
+    "data/sam31_door/door_20260917_33734/cam1",
+    "data/sam31_door/door_20260917_34149/cam1",
+    "data/sam31_door/door_20260917_34467/cam1",
+    "data/sam31_door/door_20260917_36717/cam1",
+    "data/sam31_door/door_20260917_37084/cam1",
+    "data/sam31_door/door_20260917_37251/cam1",
+    "data/sam31_door/door_20260917_37505/cam1",
+    "data/sam31_door/door_20260917_38853/cam1",
+    "data/sam31_door/door_20260919_01803/cam1",
+    "data/sam31_door/door_20260919_02205/cam1",
+    "data/sam31_door/door_20260919_02266/cam1",
+    "data/sam31_door/door_20260919_03460/cam1",
+    "data/sam31_door/door_20260919_03551/cam1",
+    "data/sam31_door/door_20260919_04622/cam1",
+    "data/sam31_door/door_20260919_06610/cam1",
+    "data/sam31_door/door_20260919_07150/cam1",
+    "data/sam31_door/door_20260919_09389/cam1",
+    "data/sam31_door/door_20260919_09458/cam1",
+    "data/sam31_door/door_20260919_09892/cam1",
+    "data/sam31_door/door_20260919_10009/cam1",
+    "data/sam31_door/door_20260919_10203/cam1",
+    "data/sam31_door/door_20260919_10914/cam1",
+    "data/sam31_door/door_20260919_11103/cam1",
+    "data/sam31_door/door_20260919_11397/cam1",
+    "data/sam31_door/door_20260919_12278/cam1",
+    "data/sam31_door/door_20260919_12779/cam1",
+    "data/sam31_door/door_20260919_13040/cam1",
+    "data/sam31_door/door_20260919_14138/cam1",
+    "data/sam31_door/door_20260919_15389/cam1",
+    "data/sam31_door/door_20260919_16477/cam1",
+    "data/sam31_door/door_20260919_16886/cam1",
+    "data/sam31_door/door_20260919_17514/cam1",
+    "data/sam31_door/door_20260919_17704/cam1",
+    "data/sam31_door/door_20260919_17934/cam1",
+    "data/sam31_door/door_20260919_18328/cam1",
+    "data/sam31_door/door_20260919_19248/cam1",
+    "data/sam31_door/door_20260919_19325/cam1",
+    "data/sam31_door/door_20260919_19446/cam1",
+    "data/sam31_door/door_20260919_19507/cam1",
+    "data/sam31_door/door_20260919_19836/cam1",
+    "data/sam31_door/door_20260919_21316/cam1",
+    "data/sam31_door/door_20260919_23019/cam1",
+    "data/sam31_door/door_20260919_23958/cam1",
+    "data/sam31_door/door_20260919_25234/cam1",
+    "data/sam31_door/door_20260919_25294/cam1",
+    "data/sam31_door/door_20260919_25452/cam1",
+    "data/sam31_door/door_20260919_25588/cam1",
+    "data/sam31_door/door_20260919_27078/cam1",
+    "data/sam31_door/door_20260919_27532/cam1",
+    "data/sam31_door/door_20260919_28548/cam1",
+    "data/sam31_door/door_20260919_28624/cam1",
+    "data/sam31_door/door_20260919_28833/cam1",
+    "data/sam31_door/door_20260919_29174/cam1",
+    "data/sam31_door/door_20260919_29407/cam1",
+    "data/sam31_door/door_20260919_29502/cam1",
+    "data/sam31_door/door_20260919_29915/cam1",
+    "data/sam31_door/door_20260919_30026/cam1",
+    "data/sam31_door/door_20260919_30421/cam1",
+    "data/sam31_door/door_20260919_30508/cam1",
+    "data/sam31_door/door_20260919_30722/cam1",
+    "data/sam31_door/door_20260919_30966/cam1",
+    "data/sam31_door/door_20260919_31047/cam1",
+    "data/sam31_door/door_20260919_31727/cam1",
+    "data/sam31_door/door_20260919_31948/cam1",
+    "data/sam31_door/door_20260919_32350/cam1",
+    "data/sam31_door/door_20260919_32921/cam1",
+    "data/sam31_door/door_20260919_34449/cam1",
+    "data/sam31_door/door_20260919_34716/cam1",
+    "data/sam31_door/door_20260919_35121/cam1",
+    "data/sam31_door/door_20260919_35614/cam1",
+    "data/sam31_door/door_20260919_38013/cam1",
+    "data/sam31_door/door_20260919_38821/cam1",
+    "data/sam31_door/door_20260918_18720/cam1",
+    "data/sam31_door/door_20260918_01405/cam1",
+    "data/sam31_door/door_20260918_15375/cam1",
+    "data/sam31_door/door_20260918_15569/cam1"
+  ],
+  "val": [
+    "data/sam31_seg/20260923_01801/cam1",
+    "data/sam31_seg/20260923_01801/cam2",
+    "data/sam31_seg/20260923_21601/cam1",
+    "data/sam31_seg/20260923_21601/cam2",
+    "data/sam31_seg/20260923_25201/cam1",
+    "data/sam31_seg/20260923_25201/cam2"
+  ],
+  "files": [
+    {
+      "path": "data/door_side/20260917.json",
+      "size": 12933
+    },
+    {
+      "path": "data/door_side/20260918.json",
+      "size": 12240
+    },
+    {
+      "path": "data/door_side/20260919.json",
+      "size": 20019
+    },
+    {
+      "path": "data/sam31_door/door_20260917_01786/cam1/chunks.npz",
+      "size": 571594
+    },
+    {
+      "path": "data/sam31_door/door_20260917_01786/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_01786/cam1/report.json",
+      "size": 1841
+    },
+    {
+      "path": "data/sam31_door/door_20260917_01786/cam1/video.mp4",
+      "size": 108189183
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02194/cam1/chunks.npz",
+      "size": 2642975
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02194/cam1/info.json",
+      "size": 739
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02194/cam1/report.json",
+      "size": 3478
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02194/cam1/video.mp4",
+      "size": 190992612
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02476/cam1/chunks.npz",
+      "size": 2412033
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02476/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02476/cam1/report.json",
+      "size": 2698
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02476/cam1/video.mp4",
+      "size": 128582258
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02671/cam1/chunks.npz",
+      "size": 997640
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02671/cam1/info.json",
+      "size": 631
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02671/cam1/report.json",
+      "size": 2132
+    },
+    {
+      "path": "data/sam31_door/door_20260917_02671/cam1/video.mp4",
+      "size": 111985727
+    },
+    {
+      "path": "data/sam31_door/door_20260917_04708/cam1/chunks.npz",
+      "size": 414659
+    },
+    {
+      "path": "data/sam31_door/door_20260917_04708/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_04708/cam1/report.json",
+      "size": 2542
+    },
+    {
+      "path": "data/sam31_door/door_20260917_04708/cam1/video.mp4",
+      "size": 107376222
+    },
+    {
+      "path": "data/sam31_door/door_20260917_05276/cam1/chunks.npz",
+      "size": 272691
+    },
+    {
+      "path": "data/sam31_door/door_20260917_05276/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_05276/cam1/report.json",
+      "size": 2393
+    },
+    {
+      "path": "data/sam31_door/door_20260917_05276/cam1/video.mp4",
+      "size": 108049488
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08428/cam1/chunks.npz",
+      "size": 233461
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08428/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08428/cam1/report.json",
+      "size": 2187
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08428/cam1/video.mp4",
+      "size": 107669710
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08869/cam1/chunks.npz",
+      "size": 446809
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08869/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08869/cam1/report.json",
+      "size": 2333
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08869/cam1/video.mp4",
+      "size": 108585131
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08991/cam1/chunks.npz",
+      "size": 866901
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08991/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08991/cam1/report.json",
+      "size": 1972
+    },
+    {
+      "path": "data/sam31_door/door_20260917_08991/cam1/video.mp4",
+      "size": 108744555
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09095/cam1/chunks.npz",
+      "size": 620970
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09095/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09095/cam1/report.json",
+      "size": 2878
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09095/cam1/video.mp4",
+      "size": 105653123
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09525/cam1/chunks.npz",
+      "size": 1430890
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09525/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09525/cam1/report.json",
+      "size": 2295
+    },
+    {
+      "path": "data/sam31_door/door_20260917_09525/cam1/video.mp4",
+      "size": 126012648
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10239/cam1/chunks.npz",
+      "size": 749970
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10239/cam1/info.json",
+      "size": 739
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10239/cam1/report.json",
+      "size": 3492
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10239/cam1/video.mp4",
+      "size": 196130434
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10584/cam1/chunks.npz",
+      "size": 362421
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10584/cam1/info.json",
+      "size": 597
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10584/cam1/report.json",
+      "size": 2450
+    },
+    {
+      "path": "data/sam31_door/door_20260917_10584/cam1/video.mp4",
+      "size": 107150954
+    },
+    {
+      "path": "data/sam31_door/door_20260917_12683/cam1/chunks.npz",
+      "size": 488204
+    },
+    {
+      "path": "data/sam31_door/door_20260917_12683/cam1/info.json",
+      "size": 630
+    },
+    {
+      "path": "data/sam31_door/door_20260917_12683/cam1/report.json",
+      "size": 2165
+    },
+    {
+      "path": "data/sam31_door/door_20260917_12683/cam1/video.mp4",
+      "size": 109442808
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13516/cam1/chunks.npz",
+      "size": 5712956
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13516/cam1/info.json",
+      "size": 854
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13516/cam1/report.json",
+      "size": 17093
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13516/cam1/video.mp4",
+      "size": 271404387
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13784/cam1/chunks.npz",
+      "size": 1194014
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13784/cam1/info.json",
+      "size": 630
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13784/cam1/report.json",
+      "size": 2471
+    },
+    {
+      "path": "data/sam31_door/door_20260917_13784/cam1/video.mp4",
+      "size": 111405686
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14229/cam1/chunks.npz",
+      "size": 1886378
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14229/cam1/info.json",
+      "size": 890
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14229/cam1/report.json",
+      "size": 9783
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14229/cam1/video.mp4",
+      "size": 299093832
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14389/cam1/chunks.npz",
+      "size": 268403
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14389/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14389/cam1/report.json",
+      "size": 2123
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14389/cam1/video.mp4",
+      "size": 110601421
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14644/cam1/chunks.npz",
+      "size": 315217
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14644/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14644/cam1/report.json",
+      "size": 2276
+    },
+    {
+      "path": "data/sam31_door/door_20260917_14644/cam1/video.mp4",
+      "size": 126746542
+    },
+    {
+      "path": "data/sam31_door/door_20260917_15222/cam1/chunks.npz",
+      "size": 350119
+    },
+    {
+      "path": "data/sam31_door/door_20260917_15222/cam1/info.json",
+      "size": 595
+    },
+    {
+      "path": "data/sam31_door/door_20260917_15222/cam1/report.json",
+      "size": 2366
+    },
+    {
+      "path": "data/sam31_door/door_20260917_15222/cam1/video.mp4",
+      "size": 108609197
+    },
+    {
+      "path": "data/sam31_door/door_20260917_16337/cam1/chunks.npz",
+      "size": 262111
+    },
+    {
+      "path": "data/sam31_door/door_20260917_16337/cam1/info.json",
+      "size": 597
+    },
+    {
+      "path": "data/sam31_door/door_20260917_16337/cam1/report.json",
+      "size": 2279
+    },
+    {
+      "path": "data/sam31_door/door_20260917_16337/cam1/video.mp4",
+      "size": 109076818
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18151/cam1/chunks.npz",
+      "size": 326524
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18151/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18151/cam1/report.json",
+      "size": 2277
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18151/cam1/video.mp4",
+      "size": 107382228
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18416/cam1/chunks.npz",
+      "size": 582183
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18416/cam1/info.json",
+      "size": 740
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18416/cam1/report.json",
+      "size": 5551
+    },
+    {
+      "path": "data/sam31_door/door_20260917_18416/cam1/video.mp4",
+      "size": 179343585
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21114/cam1/chunks.npz",
+      "size": 2481446
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21114/cam1/info.json",
+      "size": 664
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21114/cam1/report.json",
+      "size": 2272
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21114/cam1/video.mp4",
+      "size": 146158585
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21866/cam1/chunks.npz",
+      "size": 709808
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21866/cam1/info.json",
+      "size": 703
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21866/cam1/report.json",
+      "size": 2412
+    },
+    {
+      "path": "data/sam31_door/door_20260917_21866/cam1/video.mp4",
+      "size": 176055743
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22683/cam1/chunks.npz",
+      "size": 666669
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22683/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22683/cam1/report.json",
+      "size": 2190
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22683/cam1/video.mp4",
+      "size": 107605708
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22812/cam1/chunks.npz",
+      "size": 589266
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22812/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22812/cam1/report.json",
+      "size": 3490
+    },
+    {
+      "path": "data/sam31_door/door_20260917_22812/cam1/video.mp4",
+      "size": 107922259
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23329/cam1/chunks.npz",
+      "size": 598579
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23329/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23329/cam1/report.json",
+      "size": 2420
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23329/cam1/video.mp4",
+      "size": 107867357
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23438/cam1/chunks.npz",
+      "size": 456213
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23438/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23438/cam1/report.json",
+      "size": 2857
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23438/cam1/video.mp4",
+      "size": 108036204
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23749/cam1/chunks.npz",
+      "size": 1711143
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23749/cam1/info.json",
+      "size": 778
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23749/cam1/report.json",
+      "size": 4724
+    },
+    {
+      "path": "data/sam31_door/door_20260917_23749/cam1/video.mp4",
+      "size": 221462866
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25016/cam1/chunks.npz",
+      "size": 552188
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25016/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25016/cam1/report.json",
+      "size": 3959
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25016/cam1/video.mp4",
+      "size": 107449220
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25681/cam1/chunks.npz",
+      "size": 459011
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25681/cam1/info.json",
+      "size": 610
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25681/cam1/report.json",
+      "size": 1962
+    },
+    {
+      "path": "data/sam31_door/door_20260917_25681/cam1/video.mp4",
+      "size": 114469261
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26038/cam1/chunks.npz",
+      "size": 623428
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26038/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26038/cam1/report.json",
+      "size": 4077
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26038/cam1/video.mp4",
+      "size": 107484587
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26171/cam1/chunks.npz",
+      "size": 3145633
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26171/cam1/info.json",
+      "size": 778
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26171/cam1/report.json",
+      "size": 5534
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26171/cam1/video.mp4",
+      "size": 216522876
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26420/cam1/chunks.npz",
+      "size": 1998752
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26420/cam1/info.json",
+      "size": 628
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26420/cam1/report.json",
+      "size": 3851
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26420/cam1/video.mp4",
+      "size": 122394693
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26710/cam1/chunks.npz",
+      "size": 3168680
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26710/cam1/info.json",
+      "size": 740
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26710/cam1/report.json",
+      "size": 5671
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26710/cam1/video.mp4",
+      "size": 198125718
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26903/cam1/chunks.npz",
+      "size": 4696962
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26903/cam1/info.json",
+      "size": 1002
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26903/cam1/report.json",
+      "size": 4520
+    },
+    {
+      "path": "data/sam31_door/door_20260917_26903/cam1/video.mp4",
+      "size": 373580648
+    },
+    {
+      "path": "data/sam31_door/door_20260917_27129/cam1/chunks.npz",
+      "size": 484303
+    },
+    {
+      "path": "data/sam31_door/door_20260917_27129/cam1/info.json",
+      "size": 610
+    },
+    {
+      "path": "data/sam31_door/door_20260917_27129/cam1/report.json",
+      "size": 2764
+    },
+    {
+      "path": "data/sam31_door/door_20260917_27129/cam1/video.mp4",
+      "size": 112925034
+    },
+    {
+      "path": "data/sam31_door/door_20260917_28406/cam1/chunks.npz",
+      "size": 1498344
+    },
+    {
+      "path": "data/sam31_door/door_20260917_28406/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260917_28406/cam1/report.json",
+      "size": 2132
+    },
+    {
+      "path": "data/sam31_door/door_20260917_28406/cam1/video.mp4",
+      "size": 115310116
+    },
+    {
+      "path": "data/sam31_door/door_20260917_30835/cam1/chunks.npz",
+      "size": 1889704
+    },
+    {
+      "path": "data/sam31_door/door_20260917_30835/cam1/info.json",
+      "size": 665
+    },
+    {
+      "path": "data/sam31_door/door_20260917_30835/cam1/report.json",
+      "size": 8004
+    },
+    {
+      "path": "data/sam31_door/door_20260917_30835/cam1/video.mp4",
+      "size": 134919990
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31084/cam1/chunks.npz",
+      "size": 1634436
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31084/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31084/cam1/report.json",
+      "size": 1969
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31084/cam1/video.mp4",
+      "size": 107467441
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31237/cam1/chunks.npz",
+      "size": 1468403
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31237/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31237/cam1/report.json",
+      "size": 2275
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31237/cam1/video.mp4",
+      "size": 106750586
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31481/cam1/chunks.npz",
+      "size": 1403719
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31481/cam1/info.json",
+      "size": 630
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31481/cam1/report.json",
+      "size": 2471
+    },
+    {
+      "path": "data/sam31_door/door_20260917_31481/cam1/video.mp4",
+      "size": 115766870
+    },
+    {
+      "path": "data/sam31_door/door_20260917_32893/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_32893/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_32893/cam1/video.mp4",
+      "size": 429811
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33387/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33387/cam1/info.json",
+      "size": 797
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33387/cam1/video.mp4",
+      "size": 826041
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33517/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33517/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33517/cam1/video.mp4",
+      "size": 429811
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33734/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33734/cam1/info.json",
+      "size": 628
+    },
+    {
+      "path": "data/sam31_door/door_20260917_33734/cam1/video.mp4",
+      "size": 454085
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34149/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34149/cam1/info.json",
+      "size": 634
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34149/cam1/video.mp4",
+      "size": 510671
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34467/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34467/cam1/info.json",
+      "size": 615
+    },
+    {
+      "path": "data/sam31_door/door_20260917_34467/cam1/video.mp4",
+      "size": 429811
+    },
+    {
+      "path": "data/sam31_door/door_20260917_36717/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_36717/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260917_36717/cam1/video.mp4",
+      "size": 429811
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37084/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37084/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37084/cam1/video.mp4",
+      "size": 478439
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37251/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37251/cam1/info.json",
+      "size": 621
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37251/cam1/video.mp4",
+      "size": 429811
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37505/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37505/cam1/info.json",
+      "size": 683
+    },
+    {
+      "path": "data/sam31_door/door_20260917_37505/cam1/video.mp4",
+      "size": 615901
+    },
+    {
+      "path": "data/sam31_door/door_20260917_38853/cam1/chunks.npz",
+      "size": 565
+    },
+    {
+      "path": "data/sam31_door/door_20260917_38853/cam1/info.json",
+      "size": 738
+    },
+    {
+      "path": "data/sam31_door/door_20260917_38853/cam1/video.mp4",
+      "size": 624051
+    },
+    {
+      "path": "data/sam31_door/door_20260918_01405/cam1/chunks.npz",
+      "size": 173241
+    },
+    {
+      "path": "data/sam31_door/door_20260918_01405/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260918_01405/cam1/report.json",
+      "size": 2002
+    },
+    {
+      "path": "data/sam31_door/door_20260918_01405/cam1/video.mp4",
+      "size": 109945960
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15375/cam1/chunks.npz",
+      "size": 704479
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15375/cam1/info.json",
+      "size": 621
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15375/cam1/report.json",
+      "size": 3459
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15375/cam1/video.mp4",
+      "size": 107447616
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15569/cam1/chunks.npz",
+      "size": 246162
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15569/cam1/info.json",
+      "size": 621
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15569/cam1/report.json",
+      "size": 2156
+    },
+    {
+      "path": "data/sam31_door/door_20260918_15569/cam1/video.mp4",
+      "size": 110452367
+    },
+    {
+      "path": "data/sam31_door/door_20260918_18720/cam1/chunks.npz",
+      "size": 43466748
+    },
+    {
+      "path": "data/sam31_door/door_20260918_18720/cam1/info.json",
+      "size": 2551
+    },
+    {
+      "path": "data/sam31_door/door_20260918_18720/cam1/report.json",
+      "size": 99912
+    },
+    {
+      "path": "data/sam31_door/door_20260918_18720/cam1/video.mp4",
+      "size": 1407548040
+    },
+    {
+      "path": "data/sam31_door/door_20260919_01803/cam1/chunks.npz",
+      "size": 382415
+    },
+    {
+      "path": "data/sam31_door/door_20260919_01803/cam1/info.json",
+      "size": 573
+    },
+    {
+      "path": "data/sam31_door/door_20260919_01803/cam1/report.json",
+      "size": 2639
+    },
+    {
+      "path": "data/sam31_door/door_20260919_01803/cam1/video.mp4",
+      "size": 121989992
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02205/cam1/chunks.npz",
+      "size": 354135
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02205/cam1/info.json",
+      "size": 560
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02205/cam1/report.json",
+      "size": 2603
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02205/cam1/video.mp4",
+      "size": 111118630
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02266/cam1/chunks.npz",
+      "size": 268032
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02266/cam1/info.json",
+      "size": 644
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02266/cam1/report.json",
+      "size": 2414
+    },
+    {
+      "path": "data/sam31_door/door_20260919_02266/cam1/video.mp4",
+      "size": 167832169
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03460/cam1/chunks.npz",
+      "size": 295865
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03460/cam1/info.json",
+      "size": 560
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03460/cam1/report.json",
+      "size": 2276
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03460/cam1/video.mp4",
+      "size": 112092949
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03551/cam1/chunks.npz",
+      "size": 825428
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03551/cam1/info.json",
+      "size": 609
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03551/cam1/report.json",
+      "size": 4250
+    },
+    {
+      "path": "data/sam31_door/door_20260919_03551/cam1/video.mp4",
+      "size": 157529066
+    },
+    {
+      "path": "data/sam31_door/door_20260919_04622/cam1/chunks.npz",
+      "size": 441533
+    },
+    {
+      "path": "data/sam31_door/door_20260919_04622/cam1/info.json",
+      "size": 580
+    },
+    {
+      "path": "data/sam31_door/door_20260919_04622/cam1/report.json",
+      "size": 2499
+    },
+    {
+      "path": "data/sam31_door/door_20260919_04622/cam1/video.mp4",
+      "size": 109821509
+    },
+    {
+      "path": "data/sam31_door/door_20260919_06610/cam1/chunks.npz",
+      "size": 355841
+    },
+    {
+      "path": "data/sam31_door/door_20260919_06610/cam1/info.json",
+      "size": 647
+    },
+    {
+      "path": "data/sam31_door/door_20260919_06610/cam1/report.json",
+      "size": 2410
+    },
+    {
+      "path": "data/sam31_door/door_20260919_06610/cam1/video.mp4",
+      "size": 163678107
+    },
+    {
+      "path": "data/sam31_door/door_20260919_07150/cam1/chunks.npz",
+      "size": 506359
+    },
+    {
+      "path": "data/sam31_door/door_20260919_07150/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_07150/cam1/report.json",
+      "size": 4724
+    },
+    {
+      "path": "data/sam31_door/door_20260919_07150/cam1/video.mp4",
+      "size": 110545169
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09389/cam1/chunks.npz",
+      "size": 1345281
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09389/cam1/info.json",
+      "size": 612
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09389/cam1/report.json",
+      "size": 2274
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09389/cam1/video.mp4",
+      "size": 115720352
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09458/cam1/chunks.npz",
+      "size": 5465113
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09458/cam1/info.json",
+      "size": 947
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09458/cam1/report.json",
+      "size": 16132
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09458/cam1/video.mp4",
+      "size": 369519611
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09892/cam1/chunks.npz",
+      "size": 1012965
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09892/cam1/info.json",
+      "size": 612
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09892/cam1/report.json",
+      "size": 4602
+    },
+    {
+      "path": "data/sam31_door/door_20260919_09892/cam1/video.mp4",
+      "size": 111322105
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10009/cam1/chunks.npz",
+      "size": 383126
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10009/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10009/cam1/report.json",
+      "size": 1954
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10009/cam1/video.mp4",
+      "size": 112214066
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10203/cam1/chunks.npz",
+      "size": 168941
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10203/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10203/cam1/report.json",
+      "size": 1706
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10203/cam1/video.mp4",
+      "size": 113421985
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10914/cam1/chunks.npz",
+      "size": 723221
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10914/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10914/cam1/report.json",
+      "size": 5632
+    },
+    {
+      "path": "data/sam31_door/door_20260919_10914/cam1/video.mp4",
+      "size": 108147468
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11103/cam1/chunks.npz",
+      "size": 508336
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11103/cam1/info.json",
+      "size": 615
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11103/cam1/report.json",
+      "size": 3735
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11103/cam1/video.mp4",
+      "size": 127957246
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11397/cam1/chunks.npz",
+      "size": 481699
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11397/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11397/cam1/report.json",
+      "size": 3146
+    },
+    {
+      "path": "data/sam31_door/door_20260919_11397/cam1/video.mp4",
+      "size": 111305872
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12278/cam1/chunks.npz",
+      "size": 325820
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12278/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12278/cam1/report.json",
+      "size": 2113
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12278/cam1/video.mp4",
+      "size": 114189058
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12779/cam1/chunks.npz",
+      "size": 1352720
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12779/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12779/cam1/report.json",
+      "size": 9882
+    },
+    {
+      "path": "data/sam31_door/door_20260919_12779/cam1/video.mp4",
+      "size": 125590394
+    },
+    {
+      "path": "data/sam31_door/door_20260919_13040/cam1/chunks.npz",
+      "size": 763165
+    },
+    {
+      "path": "data/sam31_door/door_20260919_13040/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_13040/cam1/report.json",
+      "size": 10335
+    },
+    {
+      "path": "data/sam31_door/door_20260919_13040/cam1/video.mp4",
+      "size": 109454069
+    },
+    {
+      "path": "data/sam31_door/door_20260919_14138/cam1/chunks.npz",
+      "size": 951516
+    },
+    {
+      "path": "data/sam31_door/door_20260919_14138/cam1/info.json",
+      "size": 648
+    },
+    {
+      "path": "data/sam31_door/door_20260919_14138/cam1/report.json",
+      "size": 4731
+    },
+    {
+      "path": "data/sam31_door/door_20260919_14138/cam1/video.mp4",
+      "size": 146599602
+    },
+    {
+      "path": "data/sam31_door/door_20260919_15389/cam1/chunks.npz",
+      "size": 772939
+    },
+    {
+      "path": "data/sam31_door/door_20260919_15389/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_15389/cam1/report.json",
+      "size": 3121
+    },
+    {
+      "path": "data/sam31_door/door_20260919_15389/cam1/video.mp4",
+      "size": 128593110
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16477/cam1/chunks.npz",
+      "size": 630798
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16477/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16477/cam1/report.json",
+      "size": 2105
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16477/cam1/video.mp4",
+      "size": 111594446
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16886/cam1/chunks.npz",
+      "size": 438008
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16886/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16886/cam1/report.json",
+      "size": 3477
+    },
+    {
+      "path": "data/sam31_door/door_20260919_16886/cam1/video.mp4",
+      "size": 111359263
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17514/cam1/chunks.npz",
+      "size": 207508
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17514/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17514/cam1/report.json",
+      "size": 2515
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17514/cam1/video.mp4",
+      "size": 112042095
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17704/cam1/chunks.npz",
+      "size": 1323395
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17704/cam1/info.json",
+      "size": 687
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17704/cam1/report.json",
+      "size": 10043
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17704/cam1/video.mp4",
+      "size": 180956621
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17934/cam1/chunks.npz",
+      "size": 2315728
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17934/cam1/info.json",
+      "size": 675
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17934/cam1/report.json",
+      "size": 7213
+    },
+    {
+      "path": "data/sam31_door/door_20260919_17934/cam1/video.mp4",
+      "size": 179636009
+    },
+    {
+      "path": "data/sam31_door/door_20260919_18328/cam1/chunks.npz",
+      "size": 813771
+    },
+    {
+      "path": "data/sam31_door/door_20260919_18328/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_18328/cam1/report.json",
+      "size": 4552
+    },
+    {
+      "path": "data/sam31_door/door_20260919_18328/cam1/video.mp4",
+      "size": 104903891
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19248/cam1/chunks.npz",
+      "size": 510087
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19248/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19248/cam1/report.json",
+      "size": 4028
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19248/cam1/video.mp4",
+      "size": 106552222
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19325/cam1/chunks.npz",
+      "size": 487288
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19325/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19325/cam1/report.json",
+      "size": 1707
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19325/cam1/video.mp4",
+      "size": 107457089
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19446/cam1/chunks.npz",
+      "size": 1753239
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19446/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19446/cam1/report.json",
+      "size": 4347
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19446/cam1/video.mp4",
+      "size": 106070903
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19507/cam1/chunks.npz",
+      "size": 2415238
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19507/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19507/cam1/report.json",
+      "size": 5428
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19507/cam1/video.mp4",
+      "size": 106023289
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19836/cam1/chunks.npz",
+      "size": 1356463
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19836/cam1/info.json",
+      "size": 682
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19836/cam1/report.json",
+      "size": 12509
+    },
+    {
+      "path": "data/sam31_door/door_20260919_19836/cam1/video.mp4",
+      "size": 159316914
+    },
+    {
+      "path": "data/sam31_door/door_20260919_21316/cam1/chunks.npz",
+      "size": 359519
+    },
+    {
+      "path": "data/sam31_door/door_20260919_21316/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_21316/cam1/report.json",
+      "size": 3618
+    },
+    {
+      "path": "data/sam31_door/door_20260919_21316/cam1/video.mp4",
+      "size": 107201347
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23019/cam1/chunks.npz",
+      "size": 667977
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23019/cam1/info.json",
+      "size": 599
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23019/cam1/report.json",
+      "size": 5504
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23019/cam1/video.mp4",
+      "size": 103859696
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23958/cam1/chunks.npz",
+      "size": 754103
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23958/cam1/info.json",
+      "size": 687
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23958/cam1/report.json",
+      "size": 4178
+    },
+    {
+      "path": "data/sam31_door/door_20260919_23958/cam1/video.mp4",
+      "size": 171682509
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25234/cam1/chunks.npz",
+      "size": 455624
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25234/cam1/info.json",
+      "size": 600
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25234/cam1/report.json",
+      "size": 3080
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25234/cam1/video.mp4",
+      "size": 106119285
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25294/cam1/chunks.npz",
+      "size": 1072036
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25294/cam1/info.json",
+      "size": 612
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25294/cam1/report.json",
+      "size": 5602
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25294/cam1/video.mp4",
+      "size": 121841634
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25452/cam1/chunks.npz",
+      "size": 569491
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25452/cam1/info.json",
+      "size": 615
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25452/cam1/report.json",
+      "size": 3551
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25452/cam1/video.mp4",
+      "size": 122673764
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25588/cam1/chunks.npz",
+      "size": 1812177
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25588/cam1/info.json",
+      "size": 722
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25588/cam1/report.json",
+      "size": 3584
+    },
+    {
+      "path": "data/sam31_door/door_20260919_25588/cam1/video.mp4",
+      "size": 184694073
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27078/cam1/chunks.npz",
+      "size": 655131
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27078/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27078/cam1/report.json",
+      "size": 3986
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27078/cam1/video.mp4",
+      "size": 115639392
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27532/cam1/chunks.npz",
+      "size": 398710
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27532/cam1/info.json",
+      "size": 599
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27532/cam1/report.json",
+      "size": 3191
+    },
+    {
+      "path": "data/sam31_door/door_20260919_27532/cam1/video.mp4",
+      "size": 105606437
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28548/cam1/chunks.npz",
+      "size": 2433184
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28548/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28548/cam1/report.json",
+      "size": 5530
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28548/cam1/video.mp4",
+      "size": 113226554
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28624/cam1/chunks.npz",
+      "size": 1741869
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28624/cam1/info.json",
+      "size": 614
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28624/cam1/report.json",
+      "size": 7298
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28624/cam1/video.mp4",
+      "size": 109067314
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28833/cam1/chunks.npz",
+      "size": 468624
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28833/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28833/cam1/report.json",
+      "size": 5607
+    },
+    {
+      "path": "data/sam31_door/door_20260919_28833/cam1/video.mp4",
+      "size": 106004949
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29174/cam1/chunks.npz",
+      "size": 522562
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29174/cam1/info.json",
+      "size": 601
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29174/cam1/report.json",
+      "size": 6295
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29174/cam1/video.mp4",
+      "size": 106560009
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29407/cam1/chunks.npz",
+      "size": 3000101
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29407/cam1/info.json",
+      "size": 649
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29407/cam1/report.json",
+      "size": 2868
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29407/cam1/video.mp4",
+      "size": 141585528
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29502/cam1/chunks.npz",
+      "size": 17378854
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29502/cam1/info.json",
+      "size": 1444
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29502/cam1/report.json",
+      "size": 29276
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29502/cam1/video.mp4",
+      "size": 698810923
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29915/cam1/chunks.npz",
+      "size": 2905887
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29915/cam1/info.json",
+      "size": 741
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29915/cam1/report.json",
+      "size": 3685
+    },
+    {
+      "path": "data/sam31_door/door_20260919_29915/cam1/video.mp4",
+      "size": 206328459
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30026/cam1/chunks.npz",
+      "size": 986680
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30026/cam1/info.json",
+      "size": 630
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30026/cam1/report.json",
+      "size": 4253
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30026/cam1/video.mp4",
+      "size": 122959751
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30421/cam1/chunks.npz",
+      "size": 262476
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30421/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30421/cam1/report.json",
+      "size": 2425
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30421/cam1/video.mp4",
+      "size": 106733956
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30508/cam1/chunks.npz",
+      "size": 746302
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30508/cam1/info.json",
+      "size": 629
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30508/cam1/report.json",
+      "size": 2131
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30508/cam1/video.mp4",
+      "size": 108581507
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30722/cam1/chunks.npz",
+      "size": 1204808
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30722/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30722/cam1/report.json",
+      "size": 3081
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30722/cam1/video.mp4",
+      "size": 105384870
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30966/cam1/chunks.npz",
+      "size": 333357
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30966/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30966/cam1/report.json",
+      "size": 2153
+    },
+    {
+      "path": "data/sam31_door/door_20260919_30966/cam1/video.mp4",
+      "size": 108275751
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31047/cam1/chunks.npz",
+      "size": 683483
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31047/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31047/cam1/report.json",
+      "size": 5351
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31047/cam1/video.mp4",
+      "size": 105078849
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31727/cam1/chunks.npz",
+      "size": 1510993
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31727/cam1/info.json",
+      "size": 699
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31727/cam1/report.json",
+      "size": 5684
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31727/cam1/video.mp4",
+      "size": 156631202
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31948/cam1/chunks.npz",
+      "size": 2231417
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31948/cam1/info.json",
+      "size": 700
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31948/cam1/report.json",
+      "size": 2571
+    },
+    {
+      "path": "data/sam31_door/door_20260919_31948/cam1/video.mp4",
+      "size": 159343603
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32350/cam1/chunks.npz",
+      "size": 7876525
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32350/cam1/info.json",
+      "size": 1076
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32350/cam1/report.json",
+      "size": 26794
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32350/cam1/video.mp4",
+      "size": 438577608
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32921/cam1/chunks.npz",
+      "size": 150463
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32921/cam1/info.json",
+      "size": 597
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32921/cam1/report.json",
+      "size": 1703
+    },
+    {
+      "path": "data/sam31_door/door_20260919_32921/cam1/video.mp4",
+      "size": 107569427
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34449/cam1/chunks.npz",
+      "size": 757838
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34449/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34449/cam1/report.json",
+      "size": 3528
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34449/cam1/video.mp4",
+      "size": 105331147
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34716/cam1/chunks.npz",
+      "size": 374173
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34716/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34716/cam1/report.json",
+      "size": 2845
+    },
+    {
+      "path": "data/sam31_door/door_20260919_34716/cam1/video.mp4",
+      "size": 106877530
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35121/cam1/chunks.npz",
+      "size": 821292
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35121/cam1/info.json",
+      "size": 664
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35121/cam1/report.json",
+      "size": 4905
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35121/cam1/video.mp4",
+      "size": 145868322
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35614/cam1/chunks.npz",
+      "size": 498024
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35614/cam1/info.json",
+      "size": 615
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35614/cam1/report.json",
+      "size": 3929
+    },
+    {
+      "path": "data/sam31_door/door_20260919_35614/cam1/video.mp4",
+      "size": 105284240
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38013/cam1/chunks.npz",
+      "size": 586027
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38013/cam1/info.json",
+      "size": 616
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38013/cam1/report.json",
+      "size": 3513
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38013/cam1/video.mp4",
+      "size": 104613516
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38821/cam1/chunks.npz",
+      "size": 169281
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38821/cam1/info.json",
+      "size": 617
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38821/cam1/report.json",
+      "size": 1970
+    },
+    {
+      "path": "data/sam31_door/door_20260919_38821/cam1/video.mp4",
+      "size": 110668378
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam1/chunks.npz",
+      "size": 11412158
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam1/info.json",
+      "size": 2810
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam1/report.json",
+      "size": 88438
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam1/video.mp4",
+      "size": 1273695113
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam2/chunks.npz",
+      "size": 21304846
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam2/info.json",
+      "size": 3296
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam2/report.json",
+      "size": 64392
+    },
+    {
+      "path": "data/sam31_seg/20260917_09005/cam2/video.mp4",
+      "size": 1399626213
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam1/chunks.npz",
+      "size": 20664268
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam1/info.json",
+      "size": 3129
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam1/report.json",
+      "size": 73050
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam1/video.mp4",
+      "size": 1312430719
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam2/chunks.npz",
+      "size": 30615226
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam2/info.json",
+      "size": 3297
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam2/report.json",
+      "size": 102703
+    },
+    {
+      "path": "data/sam31_seg/20260917_26105/cam2/video.mp4",
+      "size": 1396491498
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam1/chunks.npz",
+      "size": 5933177
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam1/info.json",
+      "size": 500
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam1/report.json",
+      "size": 4864
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam1/video.mp4",
+      "size": 98363183
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam2/chunks.npz",
+      "size": 1483535
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam2/info.json",
+      "size": 499
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam2/report.json",
+      "size": 7022
+    },
+    {
+      "path": "data/sam31_seg/20260918_19059/cam2/video.mp4",
+      "size": 95428222
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam1/chunks.npz",
+      "size": 15197437
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam1/info.json",
+      "size": 2002
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam1/report.json",
+      "size": 220142
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam1/video.mp4",
+      "size": 1331951660
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam2/chunks.npz",
+      "size": 30997533
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam2/info.json",
+      "size": 2408
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam2/report.json",
+      "size": 188194
+    },
+    {
+      "path": "data/sam31_seg/20260919_09000/cam2/video.mp4",
+      "size": 1432398740
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam1/chunks.npz",
+      "size": 14083918
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam1/info.json",
+      "size": 3022
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam1/report.json",
+      "size": 363632
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam1/video.mp4",
+      "size": 1264323654
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam2/chunks.npz",
+      "size": 18032665
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam2/info.json",
+      "size": 2946
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam2/report.json",
+      "size": 322888
+    },
+    {
+      "path": "data/sam31_seg/20260919_18900/cam2/video.mp4",
+      "size": 1328940546
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam1/chunks.npz",
+      "size": 6423195
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam1/info.json",
+      "size": 2968
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam1/report.json",
+      "size": 114928
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam1/video.mp4",
+      "size": 1212253219
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam2/chunks.npz",
+      "size": 4246812
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam2/info.json",
+      "size": 2489
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam2/report.json",
+      "size": 147625
+    },
+    {
+      "path": "data/sam31_seg/20260919_37800/cam2/video.mp4",
+      "size": 1319171678
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam1/chunks.npz",
+      "size": 28621760
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam1/info.json",
+      "size": 3258
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam1/report.json",
+      "size": 81487
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam1/video.mp4",
+      "size": 1301091208
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam2/chunks.npz",
+      "size": 13912350
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam2/info.json",
+      "size": 3296
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam2/report.json",
+      "size": 88668
+    },
+    {
+      "path": "data/sam31_seg/20260920_36003/cam2/video.mp4",
+      "size": 1395411544
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam1/chunks.npz",
+      "size": 16855491
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam1/info.json",
+      "size": 3106
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam1/report.json",
+      "size": 83813
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam1/video.mp4",
+      "size": 1331821351
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam2/chunks.npz",
+      "size": 20857616
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam2/info.json",
+      "size": 3296
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam2/report.json",
+      "size": 91586
+    },
+    {
+      "path": "data/sam31_seg/20260921_08100/cam2/video.mp4",
+      "size": 1388320949
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam1/chunks.npz",
+      "size": 12706125
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam1/info.json",
+      "size": 2844
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam1/report.json",
+      "size": 152604
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam1/video.mp4",
+      "size": 1245744607
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam2/chunks.npz",
+      "size": 10862358
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam2/info.json",
+      "size": 3297
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam2/report.json",
+      "size": 149902
+    },
+    {
+      "path": "data/sam31_seg/20260921_10800/cam2/video.mp4",
+      "size": 1329392923
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam1/chunks.npz",
+      "size": 10536182
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam1/info.json",
+      "size": 2657
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam1/report.json",
+      "size": 269551
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam1/video.mp4",
+      "size": 1250407003
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam2/chunks.npz",
+      "size": 21091039
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam2/info.json",
+      "size": 3205
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam2/report.json",
+      "size": 162198
+    },
+    {
+      "path": "data/sam31_seg/20260921_35100/cam2/video.mp4",
+      "size": 1394470297
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam1/chunks.npz",
+      "size": 8286989
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam1/info.json",
+      "size": 2797
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam1/report.json",
+      "size": 276830
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam1/video.mp4",
+      "size": 1276397661
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam2/chunks.npz",
+      "size": 24307038
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam2/info.json",
+      "size": 3244
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam2/report.json",
+      "size": 244430
+    },
+    {
+      "path": "data/sam31_seg/20260922_15164/cam2/video.mp4",
+      "size": 1399913283
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam1/chunks.npz",
+      "size": 10995030
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam1/info.json",
+      "size": 2599
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam1/report.json",
+      "size": 100290
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam1/video.mp4",
+      "size": 1284143975
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam2/chunks.npz",
+      "size": 15590051
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam2/info.json",
+      "size": 3334
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam2/report.json",
+      "size": 135206
+    },
+    {
+      "path": "data/sam31_seg/20260922_22364/cam2/video.mp4",
+      "size": 1398873715
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam1/chunks.npz",
+      "size": 10546799
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam1/info.json",
+      "size": 2400
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam1/report.json",
+      "size": 121666
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam1/video.mp4",
+      "size": 1249573944
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam2/chunks.npz",
+      "size": 15615144
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam2/info.json",
+      "size": 3274
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam2/report.json",
+      "size": 122488
+    },
+    {
+      "path": "data/sam31_seg/20260922_23264/cam2/video.mp4",
+      "size": 1372102319
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam1/chunks.npz",
+      "size": 2607738
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam1/info.json",
+      "size": 1875
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam1/report.json",
+      "size": 98794
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam1/video.mp4",
+      "size": 1237279225
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam2/chunks.npz",
+      "size": 21022523
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam2/info.json",
+      "size": 3204
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam2/report.json",
+      "size": 73361
+    },
+    {
+      "path": "data/sam31_seg/20260923_01801/cam2/video.mp4",
+      "size": 1322569155
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam1/chunks.npz",
+      "size": 5614344
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam1/info.json",
+      "size": 2743
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam1/report.json",
+      "size": 172297
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam1/video.mp4",
+      "size": 1263313258
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam2/chunks.npz",
+      "size": 18623378
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam2/info.json",
+      "size": 3223
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam2/report.json",
+      "size": 113478
+    },
+    {
+      "path": "data/sam31_seg/20260923_21601/cam2/video.mp4",
+      "size": 1345763173
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam1/chunks.npz",
+      "size": 6139602
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam1/info.json",
+      "size": 2974
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam1/report.json",
+      "size": 457084
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam1/video.mp4",
+      "size": 1242034472
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam2/chunks.npz",
+      "size": 20876874
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam2/info.json",
+      "size": 3204
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam2/report.json",
+      "size": 250844
+    },
+    {
+      "path": "data/sam31_seg/20260923_25201/cam2/video.mp4",
+      "size": 1304338992
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0000.jpg",
+      "size": 448517
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0001.jpg",
+      "size": 450227
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0002.jpg",
+      "size": 450295
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0003.jpg",
+      "size": 447124
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0004.jpg",
+      "size": 447955
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0005.jpg",
+      "size": 448319
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0006.jpg",
+      "size": 448075
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0007.jpg",
+      "size": 450458
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0008.jpg",
+      "size": 447862
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0009.jpg",
+      "size": 448131
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0010.jpg",
+      "size": 447284
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0011.jpg",
+      "size": 446443
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0012.jpg",
+      "size": 445974
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0013.jpg",
+      "size": 449462
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0014.jpg",
+      "size": 447404
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0015.jpg",
+      "size": 448316
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0016.jpg",
+      "size": 447919
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0017.jpg",
+      "size": 447008
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0018.jpg",
+      "size": 446536
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0019.jpg",
+      "size": 447463
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0020.jpg",
+      "size": 447995
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0021.jpg",
+      "size": 449086
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0022.jpg",
+      "size": 448072
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0023.jpg",
+      "size": 449261
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0024.jpg",
+      "size": 449733
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0025.jpg",
+      "size": 449469
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0026.jpg",
+      "size": 446147
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0027.jpg",
+      "size": 444443
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0028.jpg",
+      "size": 448352
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0029.jpg",
+      "size": 447182
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0030.jpg",
+      "size": 444406
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0031.jpg",
+      "size": 446227
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0032.jpg",
+      "size": 446593
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0033.jpg",
+      "size": 446216
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0034.jpg",
+      "size": 448149
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0035.jpg",
+      "size": 446643
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0036.jpg",
+      "size": 445216
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0037.jpg",
+      "size": 446946
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0038.jpg",
+      "size": 447487
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0039.jpg",
+      "size": 447287
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0040.jpg",
+      "size": 446222
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0041.jpg",
+      "size": 446370
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0042.jpg",
+      "size": 443383
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260913_cam1_100011_0043.jpg",
+      "size": 436542
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0000.jpg",
+      "size": 446991
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0001.jpg",
+      "size": 446048
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0002.jpg",
+      "size": 447359
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0003.jpg",
+      "size": 446947
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0004.jpg",
+      "size": 447455
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0005.jpg",
+      "size": 448925
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0006.jpg",
+      "size": 443379
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0007.jpg",
+      "size": 446176
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0008.jpg",
+      "size": 445400
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0009.jpg",
+      "size": 446160
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0010.jpg",
+      "size": 447983
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0011.jpg",
+      "size": 448467
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0012.jpg",
+      "size": 447295
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0013.jpg",
+      "size": 446072
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0014.jpg",
+      "size": 448354
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0015.jpg",
+      "size": 445922
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0016.jpg",
+      "size": 445681
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0017.jpg",
+      "size": 447913
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0018.jpg",
+      "size": 446922
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0019.jpg",
+      "size": 448162
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0020.jpg",
+      "size": 446242
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0021.jpg",
+      "size": 447186
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0022.jpg",
+      "size": 446993
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0023.jpg",
+      "size": 448673
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0024.jpg",
+      "size": 449182
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0025.jpg",
+      "size": 446092
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0026.jpg",
+      "size": 446294
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0027.jpg",
+      "size": 448781
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0028.jpg",
+      "size": 450261
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0029.jpg",
+      "size": 448524
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0030.jpg",
+      "size": 449541
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0031.jpg",
+      "size": 448613
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0032.jpg",
+      "size": 445145
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0033.jpg",
+      "size": 446680
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0034.jpg",
+      "size": 447497
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0035.jpg",
+      "size": 447643
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0036.jpg",
+      "size": 448196
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0037.jpg",
+      "size": 446614
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0038.jpg",
+      "size": 444819
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0039.jpg",
+      "size": 452949
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0040.jpg",
+      "size": 442610
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0041.jpg",
+      "size": 448438
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0042.jpg",
+      "size": 447145
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260914_cam1_100001_0043.jpg",
+      "size": 438135
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0000.jpg",
+      "size": 443910
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0001.jpg",
+      "size": 445795
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0002.jpg",
+      "size": 441320
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0003.jpg",
+      "size": 445148
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0004.jpg",
+      "size": 448083
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0005.jpg",
+      "size": 449402
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0006.jpg",
+      "size": 447378
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0007.jpg",
+      "size": 446271
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0008.jpg",
+      "size": 446075
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0009.jpg",
+      "size": 445102
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0010.jpg",
+      "size": 445029
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0011.jpg",
+      "size": 444552
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0012.jpg",
+      "size": 447457
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0013.jpg",
+      "size": 444331
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0014.jpg",
+      "size": 445202
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0015.jpg",
+      "size": 448090
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0016.jpg",
+      "size": 447886
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0017.jpg",
+      "size": 447031
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0018.jpg",
+      "size": 450581
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0019.jpg",
+      "size": 447261
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0020.jpg",
+      "size": 447866
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0021.jpg",
+      "size": 447338
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0022.jpg",
+      "size": 447281
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0023.jpg",
+      "size": 446238
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0024.jpg",
+      "size": 445024
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0025.jpg",
+      "size": 448204
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0026.jpg",
+      "size": 445404
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0027.jpg",
+      "size": 445594
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0028.jpg",
+      "size": 448061
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0029.jpg",
+      "size": 448925
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0030.jpg",
+      "size": 449846
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0031.jpg",
+      "size": 449188
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0032.jpg",
+      "size": 448396
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0033.jpg",
+      "size": 453244
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0034.jpg",
+      "size": 451193
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam1_100024_0035.jpg",
+      "size": 450944
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0000.jpg",
+      "size": 451226
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0001.jpg",
+      "size": 450957
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0002.jpg",
+      "size": 443471
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0003.jpg",
+      "size": 450934
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0004.jpg",
+      "size": 452973
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0005.jpg",
+      "size": 448321
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0006.jpg",
+      "size": 446288
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0007.jpg",
+      "size": 449572
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0008.jpg",
+      "size": 448756
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0009.jpg",
+      "size": 446264
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0010.jpg",
+      "size": 446470
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0011.jpg",
+      "size": 447365
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0012.jpg",
+      "size": 447402
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0013.jpg",
+      "size": 447738
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0014.jpg",
+      "size": 447067
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0015.jpg",
+      "size": 445745
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0016.jpg",
+      "size": 450510
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0017.jpg",
+      "size": 447552
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0018.jpg",
+      "size": 443411
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0019.jpg",
+      "size": 448325
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0020.jpg",
+      "size": 451469
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0021.jpg",
+      "size": 449419
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0022.jpg",
+      "size": 449625
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0023.jpg",
+      "size": 447822
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0024.jpg",
+      "size": 446212
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0025.jpg",
+      "size": 449707
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0026.jpg",
+      "size": 449932
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0027.jpg",
+      "size": 452601
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0028.jpg",
+      "size": 448986
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0029.jpg",
+      "size": 446468
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0030.jpg",
+      "size": 447965
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0031.jpg",
+      "size": 449275
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0032.jpg",
+      "size": 453168
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0033.jpg",
+      "size": 450335
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0034.jpg",
+      "size": 450773
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260917_cam2_100024_0035.jpg",
+      "size": 454849
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0005.jpg",
+      "size": 445169
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0007.jpg",
+      "size": 444047
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0008.jpg",
+      "size": 445187
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0011.jpg",
+      "size": 445818
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0016.jpg",
+      "size": 446937
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0020.jpg",
+      "size": 446872
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0021.jpg",
+      "size": 446767
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0022.jpg",
+      "size": 445468
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0024.jpg",
+      "size": 444467
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0029.jpg",
+      "size": 443811
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0035.jpg",
+      "size": 445325
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam1_100003_0036.jpg",
+      "size": 438205
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0009.jpg",
+      "size": 445063
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0010.jpg",
+      "size": 444750
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0020.jpg",
+      "size": 444470
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0021.jpg",
+      "size": 445737
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0034.jpg",
+      "size": 447411
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0035.jpg",
+      "size": 443917
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260918_cam2_100003_0036.jpg",
+      "size": 447369
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0000.jpg",
+      "size": 449956
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0001.jpg",
+      "size": 448691
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0002.jpg",
+      "size": 448500
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0003.jpg",
+      "size": 445897
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0004.jpg",
+      "size": 447624
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0005.jpg",
+      "size": 447515
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0006.jpg",
+      "size": 448107
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0007.jpg",
+      "size": 446378
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0008.jpg",
+      "size": 448734
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0009.jpg",
+      "size": 445349
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0010.jpg",
+      "size": 447042
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0011.jpg",
+      "size": 445232
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0012.jpg",
+      "size": 444306
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0013.jpg",
+      "size": 447392
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0014.jpg",
+      "size": 445445
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0015.jpg",
+      "size": 446426
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0016.jpg",
+      "size": 446598
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0017.jpg",
+      "size": 447100
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0018.jpg",
+      "size": 446401
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0019.jpg",
+      "size": 445992
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0020.jpg",
+      "size": 447254
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0021.jpg",
+      "size": 448640
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0022.jpg",
+      "size": 447555
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0023.jpg",
+      "size": 448435
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0024.jpg",
+      "size": 448257
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0025.jpg",
+      "size": 447976
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0026.jpg",
+      "size": 446411
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0027.jpg",
+      "size": 447655
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0028.jpg",
+      "size": 444150
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0029.jpg",
+      "size": 449485
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0030.jpg",
+      "size": 449547
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0031.jpg",
+      "size": 446663
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0032.jpg",
+      "size": 448816
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0033.jpg",
+      "size": 447232
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0034.jpg",
+      "size": 446559
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0035.jpg",
+      "size": 444837
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0036.jpg",
+      "size": 446587
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0037.jpg",
+      "size": 448059
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0038.jpg",
+      "size": 446984
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0039.jpg",
+      "size": 447920
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0040.jpg",
+      "size": 449465
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0041.jpg",
+      "size": 447450
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0042.jpg",
+      "size": 446465
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam1_100003_0043.jpg",
+      "size": 441274
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0000.jpg",
+      "size": 444637
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0001.jpg",
+      "size": 444024
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0002.jpg",
+      "size": 445253
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0003.jpg",
+      "size": 443165
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0004.jpg",
+      "size": 442275
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0005.jpg",
+      "size": 443052
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0006.jpg",
+      "size": 441035
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0007.jpg",
+      "size": 446313
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0008.jpg",
+      "size": 442535
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0009.jpg",
+      "size": 444889
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0010.jpg",
+      "size": 442086
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0011.jpg",
+      "size": 448533
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0012.jpg",
+      "size": 448744
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0013.jpg",
+      "size": 451319
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0014.jpg",
+      "size": 448593
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0015.jpg",
+      "size": 449138
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0016.jpg",
+      "size": 448462
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0017.jpg",
+      "size": 449268
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0018.jpg",
+      "size": 443934
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0019.jpg",
+      "size": 448169
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0020.jpg",
+      "size": 449889
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0021.jpg",
+      "size": 447651
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0022.jpg",
+      "size": 444888
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0023.jpg",
+      "size": 449428
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0024.jpg",
+      "size": 447236
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0025.jpg",
+      "size": 444111
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0026.jpg",
+      "size": 447575
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0027.jpg",
+      "size": 450291
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0028.jpg",
+      "size": 442570
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0029.jpg",
+      "size": 447826
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0030.jpg",
+      "size": 446145
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0031.jpg",
+      "size": 443189
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0032.jpg",
+      "size": 448251
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0033.jpg",
+      "size": 446471
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0034.jpg",
+      "size": 451182
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0035.jpg",
+      "size": 447681
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0036.jpg",
+      "size": 450220
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0037.jpg",
+      "size": 452304
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0038.jpg",
+      "size": 449064
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0039.jpg",
+      "size": 449094
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0040.jpg",
+      "size": 447666
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0041.jpg",
+      "size": 448193
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0042.jpg",
+      "size": 451115
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260919_cam2_100012_0043.jpg",
+      "size": 451758
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0000.jpg",
+      "size": 440235
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0001.jpg",
+      "size": 447625
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0002.jpg",
+      "size": 447590
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0003.jpg",
+      "size": 448169
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0004.jpg",
+      "size": 447345
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0005.jpg",
+      "size": 446712
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0006.jpg",
+      "size": 446219
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0007.jpg",
+      "size": 445700
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0008.jpg",
+      "size": 444723
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0009.jpg",
+      "size": 446587
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0010.jpg",
+      "size": 444436
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0011.jpg",
+      "size": 447875
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0012.jpg",
+      "size": 446321
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0013.jpg",
+      "size": 446784
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0014.jpg",
+      "size": 446819
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0015.jpg",
+      "size": 446780
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0016.jpg",
+      "size": 449697
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0017.jpg",
+      "size": 447689
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0018.jpg",
+      "size": 445876
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0019.jpg",
+      "size": 447777
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0020.jpg",
+      "size": 448087
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0021.jpg",
+      "size": 446615
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0022.jpg",
+      "size": 444520
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0023.jpg",
+      "size": 447756
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0024.jpg",
+      "size": 448072
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0025.jpg",
+      "size": 448957
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0026.jpg",
+      "size": 444261
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0027.jpg",
+      "size": 446778
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0028.jpg",
+      "size": 446886
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0029.jpg",
+      "size": 449159
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0030.jpg",
+      "size": 448879
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0031.jpg",
+      "size": 448437
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0032.jpg",
+      "size": 446903
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0033.jpg",
+      "size": 447420
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0034.jpg",
+      "size": 445593
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0035.jpg",
+      "size": 444961
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0036.jpg",
+      "size": 444059
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0037.jpg",
+      "size": 443149
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0038.jpg",
+      "size": 445775
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0039.jpg",
+      "size": 445980
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0040.jpg",
+      "size": 444209
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0041.jpg",
+      "size": 450262
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0042.jpg",
+      "size": 448217
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam1_100005_0043.jpg",
+      "size": 448443
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0000.jpg",
+      "size": 449544
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0001.jpg",
+      "size": 447100
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0002.jpg",
+      "size": 445895
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0003.jpg",
+      "size": 451050
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0004.jpg",
+      "size": 452166
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0005.jpg",
+      "size": 454814
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0006.jpg",
+      "size": 456050
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0007.jpg",
+      "size": 450854
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0008.jpg",
+      "size": 452935
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0009.jpg",
+      "size": 449203
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0010.jpg",
+      "size": 451578
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0011.jpg",
+      "size": 451697
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0012.jpg",
+      "size": 451058
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0013.jpg",
+      "size": 450895
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0014.jpg",
+      "size": 453473
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0015.jpg",
+      "size": 448835
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0016.jpg",
+      "size": 449574
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0017.jpg",
+      "size": 451371
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0018.jpg",
+      "size": 451156
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0019.jpg",
+      "size": 448860
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0020.jpg",
+      "size": 450659
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0021.jpg",
+      "size": 449596
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0022.jpg",
+      "size": 453732
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0023.jpg",
+      "size": 451844
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0024.jpg",
+      "size": 448543
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0025.jpg",
+      "size": 452279
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0026.jpg",
+      "size": 449833
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0027.jpg",
+      "size": 453211
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0028.jpg",
+      "size": 453161
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0029.jpg",
+      "size": 452067
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0030.jpg",
+      "size": 454553
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0031.jpg",
+      "size": 451795
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0032.jpg",
+      "size": 451512
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0033.jpg",
+      "size": 456056
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0034.jpg",
+      "size": 453211
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0035.jpg",
+      "size": 448287
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0036.jpg",
+      "size": 448728
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0037.jpg",
+      "size": 450678
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0038.jpg",
+      "size": 448851
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0039.jpg",
+      "size": 449170
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0040.jpg",
+      "size": 451985
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0041.jpg",
+      "size": 455017
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0042.jpg",
+      "size": 452740
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260920_cam2_100002_0043.jpg",
+      "size": 451204
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0000.jpg",
+      "size": 444103
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0001.jpg",
+      "size": 444182
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0002.jpg",
+      "size": 445710
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0003.jpg",
+      "size": 445893
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0004.jpg",
+      "size": 449833
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0005.jpg",
+      "size": 448140
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0006.jpg",
+      "size": 448675
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0007.jpg",
+      "size": 446200
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0008.jpg",
+      "size": 447225
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0009.jpg",
+      "size": 448241
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0010.jpg",
+      "size": 449055
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0011.jpg",
+      "size": 449271
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0012.jpg",
+      "size": 446150
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0013.jpg",
+      "size": 451325
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0014.jpg",
+      "size": 451540
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0015.jpg",
+      "size": 447008
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0016.jpg",
+      "size": 445544
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0017.jpg",
+      "size": 448438
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0018.jpg",
+      "size": 447587
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0019.jpg",
+      "size": 449138
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0020.jpg",
+      "size": 447715
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0021.jpg",
+      "size": 449039
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0022.jpg",
+      "size": 449052
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0023.jpg",
+      "size": 449093
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0024.jpg",
+      "size": 448408
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0025.jpg",
+      "size": 451489
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0026.jpg",
+      "size": 446762
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0027.jpg",
+      "size": 447618
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0028.jpg",
+      "size": 449420
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0029.jpg",
+      "size": 447467
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0030.jpg",
+      "size": 447266
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0031.jpg",
+      "size": 448343
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0032.jpg",
+      "size": 447462
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0033.jpg",
+      "size": 449471
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0034.jpg",
+      "size": 446742
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0035.jpg",
+      "size": 444762
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0036.jpg",
+      "size": 447626
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0037.jpg",
+      "size": 449989
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0038.jpg",
+      "size": 450852
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0039.jpg",
+      "size": 448166
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0040.jpg",
+      "size": 446384
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0041.jpg",
+      "size": 447784
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0042.jpg",
+      "size": 446501
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam1_100004_0043.jpg",
+      "size": 444006
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0000.jpg",
+      "size": 454458
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0001.jpg",
+      "size": 453697
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0002.jpg",
+      "size": 456401
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0003.jpg",
+      "size": 444344
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0004.jpg",
+      "size": 446819
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0005.jpg",
+      "size": 444106
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0006.jpg",
+      "size": 446058
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0007.jpg",
+      "size": 442133
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0008.jpg",
+      "size": 444651
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0009.jpg",
+      "size": 447414
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0010.jpg",
+      "size": 448748
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0011.jpg",
+      "size": 450647
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0012.jpg",
+      "size": 451723
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0013.jpg",
+      "size": 451948
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0014.jpg",
+      "size": 452992
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0015.jpg",
+      "size": 450089
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0016.jpg",
+      "size": 447980
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0017.jpg",
+      "size": 448963
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0018.jpg",
+      "size": 447723
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0019.jpg",
+      "size": 448382
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0020.jpg",
+      "size": 449728
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0021.jpg",
+      "size": 447820
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0022.jpg",
+      "size": 448020
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0023.jpg",
+      "size": 446674
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0024.jpg",
+      "size": 450311
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0025.jpg",
+      "size": 455366
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0026.jpg",
+      "size": 448542
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0027.jpg",
+      "size": 452362
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0028.jpg",
+      "size": 451331
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0029.jpg",
+      "size": 452006
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0030.jpg",
+      "size": 449358
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0031.jpg",
+      "size": 449134
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0032.jpg",
+      "size": 450545
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0033.jpg",
+      "size": 448842
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0034.jpg",
+      "size": 443512
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0035.jpg",
+      "size": 443869
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0036.jpg",
+      "size": 452535
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0037.jpg",
+      "size": 448125
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0038.jpg",
+      "size": 451512
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0039.jpg",
+      "size": 445215
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0040.jpg",
+      "size": 447415
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0041.jpg",
+      "size": 450001
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0042.jpg",
+      "size": 451559
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260921_cam2_100005_0043.jpg",
+      "size": 449610
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0000.jpg",
+      "size": 447964
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0001.jpg",
+      "size": 447004
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0002.jpg",
+      "size": 446641
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0003.jpg",
+      "size": 447081
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0004.jpg",
+      "size": 446062
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0005.jpg",
+      "size": 448707
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0006.jpg",
+      "size": 444532
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0007.jpg",
+      "size": 445017
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0008.jpg",
+      "size": 446696
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_100003_0009.jpg",
+      "size": 449781
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0000.jpg",
+      "size": 445597
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0001.jpg",
+      "size": 447699
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0002.jpg",
+      "size": 445178
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0003.jpg",
+      "size": 446414
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0004.jpg",
+      "size": 444518
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0005.jpg",
+      "size": 448692
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0006.jpg",
+      "size": 444982
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0007.jpg",
+      "size": 446370
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0008.jpg",
+      "size": 446560
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0009.jpg",
+      "size": 448698
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0010.jpg",
+      "size": 446964
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0011.jpg",
+      "size": 445891
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0012.jpg",
+      "size": 445505
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0013.jpg",
+      "size": 445194
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0014.jpg",
+      "size": 447134
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0015.jpg",
+      "size": 444395
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_122747_0016.jpg",
+      "size": 445183
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam1_164300_0000.jpg",
+      "size": 444056
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0000.jpg",
+      "size": 448763
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0001.jpg",
+      "size": 449770
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0002.jpg",
+      "size": 450541
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0003.jpg",
+      "size": 449543
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0004.jpg",
+      "size": 451098
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0005.jpg",
+      "size": 450317
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0006.jpg",
+      "size": 452579
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0007.jpg",
+      "size": 448091
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0008.jpg",
+      "size": 445418
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0009.jpg",
+      "size": 449599
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0010.jpg",
+      "size": 446476
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0011.jpg",
+      "size": 449917
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0012.jpg",
+      "size": 448751
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0013.jpg",
+      "size": 447385
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0014.jpg",
+      "size": 449135
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0015.jpg",
+      "size": 449043
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0016.jpg",
+      "size": 448986
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0017.jpg",
+      "size": 446713
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0018.jpg",
+      "size": 442706
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0019.jpg",
+      "size": 446281
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0020.jpg",
+      "size": 448849
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0021.jpg",
+      "size": 450723
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0022.jpg",
+      "size": 448986
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0023.jpg",
+      "size": 446764
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0024.jpg",
+      "size": 450103
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0025.jpg",
+      "size": 450878
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_100004_0026.jpg",
+      "size": 451307
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_164309_0000.jpg",
+      "size": 451856
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0000.jpg",
+      "size": 452249
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0001.jpg",
+      "size": 452394
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0002.jpg",
+      "size": 452974
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0003.jpg",
+      "size": 450572
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0004.jpg",
+      "size": 449354
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0005.jpg",
+      "size": 450342
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0006.jpg",
+      "size": 447377
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0007.jpg",
+      "size": 450766
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0008.jpg",
+      "size": 448849
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0009.jpg",
+      "size": 449603
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0010.jpg",
+      "size": 449898
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0011.jpg",
+      "size": 448076
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0012.jpg",
+      "size": 450458
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0013.jpg",
+      "size": 451465
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0014.jpg",
+      "size": 451787
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0015.jpg",
+      "size": 450657
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260922_cam2_165049_0016.jpg",
+      "size": 453577
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0000.jpg",
+      "size": 446523
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0001.jpg",
+      "size": 448883
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0002.jpg",
+      "size": 446299
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0003.jpg",
+      "size": 446887
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0004.jpg",
+      "size": 446049
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0005.jpg",
+      "size": 446266
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0006.jpg",
+      "size": 447903
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0007.jpg",
+      "size": 447754
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0008.jpg",
+      "size": 446005
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0009.jpg",
+      "size": 444977
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0010.jpg",
+      "size": 446037
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0011.jpg",
+      "size": 447741
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0012.jpg",
+      "size": 446768
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0013.jpg",
+      "size": 450327
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0014.jpg",
+      "size": 448598
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0015.jpg",
+      "size": 446840
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0016.jpg",
+      "size": 449256
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0017.jpg",
+      "size": 447262
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0018.jpg",
+      "size": 447595
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0019.jpg",
+      "size": 447432
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0020.jpg",
+      "size": 448266
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0021.jpg",
+      "size": 448732
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0022.jpg",
+      "size": 445935
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0023.jpg",
+      "size": 448188
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0024.jpg",
+      "size": 451400
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0025.jpg",
+      "size": 445891
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0026.jpg",
+      "size": 447533
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0027.jpg",
+      "size": 447479
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0028.jpg",
+      "size": 449062
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0029.jpg",
+      "size": 446459
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0030.jpg",
+      "size": 448420
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0031.jpg",
+      "size": 447159
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0032.jpg",
+      "size": 446155
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0033.jpg",
+      "size": 445644
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0034.jpg",
+      "size": 447471
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0035.jpg",
+      "size": 444606
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0036.jpg",
+      "size": 446983
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0037.jpg",
+      "size": 448576
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0038.jpg",
+      "size": 450587
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0039.jpg",
+      "size": 449374
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0040.jpg",
+      "size": 446901
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0041.jpg",
+      "size": 448945
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0042.jpg",
+      "size": 443405
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam1_100007_0043.jpg",
+      "size": 441041
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0000.jpg",
+      "size": 447804
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0001.jpg",
+      "size": 445996
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0002.jpg",
+      "size": 446826
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0003.jpg",
+      "size": 446974
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0004.jpg",
+      "size": 452999
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0005.jpg",
+      "size": 452787
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0006.jpg",
+      "size": 449791
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0007.jpg",
+      "size": 451710
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0008.jpg",
+      "size": 445186
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0009.jpg",
+      "size": 448214
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0010.jpg",
+      "size": 448801
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0011.jpg",
+      "size": 453577
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0012.jpg",
+      "size": 455821
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0013.jpg",
+      "size": 451923
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0014.jpg",
+      "size": 452391
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0015.jpg",
+      "size": 451264
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0016.jpg",
+      "size": 448959
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0017.jpg",
+      "size": 452889
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0018.jpg",
+      "size": 447267
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0019.jpg",
+      "size": 452222
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0020.jpg",
+      "size": 450004
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0021.jpg",
+      "size": 450255
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0022.jpg",
+      "size": 448909
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0023.jpg",
+      "size": 450656
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0024.jpg",
+      "size": 453628
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0025.jpg",
+      "size": 452128
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0026.jpg",
+      "size": 448181
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0027.jpg",
+      "size": 449184
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0028.jpg",
+      "size": 450797
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0029.jpg",
+      "size": 449884
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0030.jpg",
+      "size": 450808
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0031.jpg",
+      "size": 451874
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0032.jpg",
+      "size": 451557
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0033.jpg",
+      "size": 450120
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0034.jpg",
+      "size": 450900
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0035.jpg",
+      "size": 450215
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0036.jpg",
+      "size": 449428
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0037.jpg",
+      "size": 447726
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0038.jpg",
+      "size": 450943
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0039.jpg",
+      "size": 450321
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0040.jpg",
+      "size": 451702
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0041.jpg",
+      "size": 451493
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0042.jpg",
+      "size": 451411
+    },
+    {
+      "path": "data/seg_datasets/backgrounds/20260923_cam2_100006_0043.jpg",
+      "size": 456877
+    },
+    {
+      "path": "runs/doorseg_c_background/candidate_manifest.json",
+      "size": 610
+    },
+    {
+      "path": "runs/doorseg_c_background/last.pt",
+      "size": 140327101
+    },
+    {
+      "path": "runs/doorseg_c_background/progress.md",
+      "size": 509
+    },
+    {
+      "path": "yolo26s-seg.pt",
+      "size": 23467933
+    },
+    {
+      "path": "runs/doorseg_c_background/log.jsonl",
+      "size": 967
+    }
+  ]
+}

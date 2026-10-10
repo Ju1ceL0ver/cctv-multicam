@@ -4458,3 +4458,118 @@ keeper/owner labels не менялись. Автоматика ACTIVE: дале
 скорость/маски/ID/события/roles/integration и отдельный bounded sequence
 trainer из92/75; не завершать ночь одним профилем и не отключать automation
 лишь из-за окончания C.
+
+## 94. Полноценный отдельный Fingerprint64/ConvGRU48 BF16 тренер (11.10.2026)
+
+Владелец прямо потребовал полноценное обучение основы и обеих новых голов,
+BF16 AMP + matmul_precision high + TF32 вместо предложенного FP32.
+Реально запущен через venv_sam3/bg.py отдельный doorseg_sequence_full_20261011:
+controller89352→22672, worker98180→122296 после reload guard. Два Python PID
+в каждой паре — Windows venv redirector и один настоящий процесс, не два job.
+Исходник immutable final C20604 last_085f995430fb.pt, прежние448Adam moments
+сохранены, новые18head parameters добавлены; новый saveprecision bf16 явный.
+Это НЕ возобновление остановленного по плато C. C STOP и checkpoints не трогать.
+
+Фrozen148TRAIN/6VAL,1212 datafiles проверены size/mtime; labels/backgrounds
+такжеSHA. Все train sources должны оставаться eligible; owner labels неизменны.
+4orderedframes/BPTT, один sequence/batch, base+headsLR1e-4, identityweight.1.
+Начальная400moment seed7 VAL с4framewarmup и own previous masks, затем те же
+400моментов каждые2000 successful updates. Этот протокол отличается от старого
+Cwarm2: сравнивать с собственным baseline, не напрямую со старой F1 .9389.
+Fingerprint retrieval измеряется отдельно, в production tracker не подключён.
+Numerical/nonfinite/technical update rejection сохраняет batch и STOP;
+transaction rollback восстанавливает model parameters/buffers ИAdam.
+Backup atomic каждые120s, three stale validations without+.005 =>plateau.
+Самостоятельный CPU controller уступает живой двери/активным пользователям/
+busyforeignapps и прекращает работу09:35. Никакого автоматического FP32 retry
+в этом новом run; BF16 запрос владельца сохранять и численный сбой расследовать.
+
+Photoshop77228 оказался открытым, но не используемым: disconnected user,
+CPU .094sec за22sec, GPU0%, IO маленькие. Исправлен старый blanket name guard:
+чужой app остаётся открыт, контроль WTSactiveuser+CPU/IO activity. Пустой
+activeconsole username не означает живого пользователя. Не обходить фактическую
+активность. Firstsample failclosed, snapshot cache2s. Первоначальная проверка
+cmdline всех процессов на каждом frame замедляла validation; own py-spy
+подтвердил stack psutil.cmdline. Теперь cmdline читаются только для Python,
+busy snapshot раз в2s. Первый worker74004 gracefulPAUSE/checkpoint/exit2
+до любого optimizer update, тот же controller запустил updated worker122296.
+
+Первые28 transaction/sequence/state CPUtests прошлиWindows1.17s/Mac3.10s
+с hardCUDAinitguard. После scanfix2nightguardtests passedMac. Не выдавать это
+за train quality. Старый door_seg_sequence_probe.py — только отдельный
+двухшаговый диагностический инструмент, сейчас не запускается.
+
+Bounded RTXprofile действительно завершился00:06:04: TRAIN01405/15375 по120
+кадров65.89/68.77ms до export, side/rolequeues excluded. Sameinput24comparisons:
+light counts24/24/masks23/24, dense counts22/24/masks11/24, dense minIoU0 при
+несовпавшем количестве. Masks/IDs equivalence fastfusion НЕ доказана,
+production/C/fulltrain не переключались на неё. Источник профиля B8604 —
+диагностический frozen checkpoint, не C recovery. Artifactnight_profile_20261011.json.
+
+Уточнение владельца о mixed precision выполнено: convolutions BF16 AMP,
+master weights/Adam FP32, explicit autocast disabled для segmentation criterion
+с FP32 prediction tensors, offset loss, identity matrix/logsumexp/final scalar.
+Внутри AMP .float() одного матричного аргумента недостаточно: matmul может
+кастоваться обратно. Новые train logs содержат loss_dtype/seg_offset_loss/
+identity_loss. CPU mixed-autocast backward test проверяет FP32 criterion/loss
+и конечные gradients всех голов; temporal+rollback21 passed1.48sMac.
+Это не полный перевод обучения в FP32. Исходная VAL prediction процедура
+не менялась: её completed baseline сохраняется при reload training losses.
+
+Начальная VAL завершена00:24:33 UTC+7 до любого trainupdate:400moments,
+truth1030/pred986/hit936, found.908738,precision.949290,F1.928571,
+maskIoU.903687,links.982796,n_links930; fingerprinttop1.975269 на930pairs
+у ЕЩЁ НЕ ОБУЧЕННОЙ head. Это соседние easy/hard pairs вместе, неIDF1/fullvisit
+identity и не доказательство её обучения. Network-only median47ms, не fullRTX
+pipeline budget. Artifactsequence_full_initial_val_20261011.json сохраняет
+per-moment source/session/tick/counters. Новые heads quality пока неизвестны;
+следующая400VAL после2000 successful updates. Baseline не считать приростом.
+Reload FP32 training losses gracefulPAUSE после completed baseline безupdate:
+worker122296 exit2, initial weights/Adam/baseline preserved, controller сам
+перезапускает worker без повторной VAL.
+
+РЕАЛЬНОЕ ОБУЧЕНИЕ подтверждено00:25:29–00:25:36 UTC+7: worker94032→29116,
+steps20605/20606/20607, successful updates1/2/3,4TRAINframes/update.
+Loss.506787/.882988/2.292503, unclipped norms10.5267/7.00439/13.9399
+(clipping10), finite backward И model/Adam after realoptimizer.step.
+Step20606 имел8identityanchors, identityloss1.315446, seg_offset.751443:
+fingerprint получает реальное обучение, не только initialized parameter.
+Lossdtype torch.float32 явно logged, convolutionAMP bf16/high/TF32.
+CUDA maxallocated9011412480bytes (~9.01GB), GPU busy training.
+Sources17–20.09 TRAIN; validation не используется для gradients.
+Не запускать одновременно GPUпрофили/Ctrainer/двухшаговыйprobe. Общий
+nightguard теперь распознаёт separate sequence trainer/probe, чтобы будущие
+опыты не обходили занятость. CPUcontroller остаётся22672/89352, не дублировать.
+Автоматика при чтении текущего файла была PAUSED: этот пользовательский
+запуск работает своим backgroundcontroller; scheduler статус сам не включать.
+
+ТЕХНИЧЕСКОЕ УТОЧНЕНИЕ00:29 UTC+7: first fullworker29116 дошёл минимум
+до20updates20624, затем выбрал frozen TRAIN door_20260917_32893/cam1,
+в котором нет4consecutive eligible ticks, и вышел до120sbackup. Первые20+
+updates были реальными, но НЕ сохранены; latestcheckpoint ещёinitial20604,
+CPUproof это обнаружил. Не объявлять их durable checkpoint/готовым результатом.
+Исправлено: sources без orderedwindow логируются и исключаются только из
+sequence sampling, frozen148 allowedTRAINmanifest/ownerlabels не меняются.
+Список сохраняется в state.no_ordered_sources; нельзя писать, что все148
+фактически дали4frameupdates. Sampling/validation technical exception теперь
+persist last accepted model/Adam/step ДОexit; numerical rollback/STOP прежний.
+Один controller повторно запущен черезbg после подтверждения отсутствия всех
+старыхtrainerPID, initialbaseline400 не пересчитывается. Это retry только
+новогоsequencerun; Cпо-прежнемуостановленпоplateau. Logs
+ data/logs/doorseg_sequence_full_20261011_retry1.log и общий run/worker.log.
+
+СВЕЖИЙ ПОДТВЕРЖДЁННЫЙ РЕЗУЛЬТАТ00:33 UTC+7: controller127184→77360,
+worker3000→101204, retry работает,40acceptedupdates/step20644. Отсутствующие
+4framewindows у32893/34149 обработаны безостановки,146currentlyusableиз148
+allowedTRAIN. Первый DURABLE trained checkpoint20636/32updates в00:32:21:
+SHA0324c9c67b823852b448e8e8afe9d631f728d1c71f1ea31ab32e326d01f94277,
+141136253bytes. CPU hardguard проверил finite model ИAdam, savedprecisionbf16,
+loss_precisionfp32, all18headAdamstates present, изменения всех18headparams
+vsinitial20604 (Fingerprint maxdelta~.00288, ConvGRU~.00248). SourceCfinalSHA
+unchanged, cuda_initializedFalse. Immutablecopy
+quality_backups/doorseg_sequence_first_training_20261011/step20636_0324c9c67b82.pt
++report.json. Это реальные обученные головы/сохранённое состояние, но ещё
+НЕ доказанный приростVAL. Artifactsequence_full_launch_20261011.json.
+Baseline400 F1.928571/IoU.903687/links.982796 остаётся; firstposttrain400VAL
+на2000новыхacceptedupdates. Nightcontroller самостоятельно до09:35,
+foreign/liveactivitypriority сохранён; scheduler PAUSED не изменён.

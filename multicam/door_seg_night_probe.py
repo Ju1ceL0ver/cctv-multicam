@@ -42,21 +42,32 @@ def blockers(now=None, processes=None, parent_pids=()):
         own = {os.getpid(), *parent_pids}
         if processes is None:
             own.update(p.pid for p in psutil.Process().parents())
-        for p in processes if processes is not None else psutil.process_iter(['pid', 'name', 'cmdline']):
+        for p in processes if processes is not None else psutil.process_iter(['pid', 'name']):
             row = p if isinstance(p, dict) else p.info
             if row['pid'] in own:
                 continue
             name = (row.get('name') or '').lower()
-            if any(app in name for app in ('photoshop', '3dsmax', '3ds max')):
-                found.append('foreign GPU app PID %s' % row['pid'])
-            cmd = ' '.join(row.get('cmdline') or []).lower()
-            if 'python' in name and any(key in cmd for key in
+            if 'python' not in name:
+                continue
+            cmd = ' '.join(row.get('cmdline') or [] if isinstance(p, dict) else p.cmdline()).lower()
+            if any(key in cmd for key in
                     ('door_live.py', 'door_seg.py train', 'door_seg_ddp.py',
-                     'door_seg_supervise.py', 'door_seg_night_probe.py', 'auto_label.py',
+                     'door_seg_supervise.py', 'door_seg_night_probe.py',
+                     'door_seg_sequence_train.py', 'door_seg_sequence_probe.py', 'auto_label.py',
                      'sam31_segment.py', 'door_night.py', 'train_v2.py', 'tonight.py')):
                 found.append('GPU job PID %s' % row['pid'])
     except (psutil.Error, OSError) as exc:
         found.append('process check failed: ' + type(exc).__name__)
+    if processes is None:
+        from door_seg_activity import foreign_busy
+        try:
+            found.extend(foreign_busy())
+        except OSError:
+            found.append('interactive activity check failed')
+    else:
+        # Synthetic process fixtures retain the conservative default.
+        found.extend('foreign GPU app PID %s' % row['pid'] for row in processes
+                     if any(app in (row.get('name') or '').lower() for app in ('photoshop', '3dsmax', '3ds max')))
     return found
 
 

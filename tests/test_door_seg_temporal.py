@@ -208,9 +208,15 @@ def test_sequence_loss_backpropagates_all_heads_and_releases_memory(net, monkeyp
         return batch, torch.ones(b*2, 4), torch.ones(b*2, 2, dtype=torch.bool)
     monkeypatch.setattr(Q.S, 'collate', collate)
     seq = [{'namespace': ('clip','cam1'), 'meta': {'tick': k}, 'person_keys': [12,34]} for k in [0,1,2]]
-    loss, stats = Q.sequence_loss(net, [seq], lambda pred,batch: (pred.square().mean(), None), 'cpu')
+    def criterion(pred, batch):
+        assert pred.dtype == torch.float32
+        return pred.square().mean(), None
+    with torch.autocast('cpu', dtype=torch.bfloat16):
+        loss, stats = Q.sequence_loss(net, [seq], criterion, 'cpu')
     loss.backward()
-    assert torch.isfinite(loss) and stats == {'identity_anchors': 6, 'frames': 3}
+    assert torch.isfinite(loss) and loss.dtype == torch.float32
+    assert stats['identity_anchors'] == 6 and stats['frames'] == 3
+    assert stats['loss_dtype'] == 'torch.float32'
     for module in [net.yolo, net.off, net.temporal.residual, net.temporal.fingerprint]:
         assert any(p.grad is not None and torch.isfinite(p.grad).all() and p.grad.abs().sum() > 0
                    for p in module.parameters())
@@ -218,3 +224,13 @@ def test_sequence_loss_backpropagates_all_heads_and_releases_memory(net, monkeyp
     seq[1]['meta']['tick'] = 99
     with pytest.raises(ValueError, match='unordered'):
         Q.sequence_loss(net, [seq], None, 'cpu')
+
+
+def test_sequence_can_yield_before_a_frame_and_clears_memory(net):
+    seq = [{'namespace': ('clip','cam1'), 'meta': {'tick': k}, 'person_keys': [12]} for k in [0,1]]
+    net.memory = object()
+    def yield_now():
+        raise RuntimeError('live door needs GPU')
+    with pytest.raises(RuntimeError, match='live door'):
+        Q.sequence_loss(net, [seq], None, 'cpu', before_frame=yield_now)
+    assert net.memory is None and net.embedding_map is None

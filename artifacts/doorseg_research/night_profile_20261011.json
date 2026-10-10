@@ -1,0 +1,464 @@
+{
+  "complete": true,
+  "checkpoint": "C:\\Users\\ArykovAA\\cctv_ai\\multicam\\runs\\doorseg_b\\step8604.pt",
+  "step": 8604,
+  "sha256": "18b4fab92332e26bcae520bddb1771c947cb21fe407e30aafd5350e6cc8b4b4f",
+  "made": "2026-10-11T00:06:04.532673",
+  "cohort": [
+    "door_20260918_01405",
+    "door_20260918_15375"
+  ],
+  "sources": {
+    "door_20260918_01405": {
+      "ticks": 120,
+      "equivalence": [
+        {
+          "tick": 0,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.004899650812149048
+        },
+        {
+          "tick": 1,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0007492601871490479
+        },
+        {
+          "tick": 2,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0025087594985961914
+        },
+        {
+          "tick": 3,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0022393614053726196
+        },
+        {
+          "tick": 4,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.005581565201282501
+        },
+        {
+          "tick": 5,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.010220231488347054
+        },
+        {
+          "tick": 6,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.01318359375
+        },
+        {
+          "tick": 7,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.07928133010864258
+        },
+        {
+          "tick": 8,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.025124073028564453
+        },
+        {
+          "tick": 9,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.017740726470947266
+        },
+        {
+          "tick": 10,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.01474308967590332
+        },
+        {
+          "tick": 11,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.02620983123779297
+        },
+        {
+          "tick": 12,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9924812030075187,
+          "max_offset_error": 0.01413106918334961
+        },
+        {
+          "tick": 13,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.009957455098628998
+        },
+        {
+          "tick": 14,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.01966571807861328
+        },
+        {
+          "tick": 15,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.013802528381347656
+        },
+        {
+          "tick": 16,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.006766185164451599
+        },
+        {
+          "tick": 17,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.005208015441894531
+        },
+        {
+          "tick": 18,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.009374856948852539
+        },
+        {
+          "tick": 19,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0066967010498046875
+        },
+        {
+          "tick": 20,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0143585205078125
+        },
+        {
+          "tick": 21,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.008446216583251953
+        },
+        {
+          "tick": 22,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.015439510345458984
+        },
+        {
+          "tick": 23,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.014100074768066406
+        }
+      ],
+      "stats": {
+        "births": 2,
+        "adjacent": 187,
+        "recovered": 0,
+        "ambiguous": 0
+      },
+      "detections": 189,
+      "complete_processing_ms": 65.88994750054553,
+      "export_seconds": 0.05795769998803735,
+      "excluded_guard_seconds": 8.678654099814594,
+      "stages": [
+        "decode_resize",
+        "channels",
+        "network_postprocess",
+        "tracker_previous"
+      ],
+      "mean_stage_ms": [
+        22.071333039228037,
+        9.621043491136769,
+        31.210855645653993,
+        1.1031234798871952
+      ],
+      "p90_stage_ms": [
+        23.96955997683108,
+        10.043339990079405,
+        31.620579911395907,
+        1.2476000003516674
+      ]
+    },
+    "door_20260918_15375": {
+      "ticks": 120,
+      "equivalence": [
+        {
+          "tick": 0,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0934709832072258
+        },
+        {
+          "tick": 1,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.033380985260009766
+        },
+        {
+          "tick": 2,
+          "channels_equal": true,
+          "count_equal": false,
+          "masks_equal": false,
+          "min_iou": 0.0,
+          "max_offset_error": null
+        },
+        {
+          "tick": 3,
+          "channels_equal": true,
+          "count_equal": false,
+          "masks_equal": false,
+          "min_iou": 0.0,
+          "max_offset_error": null
+        },
+        {
+          "tick": 4,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0537109375
+        },
+        {
+          "tick": 5,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0660715103149414
+        },
+        {
+          "tick": 6,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.04929542541503906
+        },
+        {
+          "tick": 7,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.08391571044921875
+        },
+        {
+          "tick": 8,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9972602739726028,
+          "max_offset_error": 0.10224294662475586
+        },
+        {
+          "tick": 9,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9967105263157895,
+          "max_offset_error": 0.049368858337402344
+        },
+        {
+          "tick": 10,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.03873395919799805
+        },
+        {
+          "tick": 11,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9947643979057592,
+          "max_offset_error": 0.05342674255371094
+        },
+        {
+          "tick": 12,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.05668210983276367
+        },
+        {
+          "tick": 13,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.0860443115234375
+        },
+        {
+          "tick": 14,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.06795072555541992
+        },
+        {
+          "tick": 15,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9911894273127754,
+          "max_offset_error": 0.061257362365722656
+        },
+        {
+          "tick": 16,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9958677685950413,
+          "max_offset_error": 0.10079574584960938
+        },
+        {
+          "tick": 17,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": true,
+          "min_iou": 1.0,
+          "max_offset_error": 0.10402631759643555
+        },
+        {
+          "tick": 18,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.990521327014218,
+          "max_offset_error": 0.1135401725769043
+        },
+        {
+          "tick": 19,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9951219512195122,
+          "max_offset_error": 0.08427095413208008
+        },
+        {
+          "tick": 20,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9942196531791907,
+          "max_offset_error": 0.07098722457885742
+        },
+        {
+          "tick": 21,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9987577639751553,
+          "max_offset_error": 0.08256292343139648
+        },
+        {
+          "tick": 22,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.9917355371900827,
+          "max_offset_error": 0.06196117401123047
+        },
+        {
+          "tick": 23,
+          "channels_equal": true,
+          "count_equal": true,
+          "masks_equal": false,
+          "min_iou": 0.994475138121547,
+          "max_offset_error": 0.08231019973754883
+        }
+      ],
+      "stats": {
+        "births": 56,
+        "adjacent": 431,
+        "recovered": 20,
+        "ambiguous": 298
+      },
+      "detections": 507,
+      "complete_processing_ms": 68.76790416815008,
+      "export_seconds": 0.17036160011775792,
+      "excluded_guard_seconds": 8.8530632997863,
+      "stages": [
+        "decode_resize",
+        "channels",
+        "network_postprocess",
+        "tracker_previous"
+      ],
+      "mean_stage_ms": [
+        22.12392608837589,
+        9.457653038122732,
+        31.53844870141019,
+        2.887206957877978
+      ],
+      "p90_stage_ms": [
+        24.713620031252503,
+        10.187460016459227,
+        32.17035997658968,
+        3.556320071220398
+      ]
+    }
+  },
+  "limitations": "TRAIN diagnostics, not release quality. Side/role queues excluded; no event scoring."
+}

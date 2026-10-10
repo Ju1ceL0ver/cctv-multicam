@@ -109,7 +109,19 @@ class DoorSegTemporal(S.DoorSeg):
         self.reset_memory()
 
 
-def sequence_loss(net, sequences, criterion, dev, identity_weight=0.1):
+def _float_predictions(value):
+    if torch.is_tensor(value):
+        return value.float() if value.is_floating_point() else value
+    if isinstance(value, dict):
+        return {k: _float_predictions(v) for k, v in value.items()}
+    if isinstance(value, tuple):
+        return tuple(_float_predictions(v) for v in value)
+    if isinstance(value, list):
+        return [_float_predictions(v) for v in value]
+    return value
+
+
+def sequence_loss(net, sequences, criterion, dev, identity_weight=0.1, *, before_frame=None):
     """Batched ordered unroll: original segmentation/offset + identity loss.
 
     Returns one differentiable scalar; caller owns autocast, finite checks,
@@ -137,12 +149,17 @@ def sequence_loss(net, sequences, criterion, dev, identity_weight=0.1):
                 person_ids.setdefault((frame['namespace'], key), len(person_ids))
     try:
         for j in range(len(sequences[0])):
+            if before_frame is not None:
+                before_frame()
             frames = [seq[j] for seq in sequences]
             batch, off, offv = S.collate(frames, dev)
             net.prepare_frame(streams, [frame['meta']['tick'] for frame in frames], retain_graph=True)
             pred = net.yolo(batch['img'].float() / 255)
-            seg, _ = criterion(pred, batch)
-            losses.append(seg.sum() + 2 * len(frames) * S.offset_loss(net.off(net.feat), batch, off, offv))
+            offsets = net.off(net.feat)
+            # AMP convolutions, explicit FP32 loss arithmetic and mask products.
+            with torch.autocast(torch.device(dev).type, enabled=False):
+                seg, _ = criterion(_float_predictions(pred), batch)
+                losses.append(seg.float().sum() + 2 * len(frames) * S.offset_loss(offsets.float(), batch, off, offv))
             vector, lanes, local_ids = pool_instances(net.embedding_map, batch['masks'])
             embeddings.append(vector)
             # Only the small metadata lookup crosses to CPU; not feature pixels.
@@ -151,8 +168,9 @@ def sequence_loss(net, sequences, criterion, dev, identity_weight=0.1):
                 ids.append(person_ids[(frame['namespace'], frame['person_keys'][local_id - 1])])
                 namespaces.append(namespace_ids[streams[lane]])
                 ticks.append(frame['meta']['tick'])
-        reid, anchors = identity_loss(torch.cat(embeddings), ids, namespaces, ticks)
-        base = torch.stack(losses).mean()
-        return base + identity_weight * reid, {'identity_anchors': anchors, 'frames': len(losses) * len(sequences)}
+        with torch.autocast(torch.device(dev).type, enabled=False):
+            reid, anchors = identity_loss(torch.cat(embeddings).float(), ids, namespaces, ticks)
+            base = torch.stack(losses).float().mean()
+            return base + identity_weight * reid, {'identity_anchors': anchors, 'frames': len(losses) * len(sequences), 'loss_dtype': str(base.dtype), 'seg_offset_loss': float(base.detach()), 'identity_loss': float(reid.detach())}
     finally:
         net.reset_memory()
