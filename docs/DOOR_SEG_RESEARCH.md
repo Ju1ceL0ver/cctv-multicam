@@ -68,6 +68,22 @@ Role inference remains asynchronous on CPU. The view bank keeps eight high-scori
 
 A new `doorseg_c_background` candidate is staged from finite step8604 weights and optimizer, with the baseline validation recorded. Its only training change is the recording-date/background repair; no GPU training has started during shop hours.
 
+## Colab continuation, 10 October
+
+The owner made Colab GPU quota available. Session `doorseg-c` has a Tesla T4 with 15360 MiB. A100 and L4 allocation were rejected. The complete unchanged data manifest is **148 training sources, six validation sources, 1216 files, 57.7477 GB**; video transfer is in progress, so no new successful training step or quality improvement is claimed yet. Small labels/backgrounds/checkpoint travel as one 1.099-GB stored ZIP to avoid hundreds of HTTP round trips.
+
+The VM uses the same torch 2.13.0+cu130, torchvision 0.28.0+cu130 and Ultralytics 8.4.108 as Windows. Installation exposed overlapping CUDA-12/CUDA-13 cuDNN packages; a real convolution failed with `CUDNN_STATUS_SUBLIBRARY_VERSION_MISMATCH`. Removing both distributions and installing only torch's required `nvidia-cudnn-cu13==9.20.0.48` fixed it. A six-example BF16 forward/backward from the finite checkpoint passed: loss 8.265064, peak allocation 5.4768 GB. This is compatibility evidence, not speed or accuracy evidence for production.
+
+`door_seg_colab.py` verifies the source manifest, initial checkpoint SHA256, successful step and finite model/optimizer before starting the unchanged batch-six training recipe (lr 1e-4, 400 validation moments, 2000 successful steps between checks). Two data workers fit the Colab CPU. New checkpoints and progress are backed up every two minutes; large checkpoints use 24-MiB HTTP pieces. `door_seg_colab_restore.py` on Windows verifies the completed SHA256 and finite model/optimizer, refuses a rollback over a newer local checkpoint, and restores atomically. The Colab sender waits for receiver acknowledgement. `COLAB_ACTIVE.json` blocks a duplicate Windows supervisor; ownership clears only after the final backup succeeds.
+
+The existing keepalive mechanism was found in `tennis-pose/tools/colab_keepalive.sh` and that project's AGENTS.md, lines 273 and 383: background computation does not keep the notebook kernel active, and overlapping `colab exec` commands have hung. The Mac now runs a kernel/job probe every three minutes under `caffeinate`. All executions use the serialized wrapper:
+
+```sh
+python3 tools/doorseg_colab_control.py exec --file /tmp/probe.py
+```
+
+The pinger stops when the runner exits; restart it after recovering a failed runner. Its log is `data/logs/colab_doorseg-c_keepalive.log`. The existing task heartbeat now checks every ten minutes throughout the day, stays quiet during healthy transfer/training, and retains the wider research/production acceptance requirements. Release the owned Colab session only after Windows checkpoint restoration is verified.
+
 A full release still requires: a successful selected-policy comparison on the frozen paired event cohort, clean and crowded end-to-end speed including side/role queues, mask equivalence after fusion, identity quality, then live shadow/integration checks preserving CRM IDs and format. GPU tests wait for the night window; CPU cache tests can run during the day. A fast isolated frame and a training-only event gain do not satisfy these conditions.
 
 ## Primary sources and relevance to this case

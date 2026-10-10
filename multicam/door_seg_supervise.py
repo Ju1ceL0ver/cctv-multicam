@@ -66,6 +66,9 @@ def gpu_busy():
 def main(name, until='09:40'):
     import psutil
     run = ROOT / 'runs' / name
+    ownership = run / 'COLAB_ACTIVE.json'
+    if ownership.exists() and json.loads(ownership.read_text()).get('active'):
+        raise RuntimeError('This run is owned by Colab; refusing a duplicate Windows trainer')
     if not (run / 'last.pt').exists():
         raise FileNotFoundError('stage the last verified checkpoint as runs/%s/last.pt first' % name)
     pidfile = run / 'supervisor.pid'

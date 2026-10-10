@@ -3628,3 +3628,66 @@ speed на коротком TRAIN15375 и эквивалентность --fast;
 Контрольную модель рядом не учить, poisonedlast4826 не использовать. `doorseg-b`
 старый heartbeat остаётсяPAUSED, b2 завершён. Для смены в бою нужен реальный
 качественный прирост и shadow/integration с CRM/ролями/keeper/откатом.
+
+## 74. Обучение кандидата в Colab и поддержание ядра (10.10.2026, 10:49 UTC+7)
+
+По просьбе владельца использована сброшенная Colab GPU-квота. Сессия CLI
+`doorseg-c`: Tesla T4,15360MiB; A100/L4 аккаунт не выдал. Обучение C ещё
+**не началось**: идёт перенос полного неизменного набора148train/6val,
+1216files57.747724511GB. Manifest на Windows
+`data/quality_backups/doorseg_quick/colab_transfer_manifest.json`, в Colab
+`/content/doorseg_manifest.json`. Видео не перекодируются, TEST не добавляется
+вTRAIN. Smallfiles (маски/фон/разметка/начальные веса) сгруппированы в ZIP_STORED
+1.099090942GB, чтобы убрать сотни сетевых запросов. Готовые файлы сохраняются.
+
+Torch2.13.0+cu130,torchvision0.28.0+cu130,ultralytics8.4.108 и версии
+numpy/opencv/scipy совпадают с Windows. Первый compatibility gate упал ещё
+на FP32-свёртке: nvidia-cudnn-cu12 9.27.0.42 и cu13 9.20.0.48 конфликтовали
+в общей папке. Обе удалены `uv pip uninstall --system`, поставлена только
+`nvidia-cudnn-cu13==9.20.0.48`, требуемаяtorch. Новая свёртка проходит.
+Затем **BF16 batch6 forward/backward finite**, loss8.2650642395,
+peak5.476824576GB. Веса/optimizer не изменялись smoke-проверкой.
+Это совместимость T4, не качество и не производственная скорость.
+
+Detached runner `/content/doorseg/door_seg_colab.py`, текущийPID5953;
+актуальный PID всегда `/content/doorseg_colab_runner.pid`, общий лог
+`/content/doorseg_colab_runner.log`. Статус
+`/content/doorseg/runs/doorseg_c_background/colab_status.json`. После полного
+переноса runner проверит совпадение train/val manifest, SHA источникаstep8604
+(тот же18b4fab... из73), конечность весов+optimizer, затем автоматически
+запустит прежний batch6/lr1e-4/BF16,workers2,400eval/2000successfulsteps,
+plateau без+0.5п.п., ограничение12часов Colab. Новая точность пока неизвестна.
+Resume поддерживает явные checkpoint_sha256/checkpoint_step в manifest:
+при следующем переносе обновлять их по последним проверенным конечным весам.
+
+**Пинг найден:** `/Users/aleksejzagorskij/tennis-pose/tools/colab_keepalive.sh`,
+AGENTS того проекта273/383: фоновый процесс не держит ядро активным;
+параллельные `colab exec` (пинг+проверка) могут зависать. Подключён свой
+`tools/doorseg_colab_control.py keepalive` на Mac под caffeinate, каждые180сек
+проверяет ядро И живой командный PIDrunner. Первый пинг успешен; после
+cuDNN-сбоя pinger штатно остановился, после восстановления снова запущен.
+Лог `data/logs/colab_doorseg-c_keepalive.log`, PID `colab_doorseg-c_keepalive.pid`.
+**Все дальнейшие exec только через сериализованный wrapper:**
+`python3 tools/doorseg_colab_control.py exec --file /tmp/probe.py`
+или pipe в тот же wrapper. Он использует общий file lock с пингом.
+Код/состояние не теряются между командами, ядро не перезапускали.
+
+**Сохранение:** runner каждые120сек синхронизирует логи и новыеcheckpoint.
+Крупные веса идут24MiB chunks + completion manifest; Windows CPU-only
+receiver `door_seg_colab_restore.py doorseg_c_background` проверяет SHA,
+finite model И optimizer, успешныйstep, не заменяет более новые localweights,
+пишетатомарно и удалениемmanifest подтверждаетприём. Запущенчерезbg:
+лог `data/logs/doorseg_colab_restore_c.log`, проверенныйPID43540. CUDA не трогает.
+Сессию Colab не освобождать, пока финальный backup не подтверждён наWindows.
+`runs/doorseg_c_background/COLAB_ACTIVE.json active=true`: Windows supervisor
+теперь отказывается запускать дубликат. Флаг снимается только после успешного
+финальногоbackup. Секрет доступа лежит внеGit вприватном VM-файле0600,
+вжурналы не выводится. Боевая дверь/CRM/чужие программы неизменны.
+
+Heartbeat `automation`, ACTIVE, теперь каждые10мин круглосуточно: проверка
+переноса/обучения через wrapper, молчать при нормальном состоянии, исправлять
+технические сбои без потери состава и finiteoptimizer. Старый doorseg-b PAUSED.
+Дальнейший ресерч/80ms/denseRTX3060/события/маски/ID/роли и условия сменыбоевой
+двери из73 сохраняются; proxyвалидация и T4скорость не доказывают их выполнение.
+36 проверок проходят, включая transport/ownership/rollback/finite receiver.
+Параллельные66–67/amodal/staff/label_pieces/.gitignore не включенывкоммит.
