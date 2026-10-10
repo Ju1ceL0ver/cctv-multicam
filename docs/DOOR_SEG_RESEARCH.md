@@ -146,6 +146,21 @@ Recovery must use the latest verified backup and refresh manifest/bundle;
 the old8996 snapshot is no longer the default recovery point. Fresh training
 log reached9300 at08:37:11UTC without a new validation or numerical rejection.
 
+First spaced validation completed09:43UTC atstep10604 on the unchanged
+400-moment23September proxy cohort. F1 .9307 versus baseline .9345
+(−0.38percentage points), found .9079 versus .9148; maskIoU .9013 versus
+.8974 and links .9783 versus .9774. This is a mixed result, not overall
+improvement or production acceptance. The reported59.1ms is T4 proxy
+inference, not full RTX3060 door processing. Training continued to10700;
+one new evaluation is insufficient for plateau. No labels or thresholds changed.
+Windows CPU receiver verified finite model AND optimizer for last10604 and
+evalstep10604; SHA-checked immutable copies and metadata are in
+`data/quality_backups/doorseg_c_kaggle/step10604_verified.json`.
+Last SHA `c63d05a9105013956856ffdfcef6996e027cd8c5eb3ccd48613d940143c98f9f`;
+eval SHA `94c24af82f9677d17e9ef209edeb8c8b8e103c2fcb3015f2be06a20f1bc637d4`.
+Recovery must check latest finite last10604 or newer, rather than the old
+9196/8996 bundle. The healthy job and night CPU waiter remain running.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

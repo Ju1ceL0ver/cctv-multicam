@@ -4040,3 +4040,27 @@ step9196_bcf8d8bd2827.pt; метаданные step9196_verified.json. При п
 Kaggle log дошёл до свежего9300 t1791621431 (08:37:11UTC), потери finite.
 Новой валидации ещё нет. Pending manifests/STOP/ошибок receiver нет;
 ночнойCPU waiter жив, GPUWindows не использовался. Обычный ход молча.
+
+## 83. Первая Kaggle валидация C: маски лучше, F1 ниже (10.10.2026, 16:50 UTC+7)
+
+В09:43UTC завершена прежняя400-moment proxy validation на23.09,
+step10604 (2000 successful steps после baseline8604). F1 .9307 против
+.9345 baseline: −.0038 (−0.38пп), found .9079 против .9148, precision
+.9547 против .9550. Mask IoU .9013 против .8974 (+.0039), links .9783
+против .9774 (+.0009), n_links922, truth1021. Результат смешанный:
+общий прирост и готовность к бою НЕ доказаны.59.1ms относится к T4 proxy
+inference, не полному проходу RTX3060 с очередями/CRM. Пороги/labels/рецепт
+не менялись. Одна новая оценка не доказывает плато; DDP продолжает работу,
+свежий successful10700 t1791625688 (09:48:08UTC), STOP отсутствует.
+
+CPU receiver43540 подтвердил finite model Иoptimizer last10604 в16:46:31,
+SHA256 c63d05a9105013956856ffdfcef6996e027cd8c5eb3ccd48613d940143c98f9f;
+eval checkpoint step10604.pt в16:48:11,
+SHA256 94c24af82f9677d17e9ef209edeb8c8b8e103c2fcb3015f2be06a20f1bc637d4.
+В16:50 сохранены и SHA-проверены immutable copies в
+ data/quality_backups/doorseg_c_kaggle/step10604_last_c63d05a91050.pt
+и step10604_eval_94c24af82f96.pt; метаданные step10604_verified.json.
+При recovery сначала проверить latest finite last (10604 или новее),
+не восстанавливать stale9196/8996 bundle. Pending manifests отсутствуют.
+Kaggle version4 RUNNING, нового Windows trainer нет; ночной waiter
+91396/50744 один CPU job, .err пуст. Продакшен/чужие работы сохранены.
