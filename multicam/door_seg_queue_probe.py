@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent
 TAGS = ('door_20260918_01405', 'door_20260918_15375')
 
 
-def run(out, ticks, fast=False, fresh=False):
+def run(out, ticks, fast=False, fresh=False, start_tick=0):
     if fast:
         from door_seg_queue_fast import Live
     else:
@@ -38,6 +38,13 @@ def run(out, ticks, fast=False, fresh=False):
         combo, tracker = Live(), Tracker()
         bank = Bank(out / tag / 'views')
         cap = cv2.VideoCapture(str(ROOT / 'data/sam31_door' / tag / 'cam1/video.mp4'))
+        if start_tick and not cap.set(cv2.CAP_PROP_POS_FRAMES,start_tick):
+            cap.release()
+            raise ValueError('could not seek TRAIN excerpt')
+        records = data['records'][start_tick:start_tick+ticks]
+        if len(records) != ticks:
+            cap.release()
+            raise ValueError('not enough cached TRAIN ticks')
         waits, service, ids, vectors = [], [], [], {}
         resized = []
         original_small = combo.clf._small
@@ -75,9 +82,9 @@ def run(out, ticks, fast=False, fresh=False):
         started = time.perf_counter()
         person_of = {}
         try:
-            for index, (tick, packed, _) in enumerate(data['records'][:ticks]):
-                if tick != index:
-                    raise ValueError('probe requires contiguous TRAIN cache starting at tick0')
+            for index, (tick, packed, _) in enumerate(records):
+                if tick != start_tick+index:
+                    raise ValueError('probe requires contiguous TRAIN cache')
                 if time.perf_counter() - started > 90:
                     raise TimeoutError('bounded CPU probe expired')
                 t = time.perf_counter()
@@ -114,7 +121,10 @@ def run(out, ticks, fast=False, fresh=False):
                     ids.append([tick, row, pid])
             pending = len(combo.pending)
             t = time.perf_counter()
-            events = combo.events(None, person_of)
+            # Nonempty crossings contain numpy coordinates; normalize only the
+            # saved report representation, leaving the actual event policy intact.
+            events = json.loads(json.dumps(combo.events(None, person_of),
+                                          default=lambda value: value.tolist()))
             drain = time.perf_counter() - t
         finally:
             cap.release()
@@ -123,7 +133,7 @@ def run(out, ticks, fast=False, fresh=False):
         summary = lambda a: {'mean_ms': float(np.mean(a)*1000) if a else 0.,
                             'p90_ms': float(np.quantile(a,.9)*1000) if a else 0.,
                             'max_ms': float(max(a)*1000) if a else 0.}
-        report['sources'][tag] = {'ticks': ticks, 'rows': len(ids), 'feature_jobs': len(service),
+        report['sources'][tag] = {'ticks': ticks, 'start_tick': start_tick, 'rows': len(ids), 'feature_jobs': len(service),
             'small_calls': len(resized), 'small_cache_misses': sum(resized),
             'feature_wait': summary(waits), 'feature_service': summary(service),
             'decode_seconds': decode_s, 'add_seconds': add_s, 'bank_seconds': bank_s,
@@ -149,11 +159,43 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--ticks', type=int, default=120)
+    parser.add_argument('--start',type=int,default=0,help='TRAIN excerpt start tick; local tracker resets here')
     parser.add_argument('--fast', action='store_true')
     parser.add_argument('--fresh', action='store_true', help='uncached RGB reference for correctness')
+    parser.add_argument('--abba', action='store_true', help='four alternating CPU reference/candidate runs')
     args = parser.parse_args()
     if not 50 <= args.ticks <= 200:
         parser.error('bounded TRAIN replay: 50..200 ticks')
+    if not 0 <= args.start <= 500:
+        parser.error('short fixed TRAIN caches only: start0..500')
     if args.fast and args.fresh:
         parser.error('choose fast or fresh reference')
-    run(args.out, args.ticks, args.fast, args.fresh)
+    if args.abba:
+        if args.fast or args.fresh:
+            parser.error('abba chooses its own reference/candidate order')
+        args.out.mkdir(parents=True, exist_ok=False)
+        runs = []
+        for index, variant in enumerate(('fresh', 'fast', 'fast', 'fresh')):
+            folder = args.out / ('%d_%s' % (index, variant))
+            run(folder, args.ticks, variant == 'fast', variant == 'fresh',args.start)
+            runs.append(json.loads((folder/'report.json').read_text(encoding='utf-8')))
+        summary = {'complete': True, 'order': ['fresh', 'fast', 'fast', 'fresh'],
+                   'window': [args.start,args.start+args.ticks], 'sources': {}}
+        fields = ('feature_sha256','votes_sha256','view_sha256','ids_sha256','events','tracker_stats')
+        for tag in TAGS:
+            samples = [r['sources'][tag] for r in runs]
+            equal = {key: all(s[key] == samples[0][key] for s in samples) for key in fields}
+            summary['sources'][tag] = {'equal': equal,
+                'reference_feature_mean_ms': float(np.mean([samples[i]['feature_service']['mean_ms'] for i in (0,3)])),
+                'fast_feature_mean_ms': float(np.mean([samples[i]['feature_service']['mean_ms'] for i in (1,2)])),
+                'reference_total_seconds': [samples[i]['total_seconds'] for i in (0,3)],
+                'fast_total_seconds': [samples[i]['total_seconds'] for i in (1,2)],
+                'reference_wait_p90_ms': [samples[i]['feature_wait']['p90_ms'] for i in (0,3)],
+                'fast_wait_p90_ms': [samples[i]['feature_wait']['p90_ms'] for i in (1,2)]}
+            if not all(equal.values()):
+                summary['complete'] = False
+        (args.out/'report.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
+        if not summary['complete']:
+            raise RuntimeError('before/after equivalence failed; inspect saved features')
+    else:
+        run(args.out, args.ticks, args.fast, args.fresh,args.start)

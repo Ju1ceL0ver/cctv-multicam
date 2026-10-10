@@ -1,0 +1,476 @@
+{
+  "abba1": {
+    "complete": true,
+    "order": [
+      "fresh",
+      "fast",
+      "fast",
+      "fresh"
+    ],
+    "sources": {
+      "door_20260918_01405": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 14.334500525836592,
+        "fast_feature_mean_ms": 16.5544240778588,
+        "reference_total_seconds": [
+          2.374816499883309,
+          3.553453499916941
+        ],
+        "fast_total_seconds": [
+          3.3727424000389874,
+          3.334037199849263
+        ],
+        "reference_wait_p90_ms": [
+          0.12809983454644683,
+          0.10436004959046848
+        ],
+        "fast_wait_p90_ms": [
+          0.12292000465095043,
+          0.11511994525790215
+        ]
+      },
+      "door_20260918_15375": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 21.04052789601203,
+        "fast_feature_mean_ms": 18.190258815210605,
+        "reference_total_seconds": [
+          5.126093500060961,
+          5.1459514000453055
+        ],
+        "fast_total_seconds": [
+          5.022623300086707,
+          5.011195000028238
+        ],
+        "reference_wait_p90_ms": [
+          0.14072002377361065,
+          0.14559985138475898
+        ],
+        "fast_wait_p90_ms": [
+          0.16950001008808618,
+          0.16782009042799473
+        ]
+      }
+    }
+  },
+  "abba2": {
+    "complete": true,
+    "order": [
+      "fresh",
+      "fast",
+      "fast",
+      "fresh"
+    ],
+    "sources": {
+      "door_20260918_01405": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 14.237532005940992,
+        "fast_feature_mean_ms": 14.319408465689294,
+        "reference_total_seconds": [
+          3.0421323999762535,
+          3.455387599999085
+        ],
+        "fast_total_seconds": [
+          3.1782990000210702,
+          3.172270599985495
+        ],
+        "reference_wait_p90_ms": [
+          0.12344000861048703,
+          0.10810000821948051
+        ],
+        "fast_wait_p90_ms": [
+          0.12014000676572326,
+          0.12686001136898997
+        ]
+      },
+      "door_20260918_15375": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 18.501087246266636,
+        "fast_feature_mean_ms": 15.045804079732317,
+        "reference_total_seconds": [
+          4.992282100021839,
+          4.940573300002143
+        ],
+        "fast_total_seconds": [
+          4.9272627998143435,
+          4.764021599898115
+        ],
+        "reference_wait_p90_ms": [
+          0.2005401067435742,
+          0.15364000573754316
+        ],
+        "fast_wait_p90_ms": [
+          0.1455800607800484,
+          0.14060991816222668
+        ]
+      }
+    }
+  },
+  "crossing_abba": {
+    "complete": true,
+    "order": [
+      "fresh",
+      "fast",
+      "fast",
+      "fresh"
+    ],
+    "window": [
+      180,
+      380
+    ],
+    "sources": {
+      "door_20260918_01405": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 13.365180807990587,
+        "fast_feature_mean_ms": 13.841858263601484,
+        "reference_total_seconds": [
+          4.675694199977443,
+          5.73247139994055
+        ],
+        "fast_total_seconds": [
+          5.305793800158426,
+          4.993482899852097
+        ],
+        "reference_wait_p90_ms": [
+          0.11203000321984292,
+          0.10916993487626314
+        ],
+        "fast_wait_p90_ms": [
+          0.1170499948784709,
+          0.10859009344130754
+        ]
+      },
+      "door_20260918_15375": {
+        "equal": {
+          "feature_sha256": true,
+          "votes_sha256": true,
+          "view_sha256": true,
+          "ids_sha256": true,
+          "events": true,
+          "tracker_stats": true
+        },
+        "reference_feature_mean_ms": 16.679733607452363,
+        "fast_feature_mean_ms": 13.911627916321676,
+        "reference_total_seconds": [
+          6.486623700009659,
+          6.266498900018632
+        ],
+        "fast_total_seconds": [
+          5.338585400022566,
+          5.4203572999686
+        ],
+        "reference_wait_p90_ms": [
+          0.15123998746275902,
+          0.12193990405648947
+        ],
+        "fast_wait_p90_ms": [
+          0.10980989318341017,
+          0.11219002772122624
+        ]
+      }
+    }
+  },
+  "crossing_fast": {
+    "complete": true,
+    "fast": true,
+    "fresh_reference": false,
+    "sources": {
+      "door_20260918_01405": {
+        "ticks": 200,
+        "start_tick": 180,
+        "rows": 285,
+        "feature_jobs": 224,
+        "small_calls": 224,
+        "small_cache_misses": 224,
+        "feature_wait": {
+          "mean_ms": 0.1036718676914461,
+          "p90_ms": 0.1170499948784709,
+          "max_ms": 0.9969999082386494
+        },
+        "feature_service": {
+          "mean_ms": 14.389720544776148,
+          "p90_ms": 17.25933002308011,
+          "max_ms": 19.573000026866794
+        },
+        "decode_seconds": 4.1380674992688,
+        "add_seconds": 0.897050600964576,
+        "bank_seconds": 0.09068530099466443,
+        "pending_before_drain": 224,
+        "drain_seconds": 0.03791350009851158,
+        "total_seconds": 5.305793800158426,
+        "kept_views": 8,
+        "offered_views": 22,
+        "events": [
+          {
+            "kind": "out",
+            "t": 21.36,
+            "w": "2",
+            "xy": [
+              0.237109375,
+              0.5041666666666667
+            ],
+            "disp": [
+              -0.13203125,
+              -0.06388888888888888
+            ]
+          }
+        ],
+        "tracker_stats": {
+          "births": 2,
+          "adjacent": 283,
+          "recovered": 0,
+          "ambiguous": 0
+        },
+        "feature_sha256": "af7b6f0ca7446846625a58dcee82968288d31ba629ea260cb11c0e9000818b4a",
+        "votes_sha256": "c4eea65e16f9e808558559ea6ecff3786311d49d19ae536fce9237d02337da31",
+        "view_sha256": "7208c6e5dc4435044fbca8bed85f3a0eed31e45b1333f89c3e591a10e769c8d9",
+        "ids_sha256": "a25e6c68b6152e41d2f8ce25432477e7e455d38406105e5a1e10dad75e21bdd7",
+        "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9",
+        "prepared_cache": {
+          "hits": 24,
+          "misses": 200,
+          "retained": 8
+        }
+      },
+      "door_20260918_15375": {
+        "ticks": 200,
+        "start_tick": 180,
+        "rows": 439,
+        "feature_jobs": 360,
+        "small_calls": 360,
+        "small_cache_misses": 360,
+        "feature_wait": {
+          "mean_ms": 0.09919833262554474,
+          "p90_ms": 0.10980989318341017,
+          "max_ms": 1.1706000659614801
+        },
+        "feature_service": {
+          "mean_ms": 14.044953887868258,
+          "p90_ms": 16.847549891099334,
+          "max_ms": 22.425899980589747
+        },
+        "decode_seconds": 3.6343895993195474,
+        "add_seconds": 1.3576924994122237,
+        "bank_seconds": 0.11086820089258254,
+        "pending_before_drain": 360,
+        "drain_seconds": 0.03979760012589395,
+        "total_seconds": 5.338585400022566,
+        "kept_views": 33,
+        "offered_views": 63,
+        "events": [
+          {
+            "kind": "out",
+            "t": 20.72,
+            "w": "1",
+            "xy": [
+              0.313671875,
+              0.4375
+            ],
+            "disp": [
+              -0.014843749999999989,
+              -0.01944444444444443
+            ]
+          }
+        ],
+        "tracker_stats": {
+          "births": 11,
+          "adjacent": 424,
+          "recovered": 4,
+          "ambiguous": 21
+        },
+        "feature_sha256": "d11d7d838de83908689994905696847e472072b7ff3a5db56489ba159bd4d31c",
+        "votes_sha256": "e7a4f75a8a1108c1e98aff9a7ec94ae8faa3941e8d9c373cd5da99f1d5211456",
+        "view_sha256": "100c1fa622c3f7e1e19e93453dad438745e3309188c73b28d6e68a22fb5ec6d4",
+        "ids_sha256": "8f0c6d9f7fefab6738fc55e789216484268b8bcf1e6396b6b5ca7de91b23ea13",
+        "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f",
+        "prepared_cache": {
+          "hits": 160,
+          "misses": 200,
+          "retained": 8
+        }
+      }
+    },
+    "limitations": "CPU cached TRAIN replay; excludes GPU segmentation, CRM, live scheduling and role model service."
+  },
+  "role1": {
+    "complete": true,
+    "device": "cpu",
+    "threads": 8,
+    "source": "C:\\Users\\ArykovAA\\cctv_ai\\multicam\\data\\quality_backups\\doorseg_cpu_queue_abba_20261010\\1_fast",
+    "input_sha256": {
+      "door_20260918_01405\\views\\25.jpg": "8bd0b2117298c61bf9f4123326423c6249a677b563e9e668685aebd5e197465e",
+      "door_20260918_01405\\views\\24.jpg": "055c8a6d61f4aa6b126bbebeb92b33ec36c7d8e41b1a9554a8b4578e6e18d78c",
+      "door_20260918_01405\\views\\22.jpg": "22695e8031414a0f7c85d66b4479e3c7d0a8d1038cd51075a7a6b7d7fd96acc6",
+      "door_20260918_01405\\views\\19.jpg": "220917e12015bb6d0f97ecbd77f1594f4b94883d384cc98d6289f3f381a46b11",
+      "door_20260918_15375\\views\\123.jpg": "a2a176ee3127013c977f0739145c01e43a13f5d9c92483192ec12ee4b2f2b99f",
+      "door_20260918_15375\\views\\120.jpg": "f08eef17ed0685627651eaeef5b4f7b7fc85928bcc90cca5119b63e65b0e4670",
+      "door_20260918_15375\\views\\108.jpg": "1985315a8d3dbd5b095a4e942ac9d765eb46ac7c9dd8f312ea38f75eef339f77",
+      "door_20260918_15375\\views\\127.jpg": "95088ef521f5d8852588f8b8da68862f008b74d1cc2a53eeab5ff9c2400bd92d"
+    },
+    "free_ram_bytes": 63963787264,
+    "groups": {
+      "door_20260918_01405:2": {
+        "views": 4,
+        "first_service_seconds": 2.9549192001577467,
+        "cached_seconds": 4.349998198449612e-05,
+        "worker_calls": 1,
+        "first": {
+          "role": "customer",
+          "p_staff": 0.162,
+          "views": 4
+        },
+        "cached": {
+          "role": "customer",
+          "p_staff": 0.162,
+          "views": 4
+        },
+        "cached_role_equal": true,
+        "p_staff_equal": true
+      },
+      "door_20260918_15375:3": {
+        "views": 4,
+        "first_service_seconds": 2.8225951998028904,
+        "cached_seconds": 3.620004281401634e-05,
+        "worker_calls": 1,
+        "first": {
+          "role": "staff",
+          "p_staff": 0.688,
+          "views": 4
+        },
+        "cached": {
+          "role": "staff",
+          "p_staff": 0.688,
+          "views": 4
+        },
+        "cached_role_equal": true,
+        "p_staff_equal": true
+      }
+    },
+    "limitations": "TRAIN service timing only; no independent role accuracy, live queue backlog or GPU speed proof.",
+    "own_worker_pid": 112464,
+    "initialization_seconds": 21.65202990011312,
+    "worker_tree_peak_rss_bytes": 4198764544,
+    "elapsed_seconds": 28.99685600004159
+  },
+  "role2": {
+    "complete": true,
+    "device": "cpu",
+    "threads": 8,
+    "source": "C:\\Users\\ArykovAA\\cctv_ai\\multicam\\data\\quality_backups\\doorseg_cpu_queue_abba2_20261010\\1_fast",
+    "input_sha256": {
+      "door_20260918_01405\\views\\25.jpg": "8bd0b2117298c61bf9f4123326423c6249a677b563e9e668685aebd5e197465e",
+      "door_20260918_01405\\views\\24.jpg": "055c8a6d61f4aa6b126bbebeb92b33ec36c7d8e41b1a9554a8b4578e6e18d78c",
+      "door_20260918_01405\\views\\22.jpg": "22695e8031414a0f7c85d66b4479e3c7d0a8d1038cd51075a7a6b7d7fd96acc6",
+      "door_20260918_01405\\views\\19.jpg": "220917e12015bb6d0f97ecbd77f1594f4b94883d384cc98d6289f3f381a46b11",
+      "door_20260918_15375\\views\\123.jpg": "a2a176ee3127013c977f0739145c01e43a13f5d9c92483192ec12ee4b2f2b99f",
+      "door_20260918_15375\\views\\120.jpg": "f08eef17ed0685627651eaeef5b4f7b7fc85928bcc90cca5119b63e65b0e4670",
+      "door_20260918_15375\\views\\108.jpg": "1985315a8d3dbd5b095a4e942ac9d765eb46ac7c9dd8f312ea38f75eef339f77",
+      "door_20260918_15375\\views\\127.jpg": "95088ef521f5d8852588f8b8da68862f008b74d1cc2a53eeab5ff9c2400bd92d"
+    },
+    "free_ram_bytes": 64955408384,
+    "groups": {
+      "door_20260918_01405:2": {
+        "views": 4,
+        "first_service_seconds": 2.9198312000371516,
+        "cached_seconds": 3.8899946957826614e-05,
+        "worker_calls": 1,
+        "first": {
+          "role": "customer",
+          "p_staff": 0.162,
+          "views": 4
+        },
+        "cached": {
+          "role": "customer",
+          "p_staff": 0.162,
+          "views": 4
+        },
+        "cached_role_equal": true,
+        "p_staff_equal": true
+      },
+      "door_20260918_15375:3": {
+        "views": 4,
+        "first_service_seconds": 2.8226956999860704,
+        "cached_seconds": 3.8899946957826614e-05,
+        "worker_calls": 1,
+        "first": {
+          "role": "staff",
+          "p_staff": 0.688,
+          "views": 4
+        },
+        "cached": {
+          "role": "staff",
+          "p_staff": 0.688,
+          "views": 4
+        },
+        "cached_role_equal": true,
+        "p_staff_equal": true
+      }
+    },
+    "limitations": "TRAIN service timing only; no independent role accuracy, live queue backlog or GPU speed proof.",
+    "role_model_sha256_before": "508639e75e20cacd32fd0afcfec38832a0c0e3e886b13f0c78679e5c72977e88",
+    "own_worker_pid": 83208,
+    "initialization_seconds": 11.499400299973786,
+    "worker_tree_observed_peak_rss_bytes": 4197261312,
+    "elapsed_seconds": 19.420266600092873,
+    "owned_worker_exit_code": 0,
+    "role_model_sha256_after": "508639e75e20cacd32fd0afcfec38832a0c0e3e886b13f0c78679e5c72977e88",
+    "role_model_file_unchanged": true
+  },
+  "live_backlog": {
+    "closing": [
+      "10-10 21:00:16 closing: the camera is off, 23547 ticks still to count"
+    ],
+    "status": {
+      "updated": "21:30:23",
+      "window": "w20261010_193138",
+      "ticks": 22049,
+      "behind_s": 6002,
+      "ms_per_tick": 233,
+      "events_total": 153,
+      "in": 77,
+      "out": 76,
+      "skipping": false
+    },
+    "last_sessions": [
+      "10-10 21:28:30 session w20261010_193138 3944-4184: SAM 56.4 s (235 ms/tick, GPU peak 5.48 GB), people 4.8 s {'link': 0.1, 'rows': 4.7, 'foot': 0.2, 'frame': 3.9, 'mask': 0.0, 'side': 0.2, 'bank': 0.1, 'n': 282}, events+role 2.0 s, behind the camera 6000 s, people 5, new events out 19:47:33",
+      "10-10 21:29:27 session w20261010_193138 4176-4416: SAM 58.7 s (245 ms/tick, GPU peak 5.54 GB), people 4.7 s {'link': 0.1, 'rows': 4.6, 'foot': 0.2, 'frame': 3.8, 'mask': 0.0, 'side': 0.2, 'bank': 0.1, 'n': 282}, events+role 0.7 s, behind the camera 6001 s, people 4, new events -",
+      "10-10 21:30:23 session w20261010_193138 4408-4648: SAM 56.0 s (233 ms/tick, GPU peak 5.18 GB), people 4.6 s {'link': 0.1, 'rows': 4.6, 'foot': 0.1, 'frame': 4.0, 'mask': 0.0, 'side': 0.1, 'bank': 0.0, 'n': 243}, events+role 0.8 s, behind the camera 6002 s, people 2, new events -"
+    ],
+    "action": "read-only; production continues draining; research GPU waiter yields"
+  },
+  "limits": "CPU TRAIN diagnostics only. All event A/B comparisons use locally reset trackers on180:380. Independent role accuracy, GPU fusion/mask equivalence, live backlog under student load and full RTX3060 latency remain unproved. Role RSS values are sampled observations, not continuously measured peaks."
+}

@@ -4232,3 +4232,63 @@ _fresh_20261010. Исходные quick caches/owner labels/weights не изм�
 нагрузку/задержку очереди, затем свободный ночной RTX профиль с guards.
 Не объявлять ≤80ms или готовность к бою. После доступности карты продолжать
 новые реальные улучшения, не заканчивать ночь этим CPU профилем.
+
+## 90. Side single-frame futures, непустые события и CPU role service (10.10.2026, 21:33 UTC+7)
+
+Продолжен89: первый alternating fresh/fast/fast/fresh по120TRAIN ticks
+показал dense feature mean21.04→18.19ms, но light14.33→16.55ms.
+Не объявлен общий speed gain. В отдельном door_seg_queue_fast.Live
+общий lock теперь держится только на LRU/Future lookup: разные RGB frames
+готовятся параллельно, повторные запросы одного ждут его Future. При
+immutable1280×720 input убрана identity resize/copy; float INTER_AREA
+подготовка320×180 прежняя. CPU test подтвердил2 разных кадра одновременно,
+единую подготовку повторов и одинаковые результаты. Production не изменён.
+
+Повторный120tick ABBA: dense feature18.50→15.05ms, CPU total mean
+4.966→4.846s (~2.4%); light feature14.24→14.32ms, без заметного прироста.
+Все features/votes/IDs/roleJPEGs побитно совпали с fresh reference.
+Чтобы не объявлять event equivalence по пустым спискам, ещё200TRAIN ticks
+180:380 обеих сцен, локальный Tracker reset на180. Четыре ABBA результата
+совпали:01405 out21.36s ID2,15375 out20.72s ID1, включая xy/disp.
+Это A/B короткого CPU контекста, не full-clip score: старый полный b2
+15375 давал20.88s; номера/контекст другой длины напрямую не сравнивать.
+Dense CPU total mean6.377→5.379s (~15.6%), feature16.68→13.91ms;
+light total5.204→5.150s (шум), feature13.37→13.84ms. GPU masks/fusion
+не проверены, cached prediction inputs/owner labels неизменны.
+Первый nonempty-event report упал на numpy xy JSON; serialization исправлена,
+с новым output events2, старый незавершённый events output не принимать.
+
+Добавлен door_seg_role_probe.py: собственный finite CPU Worker из RF,
+RA_ROLE_DEVICE=cpu/threads8/offline existing weights, startup timeout60s,
+request45s, EOF cleanup только своих PID/cmdline. Два запуска на одинаковых
+8TRAIN JPEGs (4/person/scene): service2.95/2.82s и2.92/2.82s, ~.72s/view.
+Повтор из Roles cache36–43microseconds, без нового worker call. Role и
+p_staff совпали между runs и cached: customer .162 / staff .688. Это
+выход модели, не independent owner role accuracy. Ни feedback, ни refit.
+Initialization21.65/11.50s с разным disk cache; наблюдаемый RSS дерева
+~4.20GB, не непрерывно измеренный peak. Второй model SHA508639e75e20cacd32
+fd0afcfec38832a0c0e3e886b13f0c78679e5c72977e88 before/after unchanged.
+Собственные Worker112464/83208 завершились, второй exit0; чужие role
+services не тронуты. Async live role queue backlog ещё не измерен.
+
+Существенная существующая задержка боевой двери обнаружена read-only:
+live_cam1.log21:00:16 closing оставляет23547ticks; уже21:00:23 behind5685s
+(до этих CPU опытов). В21:30:23 status updated, behind6002s (~100мин),
+233ms/tick,153events (77in/76out), skipping=false. Процесс не умер:
+последние sessions идут227–245ms/tick, события продолжают добавляться,
+видео19:31–19:43 обрабатывается после21:00. Не перезапускать/не отрезать
+queue ради ресерча. GPU waiter91396/50744 по-прежнему один job, уступает
+живой двери74116/106612 и Photoshop77228, не запускать дубль. Владелец
+уведомлён о задержке; неизменное дальнейшее draining не требует уведомлений.
+
+Kaggle RUNNING, fresh17400(14:28:10UTC), finite losses/no new rejection;
+latest CPU receiver model Иoptimizer ACKlast17393 в21:30:09 SHA
+14b6d0ea92e5928a4183241f5467e482dbfb8ea1a350dbeea1296ea11c72d40d.
+Recovery сначала свежая CPU/SHA/precision проверка latest, сохранять FP32,
+не откатываться к16604/15191/8996. Best proxy14604/one stale из88 прежние.
+Artifacts/doorseg_research/cpu_queue_roles_20261010.json включает ABBA,
+nonempty events, role repeats и snapshot live backlog. Windows folders:
+quality_backups/doorseg_cpu_queue_abba{,2}_20261010,
+doorseg_cpu_queue_events2_20261010,doorseg_cpu_role{,2}_20261010.
+Дальше свободный guarded GPU profile и TRAIN accuracy/sequence work;
+не повторять завершённые CPU ABBA/role прогоны без новой причины.

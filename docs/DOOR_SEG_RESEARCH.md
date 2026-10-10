@@ -314,3 +314,27 @@ dense under shared CPU load. These sequential timings are provisional;
 repeat alternating before/after. Empty event lists do not prove event quality.
 Role model service and full GPU/live scheduling are still excluded.
 Artifacts: artifacts/doorseg_research/cpu_queue_20261010.json.
+
+The initial globally locked experimental frame cache slowed the light CPU
+sample in alternating tests. It now uses a per-frame Future: only metadata
+lookup holds the global lock, so different frames prepare concurrently.
+Immutable1280x720 RGB inputs avoid an identity-resize copy. Repeated120-tick
+ABBA preserves every feature/vote/ID/view hash; dense feature service falls
+18.50→15.05ms but total CPU processing improves only about2.4%, light unchanged.
+A second200-tick180:380 TRAIN ABBA includes actual exits: both variants give
+01405 out21.36s/ID2 and15375 out20.72s/ID1, including identical geometry.
+Dense total CPU mean6.377→5.379s, about15.6%; light is nearly unchanged.
+These locally reset fragments do not establish full-clip event accuracy.
+
+Two finite CPU-only owned role workers processed identical eight TRAIN views.
+Four new views cost2.82–2.95s, ~0.72s/view; repeated Roles cache calls take
+36–43microseconds. Probabilities/roles match; these are model outputs, not
+independent owner correctness. Workers exited, production role services intact.
+The measured role service excludes live queue backlog and GPU competition.
+
+A read-only live check found a significant backlog predating the CPU tests:
+closing21:00:16 retained23547ticks, behind5685s at21:00:23. At21:30:23
+fresh status reports6002s behind,233ms/tick and no skipping; it continues
+draining and counting events. Research GPU waits for this live work and
+foreign applications. No production restart or queue truncation occurred.
+Combined evidence: artifacts/doorseg_research/cpu_queue_roles_20261010.json.
