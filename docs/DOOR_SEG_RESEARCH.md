@@ -374,3 +374,51 @@ do not automatically expand this into approximate-mask suppression.
 
 Evidence:`artifacts/doorseg_research/train_fragment_exact_masks_20261010.json`,
 including before/after failure, miss and wrong-observation examples.
+
+## Separate temporal optimizer state tools
+
+`door_seg_sequence_state.py` validates model buffers/parameters, legacy AdamW
+order and moments, explicit temporal group names, finite state, step and saved
+precision before loading. It preserves base moments and creates fresh head
+state; atomic checkpoints require a separate `doorseg_sequence_*` directory
+and a versioned recipe with frozen TRAIN manifest SHA. Hidden stream memory
+is excluded. Four CPU tests cover exact next-update parity, round trips and
+rejection before mutation; Windows4 passed, Mac temporal+state19 passed.
+
+A guarded CPU restore of immutable C16604 FP32 preserved all448 Adam states
+and model buffers exactly in2.668s, without a real sample forward/backward or
+optimizer update. This fixture prepares a separate trainer; heads remain
+untrained, C unchanged, and16604 is not a recovery choice.
+
+Windows Torch2.13 CPU AdamW graph-capture health checks unexpectedly opened
+CUDA with an empty visibility string in the first test subprocess. It ended.
+The own-process `door_seg_cpu_test.py` now sets visibility to `-1` before import
+and forbids both CUDA initialization entrypoints. Tests and real CPU restore
+passed with CUDA uninitialized. Installed Torch and foreign processes unchanged.
+Evidence: `artifacts/doorseg_research/sequence_state_cpu_20261010.json`.
+
+## C private Kaggle completion and preserved rejection inputs
+
+Private version4 finished successfully at20604 with a confirmed plateau:
+three finite2000-step-spaced evaluations after best14604 did not reach
+min_delta .005. Do not resume C or clear STOP. Best `step14604.pt` proxy
+F1 .9403, maskIoU .9052, links .9838; baseline .9345/.8974/.9774. Recall
+found .9109 remains below baseline .9148. Final20604 proxy .9389/.9032/.9743,
+with found .9177. These already-viewed23.09 proxy and T4 timings establish
+neither independent event/role accuracy nor full RTX3060 performance.
+
+All private outputs downloaded with real SHA/size manifest. Best14604 and
+final20604 model/optimizer restored exactly on Windows CPU (448 optimizer
+parameters), plus finite checks and immutable copies of18604/eval20604 and
+before_rejected14862. No optimizer update or real sample forward/backward;
+strict CPU initialization guard remained intact. Runner released ownership
+after final receiver ACK; no live VM was manually closed.
+
+Both rejected14862 rank batches are now SHA-verified on Windows. Their12
+saved TRAIN samples have finite inputs, correct17-channel/mask/box/offset
+shapes and ranges, and zero padding. Maximum saved displacement33.5px.
+The BF16 loss/gradient failure component/rank remains unresolved despite
+finite inputs and the successful FP32 retry. Preserve both batches and
+before_rejected for a short guarded no-update replay with diagnostics.
+Evidence: `artifacts/doorseg_research/c_kaggle_final_20261010.json`.
+The automation remains active for independent research and integration.

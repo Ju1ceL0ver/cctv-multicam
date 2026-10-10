@@ -4356,3 +4356,105 @@ Recovery latest CPU/optimizer/SHA/step/precision check, сохранять FP32;
 не откатывать к16604/15191/8996. Best14604/one stale16604 прежние.
 Night waiter91396/50744 один job уступает live/Photoshop. GPU report пока
 нет; не запускать дубль/не обрезать live queue. Mac caffeinate38319 жив.
+
+## 92. Отдельное sequence optimizer resume и строгий CPU guard (10.10.2026)
+
+Добавлены door_seg_sequence_state.py и четыре CPU tests для отдельных
+fingerprint/ConvGRU экспериментов. Legacy AdamW мигрирует в две именованные
+группы: base YOLO/offset с прежними moments/hyperparameters, новые18 temporal
+parameters без старых moments. Проверяются model parameters И buffers,
+positional legacy order, Adam moment shapes/state IDs, step, saved precision,
+имена новых групп и temporal architecture. Atomic save допускается только в
+отдельный doorseg_sequence_* с versioned recipe/frozen TRAIN manifest SHA;
+nonfinite не перезаписывает хороший checkpoint. Hidden stream memory не
+сериализуется. C trainer/heads/labels/production не изменены.
+
+Четыре теста проверяют legacy и temporal round-trip, побитно одинаковый
+следующий base optimizer update vs control, poisoned state и order/buffer
+shape/precision/name/path guards. Windows4 passed0.94s; Mac вместе с прежними
+TemporalHeads tests19 passed0.92s. Реальный immutable C16604 FP32 checkpoint
+использован только как CPU fixture:448 Adam states и base model parameters/
+buffers побитно восстановлены, source SHA unchanged,18 новых head parameters
+без moments. Final guarded check2.668s, без реальных TRAIN forward/backward
+или optimizer update; constructor dummy forward выполнен. Это техническая
+подготовка отдельного sequence trainer, не обученные heads/прирост качества
+и не выбор16604 для C recovery.
+
+Новый технический сбой локализован и устранён в собственном test workflow:
+Windows PyTorch2.13 CPU AdamW.step при CUDA_VISIBLE_DEVICES='' неожиданно
+инициализировал CUDA через accelerator graph capture health check. Первый
+тест процесс завершился, GPU training tensors не создавались; нельзя писать,
+что в этом ходе CUDA вообще не открывалась. Bounded blocked trace показал
+Adam.step -> torch.accelerator.current_stream/is_capturing -> current_device
+-> _lazy_init. Новый door_seg_cpu_test.py выставляет '-1' ДО torch import и
+жёстко запрещает Python/C CUDA initialization entrypoints только в своём
+тест процессе. Windows tests и реальная restore проверка с этим guard
+подтвердили cuda.is_initialized=False. Torch/SDK/чужие процессы не правились.
+Triton warning об отсутствии CUDA при отключённом устройстве ожидаем.
+
+Artifacts/doorseg_research/sequence_state_cpu_20261010.json; Windows
+quality_backups/doorseg_sequence_resume_cpu_guarded_20261010 и
+ doorseg_sequence_state_tests_20261010. Далее отдельный bounded ordered TRAIN
+sequence experiment с finite/restore gates, когда разрешает GPU guard;
+новые heads в C автоматически не внедрять.
+
+## 93. Kaggle C завершён по подтверждённому плато; private outputs и CPU restore (10.10.2026)
+
+Текущая private version4 juice0lover/cctv-doorseg-c-background COMPLETE,
+runner returncode0/phasefinished. STOP содержит spaced400moment оценки
+8604 .9345,10604 .9307,12604 .9292,14604 .9403,16604 .9390,
+18604 .9349,20604 .9389. После best14604 три конечные оценки с интервалом
+2000 successful steps без +.005: плато подтверждено. C НЕ возобновлять,
+STOP не снимать, Windows fallback/Colab/новый C trainer не запускать.
+COLAB_ACTIVE.active=false выставлен самим runner после final transport ACK,
+не нами и не на основании устаревшего marker. Живую VM мы не закрывали.
+
+Лучший step14604.pt: found .9109, precision .9718, F1 .9403,
+maskIoU .9052, links .9838, n_links926/truth1021; против8604 F1+.58пп,
+IoU+.78пп,links+.64пп, found ниже .9148. Proxy56.9ms T4 не полнаяRTX3060
+скорость и не доказательство событий/ролей/боевой готовности. Финальный
+20604: found .9177,precision .9610,F1 .9389,IoU .9032,links .9743,
+n_links933/truth1021,57.7ms T4. Links ниже baseline .9774. Producer logs
+16:13UTC stopped safely20604. Все recipe/labels/thresholds C прежние.
+
+ВСЕ private kernel outputs скачаны на Mac в
+/tmp/doorseg_kaggle_v4_final_20261010; download_manifest.json содержит
+реальные SHA/bytes, а не некорректно маленькие sizes из API listing.
+Windows final CPU model Иoptimizer finite/SHA exact:
+last20604 FP32 140327293 bytes SHA085f995430fbe3a973c9a9f460460be9e61f41cda6b02bc432abb4f03ac24ae8;
+eval20604 FP32 140439157 bytes SHAa8a102545a363a7cc4eb70a50f3de7c11151557e6b26c180858c2e114f4386e2;
+best14604 savedBF16 140439157 bytes SHAce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66.
+Native receiver final ACKlast23:15:02/eval23:16:23 (UTC+7).
+Best14604 и last20604 реально восстановлены в DoorSeg CPU: все model
+parameters/buffers и448 optimizer parameters/states exact, no sample
+forward/backward/optimizer.step. Constructor dummy forward выполнен.
+CUDA_VISIBLE_DEVICES=-1 + hard initialization guard, CUDA осталась unopened.
+18604 и before_rejected14862 тоже model/optimizer finite и совпали с private
+SHA. Все пять checkpoint сохранены как immutable SHA-suffixed copies в
+Windows quality_backups/doorseg_c_kaggle_final_20261010, report.json.
+Historical best savedBF16 не разрешает возвращать C вBF16/обходить STOP.
+
+ОБА private rejected_14862_rank0/1.pt скачаны и сохранены наWindows с
+SHA/size gate:rank0 110508667 bytes SHA48f1dc6a5345426e9ebe66b51f0a503066c59d18e63d8e8b6ef3c17695493876;
+rank1 109949371 bytes SHA28c5b761c700697c14d07e8e7800c7668d74bc548787a4f063d3aad872c14e7d.
+Bounded CPU inspection всех12 saved samples: все numeric inputs finite,
+img17×736×1280 uint8,idx184×320 uint8,maxidx≤N, boxesN×4 positive normalized,
+offN×4 ≤64px,offvN×2 bool,padding zero. Rank0 people1/2/2/1/1/4,
+rank1 6/2/2/6/1/6; maxoffset33.5px. SessionNone легален для этих legacy
+sources; ошибочный диагностический int-session assert исправлен, не labels.
+rejected_inputs_schema.json сохраняет sources/ticks/shapes. Доoptimizer
+DDP rejection+BN rollback и тот же batch finiteFP32 остаются установленными
+фактами; точный BF16 loss/grad компонент/плохой rank ещё не локализованы.
+Не объяснять сбой только finite inputs. Позже bounded GPU replay с hooks,
+без update, только при свободном guarded night GPU. Private signed links
+не печатались/не коммитились, временный Windows payload удалён.
+
+Report artifacts/doorseg_research/c_kaggle_final_20261010.json содержит
+все proxy оценки, SHA manifest, CPU model/opt restore и оба rejected batch
+schema reports. GPU waiter91396→50744 по-прежнему один job; fresh Windows
+23:30 Photoshop77228 блокирует GPU, report отсутствует. Не обходить foreign
+app guard/не запускать дубль. Mac caffeinate38319 жив. Боевая дверь/CRM/
+keeper/owner labels не менялись. Автоматика ACTIVE: далее independent TRAIN
+скорость/маски/ID/события/roles/integration и отдельный bounded sequence
+trainer из92/75; не завершать ночь одним профилем и не отключать automation
+лишь из-за окончания C.

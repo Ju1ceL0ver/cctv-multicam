@@ -1,0 +1,1163 @@
+{
+  "date": "2026-10-10",
+  "kernel": "juice0lover/cctv-doorseg-c-background",
+  "version": 4,
+  "status": "COMPLETE",
+  "plateau": "plateau: [(8604, 0.9345), (10604, 0.9307), (12604, 0.9292), (14604, 0.9403), (16604, 0.939), (18604, 0.9349), (20604, 0.9389)]",
+  "best_step": 14604,
+  "final_step": 20604,
+  "proxy_evaluations": [
+    {
+      "step": 8604,
+      "producer_timestamp": "10.10 10:00",
+      "found": 0.9148,
+      "precision": 0.955,
+      "f1": 0.9345,
+      "mask_iou": 0.8974,
+      "links": 0.9774,
+      "n_links": 929,
+      "truth": 1021,
+      "ms_per_frame": 69.2
+    },
+    {
+      "step": 10604,
+      "producer_timestamp": "10.10 09:43",
+      "found": 0.9079,
+      "precision": 0.9547,
+      "f1": 0.9307,
+      "mask_iou": 0.9013,
+      "links": 0.9783,
+      "n_links": 922,
+      "truth": 1021,
+      "ms_per_frame": 59.1
+    },
+    {
+      "step": 12604,
+      "producer_timestamp": "10.10 11:22",
+      "found": 0.9001,
+      "precision": 0.9603,
+      "f1": 0.9292,
+      "mask_iou": 0.9017,
+      "links": 0.9803,
+      "n_links": 915,
+      "truth": 1021,
+      "ms_per_frame": 57.8
+    },
+    {
+      "step": 14604,
+      "producer_timestamp": "10.10 13:00",
+      "found": 0.9109,
+      "precision": 0.9718,
+      "f1": 0.9403,
+      "mask_iou": 0.9052,
+      "links": 0.9838,
+      "n_links": 926,
+      "truth": 1021,
+      "ms_per_frame": 56.9
+    },
+    {
+      "step": 16604,
+      "producer_timestamp": "10.10 14:07",
+      "found": 0.9128,
+      "precision": 0.9668,
+      "f1": 0.939,
+      "mask_iou": 0.9036,
+      "links": 0.9849,
+      "n_links": 927,
+      "truth": 1021,
+      "ms_per_frame": 59.2
+    },
+    {
+      "step": 18604,
+      "producer_timestamp": "10.10 15:09",
+      "found": 0.9079,
+      "precision": 0.9636,
+      "f1": 0.9349,
+      "mask_iou": 0.906,
+      "links": 0.9772,
+      "n_links": 922,
+      "truth": 1021,
+      "ms_per_frame": 57.6
+    },
+    {
+      "step": 20604,
+      "producer_timestamp": "10.10 16:13",
+      "found": 0.9177,
+      "precision": 0.961,
+      "f1": 0.9389,
+      "mask_iou": 0.9032,
+      "links": 0.9743,
+      "n_links": 933,
+      "truth": 1021,
+      "ms_per_frame": 57.7
+    }
+  ],
+  "windows_cpu_verification": {
+    "complete": true,
+    "private_outputs": true,
+    "cuda_initialized": false,
+    "training_updates": 0,
+    "weights": [
+      {
+        "name": "last.pt",
+        "step": 20604,
+        "precision": "fp32",
+        "sha256": "085f995430fbe3a973c9a9f460460be9e61f41cda6b02bc432abb4f03ac24ae8",
+        "bytes": 140327293,
+        "model_and_optimizer_finite": true,
+        "cpu_restore_exact": true,
+        "optimizer_parameters": 448,
+        "constructor_dummy_forward": true,
+        "actual_sample_forward": false
+      },
+      {
+        "name": "step14604.pt",
+        "step": 14604,
+        "precision": "bf16",
+        "sha256": "ce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66",
+        "bytes": 140439157,
+        "model_and_optimizer_finite": true,
+        "cpu_restore_exact": true,
+        "optimizer_parameters": 448,
+        "constructor_dummy_forward": true,
+        "actual_sample_forward": false
+      },
+      {
+        "name": "step18604.pt",
+        "step": 18604,
+        "precision": "fp32",
+        "sha256": "0af019ad443db390ef2daf1b4606f9d9f03a99a8fd2562fad724aa3ec3a2970b",
+        "bytes": 140439157,
+        "model_and_optimizer_finite": true
+      },
+      {
+        "name": "step20604.pt",
+        "step": 20604,
+        "precision": "fp32",
+        "sha256": "a8a102545a363a7cc4eb70a50f3de7c11151557e6b26c180858c2e114f4386e2",
+        "bytes": 140439157,
+        "model_and_optimizer_finite": true
+      },
+      {
+        "name": "before_rejected_14862.pt",
+        "step": 14862,
+        "precision": "bf16",
+        "sha256": "52923c7d057baa1ad92ebd2a98d1a120e5c61501ecfc04239fef2bf1f86cbbab",
+        "bytes": 140465237,
+        "model_and_optimizer_finite": true
+      }
+    ],
+    "batches": [
+      {
+        "name": "rejected_14862_rank0.pt",
+        "sha256": "48f1dc6a5345426e9ebe66b51f0a503066c59d18e63d8e8b6ef3c17695493876",
+        "step": 14862,
+        "rank": 0,
+        "world_size": 2,
+        "reason": "nonfinite loss/gradient on at least one rank",
+        "samples": 6,
+        "sample_keys": [
+          "img",
+          "idx",
+          "meta",
+          "boxes",
+          "off",
+          "offv"
+        ],
+        "arrays": [
+          {
+            "path": "batch.samples.0.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.0.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.0.boxes",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02265625074505806,
+            "max": 0.41679686307907104
+          },
+          {
+            "path": "batch.samples.0.off",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0,
+            "max": 0.0
+          },
+          {
+            "path": "batch.samples.0.offv",
+            "shape": [
+              1,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.1.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.1.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 2.0
+          },
+          {
+            "path": "batch.samples.1.boxes",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02187499962747097,
+            "max": 0.4164062440395355
+          },
+          {
+            "path": "batch.samples.1.off",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -2.5,
+            "max": 3.0
+          },
+          {
+            "path": "batch.samples.1.offv",
+            "shape": [
+              2,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.2.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.2.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 2.0
+          },
+          {
+            "path": "batch.samples.2.boxes",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02187499962747097,
+            "max": 0.4156250059604645
+          },
+          {
+            "path": "batch.samples.2.off",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -2.5,
+            "max": 4.5
+          },
+          {
+            "path": "batch.samples.2.offv",
+            "shape": [
+              2,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.3.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.3.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.3.boxes",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02187499962747097,
+            "max": 0.4164062440395355
+          },
+          {
+            "path": "batch.samples.3.off",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0,
+            "max": 0.0
+          },
+          {
+            "path": "batch.samples.3.offv",
+            "shape": [
+              1,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.4.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.4.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.4.boxes",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02265625074505806,
+            "max": 0.41679686307907104
+          },
+          {
+            "path": "batch.samples.4.off",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0,
+            "max": 0.0
+          },
+          {
+            "path": "batch.samples.4.offv",
+            "shape": [
+              1,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.5.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.5.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 4.0
+          },
+          {
+            "path": "batch.samples.5.boxes",
+            "shape": [
+              4,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.01406249962747097,
+            "max": 0.6390625238418579
+          },
+          {
+            "path": "batch.samples.5.off",
+            "shape": [
+              4,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -4.0,
+            "max": 3.0
+          },
+          {
+            "path": "batch.samples.5.offv",
+            "shape": [
+              4,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          }
+        ],
+        "all_saved_numeric_inputs_finite": true
+      },
+      {
+        "name": "rejected_14862_rank1.pt",
+        "sha256": "28c5b761c700697c14d07e8e7800c7668d74bc548787a4f063d3aad872c14e7d",
+        "step": 14862,
+        "rank": 1,
+        "world_size": 2,
+        "reason": "nonfinite loss/gradient on at least one rank",
+        "samples": 6,
+        "sample_keys": [
+          "img",
+          "idx",
+          "meta",
+          "boxes",
+          "off",
+          "offv"
+        ],
+        "arrays": [
+          {
+            "path": "batch.samples.0.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.0.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 6.0
+          },
+          {
+            "path": "batch.samples.0.boxes",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02187499962747097,
+            "max": 0.616847813129425
+          },
+          {
+            "path": "batch.samples.0.off",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -33.5,
+            "max": 16.5
+          },
+          {
+            "path": "batch.samples.0.offv",
+            "shape": [
+              6,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.1.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.1.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 2.0
+          },
+          {
+            "path": "batch.samples.1.boxes",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.07343749701976776,
+            "max": 0.44140625
+          },
+          {
+            "path": "batch.samples.1.off",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -31.0,
+            "max": 0.0
+          },
+          {
+            "path": "batch.samples.1.offv",
+            "shape": [
+              2,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.2.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.2.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 2.0
+          },
+          {
+            "path": "batch.samples.2.boxes",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.01875000074505806,
+            "max": 0.447265625
+          },
+          {
+            "path": "batch.samples.2.off",
+            "shape": [
+              2,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -3.0,
+            "max": 4.0
+          },
+          {
+            "path": "batch.samples.2.offv",
+            "shape": [
+              2,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.3.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.3.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 6.0
+          },
+          {
+            "path": "batch.samples.3.boxes",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0078125,
+            "max": 0.3515625
+          },
+          {
+            "path": "batch.samples.3.off",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.3.offv",
+            "shape": [
+              6,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.4.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.4.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.4.boxes",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.02500000037252903,
+            "max": 0.41718751192092896
+          },
+          {
+            "path": "batch.samples.4.off",
+            "shape": [
+              1,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0,
+            "max": 0.0
+          },
+          {
+            "path": "batch.samples.4.offv",
+            "shape": [
+              1,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.5.img",
+            "shape": [
+              17,
+              736,
+              1280
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 255.0
+          },
+          {
+            "path": "batch.samples.5.idx",
+            "shape": [
+              184,
+              320
+            ],
+            "dtype": "uint8",
+            "finite": true,
+            "min": 0.0,
+            "max": 6.0
+          },
+          {
+            "path": "batch.samples.5.boxes",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": 0.0078125,
+            "max": 0.3515625
+          },
+          {
+            "path": "batch.samples.5.off",
+            "shape": [
+              6,
+              4
+            ],
+            "dtype": "float32",
+            "finite": true,
+            "min": -0.5,
+            "max": 1.0
+          },
+          {
+            "path": "batch.samples.5.offv",
+            "shape": [
+              6,
+              2
+            ],
+            "dtype": "bool",
+            "finite": true,
+            "min": 1.0,
+            "max": 1.0
+          }
+        ],
+        "all_saved_numeric_inputs_finite": true
+      }
+    ],
+    "plateau_confirmed": true,
+    "cloud_returncode": 0,
+    "ownership_active": false,
+    "rejection_cause": "not localized; finite inputs do not identify bad BF16 loss/gradient",
+    "torch": "2.13.0+cu130"
+  },
+  "rejected_input_schema": {
+    "complete": true,
+    "samples": [
+      {
+        "rank": 0,
+        "sample": 0,
+        "people": 1,
+        "max_index": 1,
+        "max_abs_offset": 0.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260918_15569/cam1",
+          "session": "None",
+          "tick": 414
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 0,
+        "sample": 1,
+        "people": 2,
+        "max_index": 2,
+        "max_abs_offset": 3.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260917_18416/cam1",
+          "session": "None",
+          "tick": 780
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 0,
+        "sample": 2,
+        "people": 2,
+        "max_index": 2,
+        "max_abs_offset": 4.5,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260917_18416/cam1",
+          "session": "None",
+          "tick": 790
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 0,
+        "sample": 3,
+        "people": 1,
+        "max_index": 1,
+        "max_abs_offset": 0.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260919_30421/cam1",
+          "session": "None",
+          "tick": 123
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 0,
+        "sample": 4,
+        "people": 1,
+        "max_index": 1,
+        "max_abs_offset": 0.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260918_15569/cam1",
+          "session": "None",
+          "tick": 412
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 0,
+        "sample": 5,
+        "people": 4,
+        "max_index": 4,
+        "max_abs_offset": 4.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_seg/20260922_23264/cam2",
+          "session": "None",
+          "tick": 3737
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 0,
+        "people": 6,
+        "max_index": 6,
+        "max_abs_offset": 33.5,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260919_29407/cam1",
+          "session": "None",
+          "tick": 335
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 1,
+        "people": 2,
+        "max_index": 2,
+        "max_abs_offset": 31.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260917_14644/cam1",
+          "session": "None",
+          "tick": 420
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 2,
+        "people": 2,
+        "max_index": 2,
+        "max_abs_offset": 4.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260917_08869/cam1",
+          "session": "None",
+          "tick": 317
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 3,
+        "people": 6,
+        "max_index": 6,
+        "max_abs_offset": 1.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_seg/20260922_22364/cam2",
+          "session": "None",
+          "tick": 10179
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 4,
+        "people": 1,
+        "max_index": 1,
+        "max_abs_offset": 0.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_door/door_20260917_25016/cam1",
+          "session": "None",
+          "tick": 374
+        },
+        "schema_ranges_and_padding_valid": true
+      },
+      {
+        "rank": 1,
+        "sample": 5,
+        "people": 6,
+        "max_index": 6,
+        "max_abs_offset": 1.0,
+        "meta": {
+          "source": "/kaggle/temp/doorseg/data/sam31_seg/20260922_22364/cam2",
+          "session": "None",
+          "tick": 10177
+        },
+        "schema_ranges_and_padding_valid": true
+      }
+    ],
+    "cuda_initialized": false,
+    "input_schema_ranges_padding_valid": true,
+    "optimizer_updates": 0,
+    "loss_backward_replay": false,
+    "numerical_root_cause": "unresolved; schema/finite inputs passed"
+  },
+  "download_manifest": [
+    {
+      "name": "cctv-doorseg-c-background.log",
+      "bytes": 5933,
+      "sha256": "838ae5cbb9408249821b6d4261f87a7ff4a70bd40a7b229ed8ac98dd96851a15"
+    },
+    {
+      "name": "COLAB_ACTIVE.json",
+      "bytes": 71,
+      "sha256": "9ec5705aa4c371e798a8402a1a92e8ef6bc8c38e7dcc8f9bc15019b963b49a20"
+    },
+    {
+      "name": "step20604.pt",
+      "bytes": 140439157,
+      "sha256": "a8a102545a363a7cc4eb70a50f3de7c11151557e6b26c180858c2e114f4386e2"
+    },
+    {
+      "name": "last.pt",
+      "bytes": 140327293,
+      "sha256": "085f995430fbe3a973c9a9f460460be9e61f41cda6b02bc432abb4f03ac24ae8"
+    },
+    {
+      "name": "log.jsonl",
+      "bytes": 22273,
+      "sha256": "71a5771dd47fabe99a7fd926f5f8cf297351b635320ca1c04890bd7ff30e2f27"
+    },
+    {
+      "name": "kaggle_gpu_gate.log",
+      "bytes": 534,
+      "sha256": "e1c6f65725ef7caf8195c67c6a84b0e443807bd6435ce30652cd931277750e31"
+    },
+    {
+      "name": "colab_train.log",
+      "bytes": 5048,
+      "sha256": "ecd7724045add2f051e5c21d2807460fef23d6aa1281f43cb9707ca6ef32de98"
+    },
+    {
+      "name": "progress.md",
+      "bytes": 2049,
+      "sha256": "98861955ab592f97ffafc94ce3c527fe23ede0c32c61d20c2fdb2c8a2733221b"
+    },
+    {
+      "name": "STOP",
+      "bytes": 126,
+      "sha256": "e3b71854974ae1ecef82522ec3ecf4ded0978da3c272315616a07ad612c958aa"
+    },
+    {
+      "name": "before_rejected_14862.pt",
+      "bytes": 140465237,
+      "sha256": "52923c7d057baa1ad92ebd2a98d1a120e5c61501ecfc04239fef2bf1f86cbbab"
+    },
+    {
+      "name": "step18604.pt",
+      "bytes": 140439157,
+      "sha256": "0af019ad443db390ef2daf1b4606f9d9f03a99a8fd2562fad724aa3ec3a2970b"
+    },
+    {
+      "name": "step14604.pt",
+      "bytes": 140439157,
+      "sha256": "ce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66"
+    },
+    {
+      "name": "kaggle_hardware.log",
+      "bytes": 64,
+      "sha256": "0934ad412b858f36139a37505e8994acaa8ff47a899bc36c6c94e4c2ab800e13"
+    },
+    {
+      "name": "candidate_manifest.json",
+      "bytes": 610,
+      "sha256": "9cf98e4e1e130c37734c99396c3701e6e3a614709d38800e8c192df9bbbf32f8"
+    },
+    {
+      "name": "kaggle_install.log",
+      "bytes": 22092,
+      "sha256": "ed3dd3115763580a093bbb1178ae1d47a4445cec81f1f3981aefbf8a29b6418c"
+    },
+    {
+      "name": "step16604.pt",
+      "bytes": 140439157,
+      "sha256": "1c25c86349a288efc759cbbf7633cc77d6c4adaca901742e8d85e453251b988a"
+    },
+    {
+      "name": "step12604.pt",
+      "bytes": 140439157,
+      "sha256": "233dca6e8d8b90a1aeedbe73a7285f80559d6c52c0323673c85af0438813f371"
+    },
+    {
+      "name": "colab_status.json",
+      "bytes": 136,
+      "sha256": "4a23fba6f81b384e9934b6d280f0766f1a6a7f339de22033dac27a1383a4d999"
+    },
+    {
+      "name": "step10604.pt",
+      "bytes": 140439157,
+      "sha256": "94c24af82f9677d17e9ef209edeb8c8b8e103c2fcb3015f2be06a20f1bc637d4"
+    },
+    {
+      "name": "rejected_14862_rank0.pt",
+      "bytes": 110508667,
+      "sha256": "48f1dc6a5345426e9ebe66b51f0a503066c59d18e63d8e8b6ef3c17695493876"
+    },
+    {
+      "name": "kaggle_runner.log",
+      "bytes": 11023,
+      "sha256": "4054aaad510d630363872024afb1413512c3c521c45fc0f1e6f76274fb30a6fa"
+    },
+    {
+      "name": "colab_smoke.log",
+      "bytes": 2811,
+      "sha256": "e7a1eea984ed8d9732131a8bcf5a92602f22326067cc0e6f459ed391d1aef6f3"
+    },
+    {
+      "name": "rejected_14862_rank1.pt",
+      "bytes": 109949371,
+      "sha256": "28c5b761c700697c14d07e8e7800c7668d74bc548787a4f063d3aad872c14e7d"
+    }
+  ],
+  "private_output_local_directory": "/tmp/doorseg_kaggle_v4_final_20261010",
+  "windows_immutable_directory": "C:\\Users\\ArykovAA\\cctv_ai\\multicam\\data\\quality_backups\\doorseg_c_kaggle_final_20261010",
+  "limitations": [
+    "23.09 proxy was already viewed; not a new blind test",
+    "No threshold selection or owner label changes",
+    "T4 proxy ms/frame is not full RTX3060 throughput",
+    "No accepted event/ID/role/CRM/keeper integration yet",
+    "Rejected BF16 inputs finite; failure component/rank needs guarded bounded GPU replay",
+    "C plateau must not resume; automation continues independent research"
+  ]
+}

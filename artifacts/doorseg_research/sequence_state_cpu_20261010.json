@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-10",
+  "scope": "Separate temporal sequence checkpoint tools; C and production unchanged",
+  "windows_real_checkpoint": {
+    "complete": true,
+    "cpu_only": true,
+    "cuda_initialized": false,
+    "source_step": 16604,
+    "source_sha256": "edd4561dc4a2dcb74c9e77987e16d0bf91aa27ab718fb30e99cec417a2511479",
+    "resume": {
+      "step": 16604,
+      "precision": "fp32",
+      "legacy_migration": true,
+      "criterion_updates": 8,
+      "base_parameters": 448,
+      "new_parameters": 18
+    },
+    "base_adam_states_exact": 448,
+    "legitimate_empty_base_states": 0,
+    "new_temporal_adam_states": 0,
+    "base_model_parameters_and_buffers_exact": true,
+    "source_file_unchanged": true,
+    "actual_optimizer_updates": 0,
+    "sample_forward_or_backward": false,
+    "constructor_dummy_forward": true,
+    "heads_trained": false,
+    "seconds": 2.667701799888164,
+    "torch": "2.13.0+cu130"
+  },
+  "windows_tests": {
+    "complete": true,
+    "returncode": 0,
+    "stdout": "....                                                                     [100%]\n============================== warnings summary ===============================\ntests/test_door_seg_sequence_state.py::test_legacy_migration_preserves_adam_moments_and_next_base_update\n  C:\\Users\\ArykovAA\\AppData\\Local\\miniconda3\\envs\\cctv_base\\Lib\\site-packages\\triton\\windows_utils.py:425: UserWarning: Failed to find CUDA. Install CUDA Toolkit (https://developer.nvidia.com/cuda-downloads) or set CUDA_HOME / CUDA_PATH environment variable.\n    warnings.warn(\"Failed to find CUDA.\"\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n4 passed, 1 warning in 0.94s\nCPU guard: CUDA remained uninitialized\n",
+    "seconds": 2.7658214999828488,
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "hard_cuda_initialization_guard": true
+  },
+  "mac_tests": {
+    "tests": 19,
+    "passed": 19,
+    "seconds": 0.92,
+    "cpu_cuda_guard": true,
+    "files": [
+      "tests/test_door_seg_temporal.py",
+      "tests/test_door_seg_sequence_state.py"
+    ]
+  },
+  "technical_incident": {
+    "initial_windows_cpu_adam_step_cuda_initialized": true,
+    "process_finished": true,
+    "trace": "Adam.step -> Optimizer._accelerator_graph_capture_health_check -> torch.accelerator.current_stream().is_capturing -> current_device_index -> _lazy_init",
+    "resolution": "CUDA_VISIBLE_DEVICES=-1 before import plus hard CUDA initialization guard in own test process",
+    "installed_torch_modified": false
+  },
+  "acceptance_limits": [
+    "Actual C source weights and optimizer unchanged",
+    "No real TRAIN sequence optimizer update",
+    "Heads remain untrained and are not integrated in C",
+    "CPU restore fixture step16604 is not a C recovery decision",
+    "No event, role or RTX throughput claim"
+  ]
+}
