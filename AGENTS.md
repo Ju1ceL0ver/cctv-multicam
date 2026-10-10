@@ -4180,3 +4180,55 @@ incomplete parts digest65c02f… без completion manifest не использ�
 это остаток неудачного upload, свежий15191 полностью ACK и проверен.
 Successful15500 t1791638921 (13:28:41UTC) finite, STOP отсутствует;
 нового numerical rejection нет. Причину14862 исследовать после privateoutputs.
+
+## 88. Четвёртая proxy C, post-retry FP32 backup (10.10.2026, 21:14 UTC+7)
+
+Неизменные400моментов23.09 step16604 в14:07UTC: found .9128,
+precision .9668,F1 .9390,maskIoU .9036,links .9849,n_links927/truth1021.
+Против best14604 F1−.13пп,IoU−.16пп,links+.11пп; новый best отсутствует.
+Одна stale spaced оценка после14604, для плато нужны3; не возобновлять
+счёт двух stale до14604.59.2ms — T4 proxy, не полный RTX3060 проход.
+Kaggle version4 RUNNING, STOP отсутствует; после14862 FP32 сохранён.
+Windows CPU receiver model И optimizer finite ACK last16604 в21:11:05
+SHA edd4561dc4a2dcb74c9e77987e16d0bf91aa27ab718fb30e99cec417a2511479;
+eval16604 в21:12:46 SHA
+1c25c86349a288efc759cbbf7633cc77d6c4adaca901742e8d85e453251b988a.
+Immutable last/eval+step16604_verified.json сохранены; SHA перепроверены,
+precision fp32 прочитана через zip/pickletools без torch. Recovery latest
+finite16604 или новее, сохранять FP32; best proxy остаётся14604.
+
+## 89. CPU side queue: bounded cache candidate (10.10.2026, 21:14 UTC+7)
+
+RTX probe91396/50744 всё ещё один CPU waiter: живая door_live и чужое
+GPU приложение остаются; не отключены, второй GPU job не запущен.
+Вместо простого мониторинга выполнены короткие CPU replay TRAIN01405/
+15375 по120кадров, неизменные cached masks/displacements и Tracker.
+door_seg_queue_probe.py вызывает настоящие combo.add/events и Bank.offer
+с RGB video, пишет только новые quality_backups folders. Не включает
+GPU inference/CRM и модель ролей, не проверяет полную live scheduling.
+Первые feature service mean21.61/24.87ms на человека; queue wait mean
+.164/.595ms. Поэтому исследована подготовка RGB, не ёмкость очереди.
+
+Реализован отдельный door_seg_queue_fast.Live: bounded8-frame cache,
+сильная ссылка на immutable frame (не только id/data), lock для единой
+подготовки при одновременных запросах. Боевая door_combo/door_live и
+параллельные staff/keeper/CRM файлы не менялись. CPU concurrency/identity/
+eviction checks passed. Cached RGB должен быть неизменяемым.
+Fast cache240misses на240кадров,329hits на569features (189light/380dense).
+Все признаки побитно совпали с uncached fresh RGB reference обеих сцен;
+совпали side votes, Tracker IDs/stats и сохранённые role JPEG crops.
+Оба коротких event lists пусты: это не доказательство event quality.
+Legacy threaded single-slot cache в dense дал другой feature SHA при
+тех же votes/IDs/crops; конкретная причина ещё не локализована. Не менять
+production cache автоматически из одного опыта.
+
+Fresh vs fast feature mean13.81→9.94ms light и19.52→18.27ms dense;
+CPU total3.227→2.098s и5.239→5.049s. Последовательные замеры под чужой
+нагрузкой шумные, это предварительные цифры, не доказанная полная скорость.
+Отчёт artifacts/doorseg_research/cpu_queue_20261010.json; Windows outputs
+quality_backups/doorseg_cpu_queue_pair_20261010, _fast_20261010,
+_fresh_20261010. Исходные quick caches/owner labels/weights не изменены.
+Дальше: повторить короткий alternating before/after, модель ролей CPU/
+нагрузку/задержку очереди, затем свободный ночной RTX профиль с guards.
+Не объявлять ≤80ms или готовность к бою. После доступности карты продолжать
+новые реальные улучшения, не заканчивать ночь этим CPU профилем.

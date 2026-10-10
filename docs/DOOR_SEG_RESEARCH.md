@@ -292,3 +292,25 @@ unverified. The existing C recipe has not acquired these heads.
 ## Parallel visibility/completion work
 
 Sections 66–67 of AGENTS also record a separate owner-authorized `amodal_lab` experiment. Its mask-only spatial visibility classifier scored 32/41 (78.05%), balanced accuracy 80.39%, on validation day 18 September; its recorded MPS network median is 0.993 ms. Rich RGB completion scored hidden IoU 0.5068 across 24×13 synthetic occlusions, versus 0.4731 without RGB. Those are the other experiment's recorded results, not Windows measurements made here. Real hidden-leg recovery and independent event gains are not established. This is useful for a future visibility signal, but does not justify filling imagined feet into the live door geometry. These files, weights and owner annotations were preserved.
+
+Fourth fixed400-moment proxy evaluation at14:07UTC/step16604 after FP32 retry:
+found .9128, precision .9668, F1 .9390, maskIoU .9036, links .9849,
+927links/1021truth. This is one stale evaluation after best14604, not plateau.
+Both last/eval16604 have finite model AND optimizer CPU receiver ACKs,
+SHA-verified immutable snapshots and saved FP32 precision. Recovery uses
+latest finite16604 or newer, preserving FP32. Best proxy remains14604.
+
+While the night GPU probe correctly yielded to live/foreign processes,
+120-tick CPU TRAIN replays on01405/15375 measured actual side feature jobs
+and view-bank selection. A separate experimental door_seg_queue_fast.Live
+keeps eight immutable RGB frame references and serializes preparation to
+avoid duplicate work between side threads. It prepared each of240 frames
+once, with329 cache hits across569 feature jobs. Feature vectors match an
+uncached fresh reference bit-for-bit; side votes, IDs/stats and kept role
+JPEG inputs also match. The legacy dense feature hash differs; its cause
+has not been isolated. No production side/role code was changed.
+Mean feature service fresh→fast was13.81→9.94ms light and19.52→18.27ms
+dense under shared CPU load. These sequential timings are provisional;
+repeat alternating before/after. Empty event lists do not prove event quality.
+Role model service and full GPU/live scheduling are still excluded.
+Artifacts: artifacts/doorseg_research/cpu_queue_20261010.json.

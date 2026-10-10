@@ -1,0 +1,259 @@
+{
+  "runs": {
+    "pair": {
+      "complete": true,
+      "fast": false,
+      "sources": {
+        "door_20260918_01405": {
+          "ticks": 120,
+          "rows": 189,
+          "feature_jobs": 189,
+          "small_calls": 189,
+          "small_cache_misses": 188,
+          "feature_wait": {
+            "mean_ms": 0.16737089334696373,
+            "p90_ms": 0.2797399181872606,
+            "max_ms": 2.4212999269366264
+          },
+          "feature_service": {
+            "mean_ms": 21.18621958868095,
+            "p90_ms": 27.34627998434007,
+            "max_ms": 30.804199865087867
+          },
+          "decode_seconds": 3.3643754008226097,
+          "add_seconds": 0.6517373970709741,
+          "bank_seconds": 0.057995598996058106,
+          "pending_before_drain": 189,
+          "drain_seconds": 0.09309359989129007,
+          "total_seconds": 4.287043600110337,
+          "kept_views": 8,
+          "offered_views": 26,
+          "events": [],
+          "tracker_stats": {
+            "births": 2,
+            "adjacent": 187,
+            "recovered": 0,
+            "ambiguous": 0
+          },
+          "feature_sha256": "c5cfb86adb7c7f54c8a60ed0116df1cf00b786d2c0f9a81c25ec5b4e324a2325",
+          "votes_sha256": "63d2a9c5ce59fd2febb1378bb85fd361754f3d900d594dc798263a655ce4e225",
+          "view_sha256": "5c3a1138d664447b0c2ef13babd4b2c2e2af0d21189f5e1040eaaad222112e38",
+          "ids_sha256": "dae3c53fb22585e2bd56748a1ae82701c8605413cb3bd799e0e86766b39f7f47",
+          "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9"
+        },
+        "door_20260918_15375": {
+          "ticks": 120,
+          "rows": 507,
+          "feature_jobs": 380,
+          "small_calls": 380,
+          "small_cache_misses": 207,
+          "feature_wait": {
+            "mean_ms": 0.23275526289485002,
+            "p90_ms": 0.21602001506835222,
+            "max_ms": 9.980600094422698
+          },
+          "feature_service": {
+            "mean_ms": 19.19838210665866,
+            "p90_ms": 24.805169925093654,
+            "max_ms": 32.065599923953414
+          },
+          "decode_seconds": 2.509436600841582,
+          "add_seconds": 2.0463941984344274,
+          "bank_seconds": 7.861588199622929,
+          "pending_before_drain": 380,
+          "drain_seconds": 0.046041099820286036,
+          "total_seconds": 12.804445199901238,
+          "kept_views": 122,
+          "offered_views": 215,
+          "events": [],
+          "tracker_stats": {
+            "births": 56,
+            "adjacent": 431,
+            "recovered": 20,
+            "ambiguous": 298
+          },
+          "feature_sha256": "9763b0c5a1eb938f258443e31bbd4746ddd1e2468d1cb8501ef800a4f9bd64ae",
+          "votes_sha256": "296e437a9cc6662a5e7d4e1dac76f0662c4279cb6aa49cd8c33bf24bff4ff248",
+          "view_sha256": "0d6d104740e558ec710395d2b5f02ca835ddf3093311212c46539bc0f501373e",
+          "ids_sha256": "6046d22e98a04ad101db73be7f3c5995a821f1af59f6259ea98f19d0e0b30e73",
+          "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f"
+        }
+      },
+      "limitations": "CPU cached TRAIN replay; excludes GPU segmentation, CRM, live scheduling and role model service."
+    },
+    "fast": {
+      "complete": true,
+      "fast": true,
+      "sources": {
+        "door_20260918_01405": {
+          "ticks": 120,
+          "rows": 189,
+          "feature_jobs": 189,
+          "small_calls": 189,
+          "small_cache_misses": 188,
+          "feature_wait": {
+            "mean_ms": 0.07800793240743656,
+            "p90_ms": 0.10789991356432439,
+            "max_ms": 0.8692999836057425
+          },
+          "feature_service": {
+            "mean_ms": 9.940497360374561,
+            "p90_ms": 11.86581999063492,
+            "max_ms": 15.321800019592047
+          },
+          "decode_seconds": 1.5207935008220375,
+          "add_seconds": 0.42509589972905815,
+          "bank_seconds": 0.027622400783002377,
+          "pending_before_drain": 189,
+          "drain_seconds": 0.06480620009824634,
+          "total_seconds": 2.098336199996993,
+          "kept_views": 8,
+          "offered_views": 26,
+          "events": [],
+          "tracker_stats": {
+            "births": 2,
+            "adjacent": 187,
+            "recovered": 0,
+            "ambiguous": 0
+          },
+          "feature_sha256": "c5cfb86adb7c7f54c8a60ed0116df1cf00b786d2c0f9a81c25ec5b4e324a2325",
+          "votes_sha256": "63d2a9c5ce59fd2febb1378bb85fd361754f3d900d594dc798263a655ce4e225",
+          "view_sha256": "5c3a1138d664447b0c2ef13babd4b2c2e2af0d21189f5e1040eaaad222112e38",
+          "ids_sha256": "dae3c53fb22585e2bd56748a1ae82701c8605413cb3bd799e0e86766b39f7f47",
+          "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9",
+          "prepared_cache": {
+            "hits": 69,
+            "misses": 120,
+            "retained": 8
+          }
+        },
+        "door_20260918_15375": {
+          "ticks": 120,
+          "rows": 507,
+          "feature_jobs": 380,
+          "small_calls": 380,
+          "small_cache_misses": 219,
+          "feature_wait": {
+            "mean_ms": 0.2430205300793444,
+            "p90_ms": 0.1646200893446803,
+            "max_ms": 10.033799801021814
+          },
+          "feature_service": {
+            "mean_ms": 18.27053316182604,
+            "p90_ms": 23.622940038330853,
+            "max_ms": 27.88069983944297
+          },
+          "decode_seconds": 2.359425898641348,
+          "add_seconds": 1.9139257029164582,
+          "bank_seconds": 0.4092854999471456,
+          "pending_before_drain": 380,
+          "drain_seconds": 0.04506109980866313,
+          "total_seconds": 5.049406600184739,
+          "kept_views": 122,
+          "offered_views": 215,
+          "events": [],
+          "tracker_stats": {
+            "births": 56,
+            "adjacent": 431,
+            "recovered": 20,
+            "ambiguous": 298
+          },
+          "feature_sha256": "bf81e9966a5a3e769531de4c05af9a50eb30aa93fe18b5a1f02b23f0ccc11a42",
+          "votes_sha256": "296e437a9cc6662a5e7d4e1dac76f0662c4279cb6aa49cd8c33bf24bff4ff248",
+          "view_sha256": "0d6d104740e558ec710395d2b5f02ca835ddf3093311212c46539bc0f501373e",
+          "ids_sha256": "6046d22e98a04ad101db73be7f3c5995a821f1af59f6259ea98f19d0e0b30e73",
+          "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f",
+          "prepared_cache": {
+            "hits": 260,
+            "misses": 120,
+            "retained": 8
+          }
+        }
+      },
+      "limitations": "CPU cached TRAIN replay; excludes GPU segmentation, CRM, live scheduling and role model service."
+    },
+    "fresh": {
+      "complete": true,
+      "fast": false,
+      "fresh_reference": true,
+      "sources": {
+        "door_20260918_01405": {
+          "ticks": 120,
+          "rows": 189,
+          "feature_jobs": 189,
+          "small_calls": 189,
+          "small_cache_misses": 189,
+          "feature_wait": {
+            "mean_ms": 0.08650265742467825,
+            "p90_ms": 0.11826017871499064,
+            "max_ms": 0.41539990343153477
+          },
+          "feature_service": {
+            "mean_ms": 13.80668940742022,
+            "p90_ms": 18.17641998641193,
+            "max_ms": 23.63599999807775
+          },
+          "decode_seconds": 2.480184200918302,
+          "add_seconds": 0.5320589009206742,
+          "bank_seconds": 0.030711298109963536,
+          "pending_before_drain": 189,
+          "drain_seconds": 0.09606410004198551,
+          "total_seconds": 3.2270408999174833,
+          "kept_views": 8,
+          "offered_views": 26,
+          "events": [],
+          "tracker_stats": {
+            "births": 2,
+            "adjacent": 187,
+            "recovered": 0,
+            "ambiguous": 0
+          },
+          "feature_sha256": "c5cfb86adb7c7f54c8a60ed0116df1cf00b786d2c0f9a81c25ec5b4e324a2325",
+          "votes_sha256": "63d2a9c5ce59fd2febb1378bb85fd361754f3d900d594dc798263a655ce4e225",
+          "view_sha256": "5c3a1138d664447b0c2ef13babd4b2c2e2af0d21189f5e1040eaaad222112e38",
+          "ids_sha256": "dae3c53fb22585e2bd56748a1ae82701c8605413cb3bd799e0e86766b39f7f47",
+          "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9"
+        },
+        "door_20260918_15375": {
+          "ticks": 120,
+          "rows": 507,
+          "feature_jobs": 380,
+          "small_calls": 380,
+          "small_cache_misses": 380,
+          "feature_wait": {
+            "mean_ms": 0.17822631450958157,
+            "p90_ms": 0.17907996661961087,
+            "max_ms": 5.703300004824996
+          },
+          "feature_service": {
+            "mean_ms": 19.51709604932387,
+            "p90_ms": 22.34182001557201,
+            "max_ms": 35.40279995650053
+          },
+          "decode_seconds": 2.54107189970091,
+          "add_seconds": 1.9303046027198434,
+          "bank_seconds": 0.3847969037014991,
+          "pending_before_drain": 380,
+          "drain_seconds": 0.04833969986066222,
+          "total_seconds": 5.239379799924791,
+          "kept_views": 122,
+          "offered_views": 215,
+          "events": [],
+          "tracker_stats": {
+            "births": 56,
+            "adjacent": 431,
+            "recovered": 20,
+            "ambiguous": 298
+          },
+          "feature_sha256": "bf81e9966a5a3e769531de4c05af9a50eb30aa93fe18b5a1f02b23f0ccc11a42",
+          "votes_sha256": "296e437a9cc6662a5e7d4e1dac76f0662c4279cb6aa49cd8c33bf24bff4ff248",
+          "view_sha256": "0d6d104740e558ec710395d2b5f02ca835ddf3093311212c46539bc0f501373e",
+          "ids_sha256": "6046d22e98a04ad101db73be7f3c5995a821f1af59f6259ea98f19d0e0b30e73",
+          "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f"
+        }
+      },
+      "limitations": "CPU cached TRAIN replay; excludes GPU segmentation, CRM, live scheduling and role model service."
+    }
+  },
+  "conclusion": "Experimental immutable-frame cache agrees bit-for-bit with uncached RGB reference. Legacy dense features differ; root cause not yet isolated. Timing is CPU under shared load; no full RTX or role-model acceptance. Empty event samples do not establish event accuracy."
+}
