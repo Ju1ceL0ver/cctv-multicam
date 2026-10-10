@@ -161,6 +161,14 @@ eval SHA `94c24af82f9677d17e9ef209edeb8c8b8e103c2fcb3015f2be06a20f1bc637d4`.
 Recovery must check latest finite last10604 or newer, rather than the old
 9196/8996 bundle. The healthy job and night CPU waiter remain running.
 
+At10:10UTC the local Kaggle CLI lost authorization while fresh training
+steps11200 and Windows finite restore11064 continued. The installed SDK's
+expiry check uses now−30minutes, treating an expired access token as valid
+for30minutes. Explicitly refreshing the existing OAuth credentials via
+`KaggleCredentials.refresh_access_token()` restored RUNNING status without
+changing the live kernel. Never interpret this CLI failure alone as VM loss;
+check fresh mirrored progress and backup. No token was logged or SDK patched.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

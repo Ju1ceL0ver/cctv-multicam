@@ -4064,3 +4064,24 @@ SHA256 94c24af82f9677d17e9ef209edeb8c8b8e103c2fcb3015f2be06a20f1bc637d4.
 не восстанавливать stale9196/8996 bundle. Pending manifests отсутствуют.
 Kaggle version4 RUNNING, нового Windows trainer нет; ночной waiter
 91396/50744 один CPU job, .err пуст. Продакшен/чужие работы сохранены.
+
+## 84. Kaggle CLI OAuth восстановлен без перезапуска trainer (10.10.2026, 17:10 UTC+7)
+
+В17:10 kernels status дал Permission kernels.get denied, kernels list --mine
+сообщил Authentication required. При этом свежие mirrored successful11200
+(10:09:56UTC) и finite model+optimizer ACKlast11064 в17:06:14 подтверждали
+продолжение cloud trainer. Причина локального CLI установлена по коду
+kagglesdk/kaggle_creds.py: access_token_has_expired сравнивает expiration
+с now−30min и ещё30мин считает просроченный токен действующим. Токен
+закончился10:02:44UTC. Не путать такой отказ status с потерей живой VM.
+
+Через KaggleClient/KaggleCredentials.load(client=client) для существующего
+juice0lover выполнен creds.refresh_access_token(), без вывода токена и без
+нового browser login. Status снова RUNNING. SDK/site-packages, dataset,
+kernel и trainer не менялись; новые сессии не создавались. При повторении
+этого симптома обновить существующий OAuth через SDK, затем проверить
+status и свежие Windows логи. Credentials/ключи никогда не печатать.
+STOP/pending manifests отсутствуют, receiver43540/ночной waiter91396/50744
+живы. Последний ACKlast11064 SHA256
+a455970b6027fac836d6fad56598698562ae47b1e6ec644e0cc66405f8a14c42;
+при recovery всегда проверить latest model Иoptimizer, не stale snapshot.
