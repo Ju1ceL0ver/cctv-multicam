@@ -3799,3 +3799,12 @@ step8604: новые last сохраняются trainer раз в10мин и о
 раз в120сек, проверять restore ACK. Colab не освобождать до финального
 проверенного backup. Боевые SAM/CRM/keeper неизменны; общие условия смены
 боевой двери из73 сохраняются.
+
+**Первый новый backup C, 12:26:56 UTC+7:** Windows receiver атомарно
+восстановил last.pt step8784; SHA256
+c06131bbfc2208953267989d94ba6b15fb427d937f8ad7087569b0227f98a16d,
+веса и optimizer конечны, pending manifests/ошибок нет. Теперь при потере VM
+возобновляться с последнего подтверждённого нового checkpoint, обновив
+checkpoint_step/sha256/size manifest; не возвращаться автоматически к8604.
+К12:29 журнал Colab дошёл до step8800, потери конечны; новой валидации пока нет.
+RAM available1.14GB, cgroup oom/oom_kill/max=0, keepalive исправен.
