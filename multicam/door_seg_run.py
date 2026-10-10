@@ -41,15 +41,24 @@ def contexts(cap, past=5, future=5, transform=None):
 
 def save_chunks(out, observations, width, height):
     """Exact sam31_reid.Masks layout, in the original video's pixel coordinates."""
-    import cv2
     rows, buf, offs = [], [], [0]
     for tick, pid, p in observations:
-        mask = cv2.resize(p[0][:180].astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST)
-        ys, xs = np.nonzero(mask)
+        # Crop before expanding: avoid scanning a 1920x1080 mask per person.
+        # Preserve OpenCV INTER_NEAREST's global sampling coordinates, including
+        # resolutions which are not integer multiples of the small mask.
+        small = p[0][:180].astype(np.uint8)
+        ys, xs = np.nonzero(small)
         if not len(xs):
             continue
-        x1, y1, x2, y2 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
-        bits = np.packbits(mask[y1:y2, x1:x2].reshape(-1))
+        mh, mw = small.shape
+        x1 = (int(xs.min()) * width + mw - 1) // mw
+        y1 = (int(ys.min()) * height + mh - 1) // mh
+        x2 = ((int(xs.max()) + 1) * width + mw - 1) // mw
+        y2 = ((int(ys.max()) + 1) * height + mh - 1) // mh
+        xi = np.floor(np.arange(x1, x2) * (mw / width)).astype(int)
+        yi = np.floor(np.arange(y1, y2) * (mh / height)).astype(int)
+        mask = small[np.ix_(yi, xi)]
+        bits = np.packbits(mask.reshape(-1))
         rows.append([0, tick, pid, p[2], x1, y1, x2, y2])
         buf.append(bits)
         offs.append(offs[-1] + len(bits))
@@ -59,7 +68,7 @@ def save_chunks(out, observations, width, height):
     return sorted({int(row[2]) for row in rows})
 
 
-def run(ckpt, name, days, tags=None):
+def run(ckpt, name, days, tags=None, fast=False, byte=False):
     import cv2
     import torch
     import door_seg as S
@@ -76,6 +85,11 @@ def run(ckpt, name, days, tags=None):
     net.load(state['model'])
     net.yolo.eval()
     net.off.eval()
+    if fast:
+        import door_seg_fast as F
+        torch.set_num_threads(2)
+        cv2.setNumThreads(2)
+        net.yolo.fuse(verbose=False)
     base.mkdir(parents=True)
     config = Config()
     for day in days:
@@ -94,19 +108,28 @@ def run(ckpt, name, days, tags=None):
             if width <= 0 or height <= 0 or abs(fps - 12.5) > 0.05:
                 cap.release()
                 raise ValueError('%s: expected a readable 12.5-fps door video, got %s' % (video, fps))
-            tracker = Tracker(config)
+            if byte:
+                from door_seg_assoc import ScoreTracker
+                tracker = ScoreTracker(config, mask_gate=.7)
+            else:
+                tracker = Tracker(config)
             prev = np.zeros((S.H, S.W), np.uint8)
             bg = S.background(day, 'cam1')
+            assembler = F.GPUChannels(bg) if fast else None
             t0, count = time.perf_counter(), 0
             def observations():
                 nonlocal count, prev
                 with torch.inference_mode(), torch.autocast('cuda', dtype=torch.bfloat16):
                     for tick, frames in contexts(cap, transform=lambda f: cv2.resize(f, (S.W, S.H), interpolation=cv2.INTER_AREA)):
-                        image = torch.from_numpy(S.channels(frames, bg, prev))[None].cuda().float() / 255
-                        pred = S.predict(net, image)
-                        prev.fill(0)
+                        image = assembler(frames, prev) if fast else torch.from_numpy(S.channels(frames, bg, prev))[None].cuda().float() / 255
+                        pred = (F.predict if fast else S.predict)(net, image, thr=.1 if byte else .4)
+                        if fast:
+                            prev = F.previous_union([p for p in pred if p[2] >= .4])
+                        else:
+                            prev.fill(0)
                         for pid, p in tracker.update(tick, pred):
-                            prev |= cv2.resize(p[0][:S.H // 4].astype(np.uint8), (S.W, S.H), interpolation=cv2.INTER_NEAREST)
+                            if not fast and p[2] >= .4:
+                                prev |= cv2.resize(p[0][:S.H // 4].astype(np.uint8), (S.W, S.H), interpolation=cv2.INTER_NEAREST)
                             # Pack this mask now; don't retain full-frame masks
                             # for every observation of a long door stretch.
                             yield tick, pid, p
@@ -119,7 +142,7 @@ def run(ckpt, name, days, tags=None):
             sec = time.perf_counter() - t0
             info = dict(model=name, ckpt=str(Path(ckpt).resolve()), checkpoint_step=state.get('step'), stride=1,
                         ticks=count, sessions=[[0, count, 0]], tracker=config.__dict__, width=width, height=height,
-                        s_per_live_tick=sec / max(1, count), own_previous_mask=True)
+                        s_per_live_tick=sec / max(1, count), own_previous_mask=True, fast=fast, byte_recovery=byte)
             (out / 'info.json').write_text(json.dumps(info, indent=1), encoding='utf-8')
             (out / 'ticks.json').write_bytes((src / 'ticks.json').read_bytes())
             # link_seams assigns zero-based piece IDs to sorted local IDs even
@@ -136,5 +159,7 @@ if __name__ == '__main__':
     parser.add_argument('name')
     parser.add_argument('days', nargs='+')
     parser.add_argument('--tags')
+    parser.add_argument('--fast', action='store_true')
+    parser.add_argument('--byte', action='store_true')
     args = parser.parse_args()
-    run(args.ckpt, args.name, args.days, args.tags)
+    run(args.ckpt, args.name, args.days, args.tags, args.fast, args.byte)

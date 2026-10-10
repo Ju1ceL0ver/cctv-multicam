@@ -123,3 +123,39 @@ def test_context_transform_runs_once_per_decoded_frame():
     assert calls == list(range(20))
     for tick, frames in got:
         assert frames == {o: max(0, min(19, tick + o)) * 10 for o in range(-5, 6)}
+
+
+def test_weak_detection_cannot_create_track_but_can_preserve_one():
+    from door_seg_assoc import ScoreTracker
+    from dataclasses import replace
+    weak = list(pred(100)); weak[2] = .2; weak = tuple(weak)
+    tr = ScoreTracker()
+    assert tr.update(0, [weak]) == []
+    assert ids(tr, 1, [pred(100)]) == [1]
+    assert ids(tr, 2, [weak]) == [1]
+    assert ids(tr, 3, [pred(100)]) == [1]
+
+
+def test_weak_unrelated_mask_cannot_recover_track():
+    from door_seg_assoc import ScoreTracker
+    tr = ScoreTracker(mask_gate=.7)
+    ids(tr, 0, [pred(100)])
+    weak = list(pred(130)); weak[2] = .2
+    assert tr.update(1, [tuple(weak)]) == []
+
+
+@pytest.mark.parametrize('width,height', [(1920, 1080), (1280, 720), (641, 359)])
+def test_export_crop_preserves_global_nearest_sampling(tmp_path, width, height):
+    import cv2
+    from sam31_reid import Masks
+    p = list(pred(100))
+    p[0][0, 319] = True
+    p[0][179, 0] = True
+    p[0][184-1, 10] = True  # padded rows must not reach the exported image
+    save_chunks(tmp_path, [(2, 9, tuple(p))], width, height)
+    masks = Masks(tmp_path / 'chunks.npz')
+    expected = cv2.resize(p[0][:180].astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST)
+    got = np.zeros((height, width), np.uint8)
+    x1,y1,x2,y2 = masks.rows[0,4:8].astype(int)
+    got[y1:y2,x1:x2] = masks.crop(0)
+    assert np.array_equal(got, expected)

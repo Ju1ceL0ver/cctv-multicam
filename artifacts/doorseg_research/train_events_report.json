@@ -1,0 +1,490 @@
+{
+  "door_20260918_01405": {
+    "b2": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "strict": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "byte_05": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "byte_07": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "birth_03": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    }
+  },
+  "door_20260918_15375": {
+    "b2": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 20.88
+        }
+      ]
+    },
+    "strict": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 20.88
+        }
+      ]
+    },
+    "byte_05": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 20.88
+        }
+      ]
+    },
+    "byte_07": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 20.88
+        }
+      ]
+    },
+    "birth_03": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 20.88
+        }
+      ]
+    }
+  },
+  "door_20260918_15569": {
+    "b2": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "strict": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "byte_05": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "byte_07": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    },
+    "birth_03": {
+      "counts": {
+        "in": {
+          "hit": 0,
+          "pred": 0,
+          "true": 0
+        },
+        "out": {
+          "hit": 1,
+          "pred": 1,
+          "true": 1
+        }
+      },
+      "events": [
+        {
+          "kind": "out",
+          "t": 21.36
+        }
+      ]
+    }
+  },
+  "door_20260918_18720": {
+    "b2": {
+      "counts": {
+        "in": {
+          "hit": 2,
+          "pred": 2,
+          "true": 5
+        },
+        "out": {
+          "hit": 3,
+          "pred": 3,
+          "true": 3
+        }
+      },
+      "events": [
+        {
+          "kind": "in",
+          "t": 22.080000000000002
+        },
+        {
+          "kind": "in",
+          "t": 22.32
+        },
+        {
+          "kind": "out",
+          "t": 282.96
+        },
+        {
+          "kind": "out",
+          "t": 525.12
+        },
+        {
+          "kind": "out",
+          "t": 541.2
+        }
+      ]
+    },
+    "strict": {
+      "counts": {
+        "in": {
+          "hit": 2,
+          "pred": 2,
+          "true": 5
+        },
+        "out": {
+          "hit": 3,
+          "pred": 3,
+          "true": 3
+        }
+      },
+      "events": [
+        {
+          "kind": "in",
+          "t": 22.080000000000002
+        },
+        {
+          "kind": "in",
+          "t": 22.32
+        },
+        {
+          "kind": "out",
+          "t": 282.96
+        },
+        {
+          "kind": "out",
+          "t": 525.12
+        },
+        {
+          "kind": "out",
+          "t": 541.2
+        }
+      ]
+    },
+    "byte_05": {
+      "counts": {
+        "in": {
+          "hit": 2,
+          "pred": 2,
+          "true": 5
+        },
+        "out": {
+          "hit": 3,
+          "pred": 3,
+          "true": 3
+        }
+      },
+      "events": [
+        {
+          "kind": "in",
+          "t": 22.080000000000002
+        },
+        {
+          "kind": "in",
+          "t": 22.32
+        },
+        {
+          "kind": "out",
+          "t": 282.96
+        },
+        {
+          "kind": "out",
+          "t": 525.12
+        },
+        {
+          "kind": "out",
+          "t": 541.2
+        }
+      ]
+    },
+    "byte_07": {
+      "counts": {
+        "in": {
+          "hit": 2,
+          "pred": 2,
+          "true": 5
+        },
+        "out": {
+          "hit": 3,
+          "pred": 3,
+          "true": 3
+        }
+      },
+      "events": [
+        {
+          "kind": "in",
+          "t": 22.080000000000002
+        },
+        {
+          "kind": "in",
+          "t": 22.32
+        },
+        {
+          "kind": "out",
+          "t": 282.96
+        },
+        {
+          "kind": "out",
+          "t": 525.12
+        },
+        {
+          "kind": "out",
+          "t": 541.2
+        }
+      ]
+    },
+    "birth_03": {
+      "counts": {
+        "in": {
+          "hit": 2,
+          "pred": 2,
+          "true": 5
+        },
+        "out": {
+          "hit": 3,
+          "pred": 3,
+          "true": 3
+        }
+      },
+      "events": [
+        {
+          "kind": "in",
+          "t": 22.080000000000002
+        },
+        {
+          "kind": "in",
+          "t": 22.32
+        },
+        {
+          "kind": "out",
+          "t": 282.96
+        },
+        {
+          "kind": "out",
+          "t": 525.12
+        },
+        {
+          "kind": "out",
+          "t": 540.96
+        }
+      ]
+    }
+  }
+}

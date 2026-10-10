@@ -1,0 +1,237 @@
+{
+  "quantization_band_px": 5.3283977787472,
+  "base_side": {
+    "mode": "either_in+both_out",
+    "thr": 0.9,
+    "h_in": 0,
+    "h_out": 0,
+    "trunc": 0.0,
+    "legs": "none",
+    "conf": 2,
+    "gate": true,
+    "alt": "first",
+    "stride": 3,
+    "table": {
+      "bin_px": 20,
+      "full": [
+        145.3,
+        135.96,
+        267.6,
+        372.2700000000001,
+        214.1,
+        235.22000000000065,
+        283.08,
+        285.9,
+        317.1,
+        330.6,
+        354.1,
+        363.5,
+        385.9,
+        405.24,
+        410.6,
+        407.9,
+        397.6,
+        287.62,
+        273.8,
+        255.40000000000003,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002,
+        223.17000000000002
+      ]
+    },
+    "why": "08.10 door_side_tune: entry if the line or the model sees inside, exit only when both see outside; stride 6 = what the camera can do live. /doorside 22 stretches all days: in 29/29/33, out 25/27/30 (F1 0.906); leave-one-day-out for this scheme 0.906 (stride 6), 0.937 (stride 3).",
+    "at": "2026-10-09T08:08:42",
+    "birth": false,
+    "brad": 1.0,
+    "bmove": true,
+    "blen": 2.0,
+    "bdup": null,
+    "why_birth": "08.10 owner: a track first seen inside at the door that within 4 s goes >= 8 % of the frame deeper and lives >= 2 s is an entry (went out and came back as a new track); deep in the hall or at the start of the data -- nothing. /doorside stride 6: entries 30/31/33 vs 29/29/33",
+    "bgain": 0.05,
+    "cancel": 0,
+    "honest": "08.10: SAM itself at stride 6 on the 22 /doorside stretches (micro1s6): entries 31/38/33, exits 24/27/30, F1 0.858 (model alone conf 1: 0.863); the same logic at stride 3: 0.93 -- speed is the lever",
+    "band": 60,
+    "near": 150,
+    "why_band": "08.10 owner: an exit counted for a worker on the ladder at the back wall (above the line extension, inside); the line now says outside only within 60 px of itself, and a crossing counts only with the feet within 150 px of the drawn segment. /doorside stride 6: 0.858 -> 0.871",
+    "compile": true,
+    "small_masks": true,
+    "why_s3": "09.10: stride 3 live (SAM 3.1 compiled + warm-up, masks at 1280, a pipeline: frames / SAM / people+events in parallel). /doorside 22 stretches, micro1s3 tracks, this setting: in 30/30/33, out 28/31/30, F1 0.935; leave-one-day-out over the whole grid 0.935 (stride 6 now: LODO 0.846). Births off: at stride 3 they only added 2 false entries (0.935 -> 0.921). Band 60 / near 150 kept for the back wall (no cost at stride 3).",
+    "session": 240,
+    "prewarm": "door_20260919_32350",
+    "prewarm_sessions": 2,
+    "role_device": "cpu",
+    "fastcopy": true,
+    "why_live": "09.10: stride 3 without skipping. Sessions of 240 (sessions of 120 lost accuracy: 0.867-0.878 vs 0.935 on /doorside -- every session restarts SAM tracking). The compiled SAM is warmed on two sessions of a busy recorded stretch before the camera (new shapes recompiled mid-day cost 0.45-0.85 s a tick); the role model runs on the processor (on the card it pushed the memory over 12 GB and SAM to 0.5-1.4 s a tick). Busy 12 min of 18.09 at the camera pace: 226-264 ms a tick, 71-95 s behind, no frame skipped.",
+    "keep_poster": true,
+    "why_poster": "09.10: the detector-level stand filter (door_micro.no_poster, IoU >= 0.5 with the stand's box) also dropped people walking in front of the stand in the doorway: /doorside 22 stretches, compiled, sessions 240 -- with the filter 0.886, without 0.935 (the same counts as micro1s3). The stand itself never makes events: people() drops tracks that do not move (static_people).",
+    "trim_cache": 32,
+    "why_trim": "09.10: SAM keeps every handed-out frame output of a session on the card; dropping those older than 32 frames: peak 8.11 -> 6.79 GB on a busy 240-frame session, masks and ids bit-identical on all 241 frames (sam31_trim_check.py)"
+  },
+  "variants": {
+    "original": {
+      "b2": {
+        "counts": {
+          "in": {
+            "hit": 2,
+            "pred": 2,
+            "true": 5
+          },
+          "out": {
+            "hit": 3,
+            "pred": 3,
+            "true": 3
+          }
+        },
+        "events": [
+          {
+            "kind": "in",
+            "t": 22.080000000000002
+          },
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "out",
+            "t": 282.96
+          },
+          {
+            "kind": "out",
+            "t": 525.12
+          },
+          {
+            "kind": "out",
+            "t": 541.2
+          }
+        ]
+      },
+      "oracle": {
+        "counts": {
+          "in": {
+            "hit": 2,
+            "pred": 2,
+            "true": 5
+          },
+          "out": {
+            "hit": 2,
+            "pred": 2,
+            "true": 3
+          }
+        },
+        "events": [
+          {
+            "kind": "in",
+            "t": 22.080000000000002
+          },
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "out",
+            "t": 282.96
+          },
+          {
+            "kind": "out",
+            "t": 525.12
+          }
+        ]
+      }
+    },
+    "quantization_guard": {
+      "b2": {
+        "counts": {
+          "in": {
+            "hit": 3,
+            "pred": 3,
+            "true": 5
+          },
+          "out": {
+            "hit": 3,
+            "pred": 3,
+            "true": 3
+          }
+        },
+        "events": [
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "out",
+            "t": 282.96
+          },
+          {
+            "kind": "out",
+            "t": 525.12
+          },
+          {
+            "kind": "in",
+            "t": 535.92
+          },
+          {
+            "kind": "out",
+            "t": 540.72
+          }
+        ]
+      },
+      "oracle": {
+        "counts": {
+          "in": {
+            "hit": 4,
+            "pred": 4,
+            "true": 5
+          },
+          "out": {
+            "hit": 2,
+            "pred": 2,
+            "true": 3
+          }
+        },
+        "events": [
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "in",
+            "t": 22.32
+          },
+          {
+            "kind": "out",
+            "t": 282.96
+          },
+          {
+            "kind": "out",
+            "t": 525.12
+          },
+          {
+            "kind": "in",
+            "t": 535.92
+          },
+          {
+            "kind": "in",
+            "t": 559.92
+          }
+        ]
+      }
+    }
+  }
+}

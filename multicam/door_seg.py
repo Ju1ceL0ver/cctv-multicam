@@ -26,6 +26,7 @@ import json
 import math
 import os
 import random
+import re
 import sys
 import time
 from pathlib import Path
@@ -118,6 +119,14 @@ def channels(frames, bg, prev_mask):
     return out
 
 
+def source_day(name):
+    """Both segmentation windows and door stretches use their actual date."""
+    match = re.match(r"(?:door_)?(20[0-9]{6})(?:_|$)", name)
+    if not match:
+        raise ValueError("source name has no recording date: %s" % name)
+    return match.group(1)
+
+
 class Source:
     """one camera of one SAM 3.1 window or door stretch"""
 
@@ -137,7 +146,7 @@ class Source:
         self.starts = [(s, k) for s, by in self.sess.items() for k in by
                        if k - max(PAST) >= 0 and k + max(FUT) < self.n and (k - 1) in by and (k + 1) in by]
         name = d.parent.name
-        self.day, self.cam = name[:8], d.name
+        self.day, self.cam = source_day(name), d.name
         self.cap = None
         self.ident = glued_ids(d, self.M) if os.environ.get('RA_DS_GLUED') == '1' else None
         if self.ident is not None:                 # numbers across sessions: any row of a tick, one per person

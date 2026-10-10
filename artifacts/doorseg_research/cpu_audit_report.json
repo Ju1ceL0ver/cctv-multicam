@@ -1,0 +1,22 @@
+{
+  "export": {
+    "ticks": 200,
+    "people": 706,
+    "old_crop_s_no_npz": 3.7421346998307854,
+    "new_s_including_npz": 0.24179120012558997
+  },
+  "roles": {
+    "20261008": {
+      "people": 0,
+      "views": 0,
+      "answered": 9,
+      "staff_people": 0
+    },
+    "20261009": {
+      "people": 11,
+      "views": 88,
+      "answered": 11,
+      "staff_people": 4
+    }
+  }
+}

@@ -33,7 +33,7 @@ def counts(match):
     return {kind: {key: match[kind][key] for key in ('hit', 'pred', 'true')} for kind in ('in', 'out')}
 
 
-def score_source(item, name, stride=3):
+def score_source(item, name, stride=3, side_guard=False):
     import cv2
     import door_combo as C
     import door_compare_video as V
@@ -52,7 +52,11 @@ def score_source(item, name, stride=3):
     width, height = int(cap.get(3)), int(cap.get(4))
     if width <= 0 or height <= 0:
         raise ValueError('unreadable video: %s' % video)
-    live = C.Live()
+    if side_guard:
+        from door_seg_side import Live
+        live = Live()
+    else:
+        live = C.Live()
     person_of, k = {}, 0
     try:
         while True:

@@ -1,0 +1,19 @@
+{
+  "source": "C:\\Users\\ArykovAA\\cctv_ai\\multicam\\runs\\doorseg_b\\step8604.pt",
+  "source_sha256": "18b4fab92332e26bcae520bddb1771c947cb21fe407e30aafd5350e6cc8b4b4f",
+  "step": 8604,
+  "precision": "bf16",
+  "optimizer_restored": true,
+  "change": "Correct Source.day for owner TRAIN door stretches; no architecture/loss/threshold change.",
+  "baseline_eval": {
+    "found": 0.9148,
+    "precision": 0.955,
+    "f1": 0.9345,
+    "mask_iou": 0.8974,
+    "links": 0.9774,
+    "n_links": 929,
+    "truth": 1021,
+    "ms_per_frame": 69.2
+  },
+  "status": "staged, no GPU training started"
+}

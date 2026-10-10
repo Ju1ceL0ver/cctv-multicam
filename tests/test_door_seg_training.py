@@ -39,3 +39,11 @@ def test_day_boundary_never_restarts_training_for_another_daytime_window():
     assert night(d.replace(hour=21))
     assert deadline(d, '09:40') == d.replace(hour=9, minute=40)
     assert deadline(d.replace(hour=21), '09:40') == d.replace(day=11, hour=9, minute=40)
+
+
+def test_door_training_background_uses_recording_day():
+    from door_seg import source_day
+    assert source_day('door_20260918_18720') == '20260918'
+    assert source_day('20260923_101000') == '20260923'
+    with pytest.raises(ValueError, match='recording date'):
+        source_day('door_202')

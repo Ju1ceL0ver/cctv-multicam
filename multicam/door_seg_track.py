@@ -81,6 +81,13 @@ class Tracker:
             return np.inf
         return 0.75 * err / gate + 0.10 + 0.15 * gap / c.max_gap
 
+    def cost_matrix(self, old, predictions, tick):
+        costs = np.full((len(old), len(predictions)), np.inf)
+        for i, tr in enumerate(old):
+            for j, p in enumerate(predictions):
+                costs[i, j] = self.cost(tr, p, tick)
+        return costs
+
     def update(self, tick, predictions):
         """Return [(pid, prediction)] in input order; strictly increasing ticks."""
         if self.tick is not None and tick <= self.tick:
@@ -90,10 +97,7 @@ class Tracker:
         self.tracks = {pid: t for pid, t in self.tracks.items() if tick - t.tick <= c.max_gap}
         old = list(self.tracks.values())
         predictions = list(predictions)
-        costs = np.full((len(old), len(predictions)), np.inf)
-        for i, tr in enumerate(old):
-            for j, p in enumerate(predictions):
-                costs[i, j] = self.cost(tr, p, tick)
+        costs = self.cost_matrix(old, predictions, tick)
         linked = {}
         # A dormant hypothesis must not veto a measured adjacent continuation.
         # Recover gaps only after adjacent tracks have claimed their detections.
