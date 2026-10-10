@@ -3808,3 +3808,45 @@ c06131bbfc2208953267989d94ba6b15fb427d937f8ad7087569b0227f98a16d,
 checkpoint_step/sha256/size manifest; не возвращаться автоматически к8604.
 К12:29 журнал Colab дошёл до step8800, потери конечны; новой валидации пока нет.
 RAM available1.14GB, cgroup oom/oom_kill/max=0, keepalive исправен.
+
+## 78. Colab VM потеряна, восстановление подготовлено с step8996 (10.10.2026, 12:57 UTC+7)
+
+Последний успешный keepalive был12:45:41; в12:48:43 backend вернул404/401
+и CLI удалил сессию. `colab sessions` подтвердил отсутствие активных VM.
+Причина удаления не установлена: наличие пинга не гарантирует сохранность VM.
+До обрыва подтверждён log step9200 без численных ошибок, новой валидации нет.
+
+Windows last.pt повторно проверен на CPU: step8996, BF16, веса И optimizer
+конечны, 140327101bytes, SHA256
+0a2b537b7a94b49977b74b095891f5bfe7e4de8c83601c2b6705c0e9265d0b65.
+Неизменяемая копия: data/quality_backups/doorseg_c_colab_lost/
+step8996_0a2b537b7a94.pt, метаданные resume_verified.json. В colab_upload
+остались только пять24MiB частей более нового SHA65c02f…ffc123, нет последней
+части/completion manifest. Они неполны; использовать как checkpoint нельзя.
+Сохранены для диагностики, last ими не заменялся.
+
+Два запроса новой T4 получили HTTP503 Service Unavailable; L4 отвергнута
+по квоте/правам. Новая VM/обучение не запущены. Старый Mac keepalive PID13010
+остановлен только после проверки cmdline и подтверждения потери VM.
+Windows training PID нет; receiver43540 остаётся жив. COLAB_ACTIVE покаtrue
+как блокировка дубликата на время восстановления, а не признак живой VM.
+
+Пакет восстановления подготовлен на Windows: исходные labels/backgrounds
+сохранены из прежнего ZIP, last заменён проверенной snapshot8996, progress
+и log актуальны. TRAIN148/VAL6 неизменны; 1217файлов (добавлен только log.jsonl).
+Manifest: data/quality_backups/doorseg_c_colab_lost/resume_manifest.json;
+small_resume_step8996.zip 1099003793bytes. Mac /tmp/doorseg_colab_manifest.json
+уже обновлён: checkpoint_step8996, SHA выше, last size140327101.
+Не переносить старый small bundle/manifest со step8604! Code ZIP остаётся
+/tmp/doorseg_colab_code.zip, включает disk guard/shared RAM cache из76.
+При выдаче новой VM нужны прежние библиотеки, только cuDNN-cu13, приватный
+access0600, wrapper exec, новый runner и один keepalive. Датасет придётся
+перенести заново; не обещать немедленный старт или улучшение качества.
+
+Следующим heartbeat сначала проверить Windows training/supervisor и Colab
+сессии; если дубля нет, сделать один запрос T4. При прежнем503/отказе молчать,
+не повторять уведомление о том же сбое. Если Colab не восстановится к21:00,
+разрешён ночной Windows C с latest finite checkpoint/optimizer после проверки
+отсутствия VM/runner и снятия COLAB_ACTIVE; GPU уступить живой двери/чужим
+программам, дневная пауза до21:00. Если Windows C уже идёт, не создавать
+одновременно Colab training. Боевая SAM/CRM/keeper неизменны.
