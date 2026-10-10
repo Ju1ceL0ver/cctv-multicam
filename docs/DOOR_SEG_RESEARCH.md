@@ -113,11 +113,14 @@ student with a larger global batch. A completed private probe confirmed two
 15-GB Tesla T4s, driver580.178.04, BF16 support and 32.07GB available RAM.
 Working output storage is only20.94GB; the full frozen manifest and packed-mask
 mmap live on /kaggle/temp (over1TB free), with model/log artifacts in working.
-Kernel `juice0lover/cctv-doorseg-c-background` version3 is running environment
-installation. Version2 failed before transfer because the base Python lacked
-ensurepip; virtualenv with bundled pip seeds fixes environment creation.
-Actual pinned-library CUDA and full-model two-rank backward gates remain
-required before training. Credentials/bootstrap and kernel are private.
+Kernel `juice0lover/cctv-doorseg-c-background` version4 is running transfer.
+Version2 failed before transfer because the base Python lacked ensurepip;
+virtualenv with bundled pip seeds fixes environment creation. Version3 lost
+CUDA access when isolation removed the mounted NVIDIA driver library path;
+version4 preserves it and preflights both allocated GPUs. At06:47:47UTC the
+exact torch2.13.0+cu130/vision0.28.0+cu130/Ultralytics8.4.108 passed finite BF16
+convolution/backward on both T4s. Full-model two-rank smoke remains required
+before training. Credentials/bootstrap and kernel are private.
 
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,

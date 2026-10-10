@@ -39,9 +39,17 @@ def main(args):
     env = dict(os.environ, PYTHONNOUSERSITE='1', PYTHONIOENCODING='utf-8',
                OMP_NUM_THREADS='2', MKL_NUM_THREADS='2')
     env.pop('PYTHONPATH', None)
-    env.pop('LD_LIBRARY_PATH', None)
+    # NVIDIA's mounted driver libraries are exposed through LD_LIBRARY_PATH.
+    # Keep that path: an isolated Python venv does not contain libcuda itself.
     try:
-        status('installing', global_batch=12, gpus=2, checkpoint_step=8996)
+        smi = subprocess.run(['nvidia-smi', '--query-gpu=name,driver_version,memory.total',
+                              '--format=csv,noheader'], capture_output=True, text=True, env=env)
+        rows = smi.stdout.strip().splitlines()
+        (run / 'kaggle_hardware.log').write_text(smi.stdout + smi.stderr)
+        transfer.put(run / 'kaggle_hardware.log')
+        if smi.returncode or len(rows) != 2:
+            raise RuntimeError('Expected two allocated GPUs before dependency installation')
+        status('installing', global_batch=12, gpus=2, checkpoint_step=8996, hardware=rows)
         venv = Path('/kaggle/temp/doorseg_venv')
         if not (venv / 'bin/pip').exists():
             # Kaggle's system Python lacks ensurepip. virtualenv ships its own
@@ -74,7 +82,8 @@ def main(args):
 assert torch.__version__ == '2.13.0+cu130', torch.__version__
 assert torchvision.__version__ == '0.28.0+cu130', torchvision.__version__
 assert ultralytics.__version__ == '8.4.108', ultralytics.__version__
-assert torch.cuda.device_count() == 2
+torch.cuda.init()
+assert torch.cuda.device_count() == 2, torch.cuda.device_count()
 assert torch.distributed.is_nccl_available()
 for i in range(2):
     torch.cuda.set_device(i)

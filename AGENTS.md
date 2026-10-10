@@ -3861,15 +3861,20 @@ access0600, wrapper exec, новый runner и один keepalive. Датасе�
 57.7477GB и mmap идут в temp, только веса/логи в working. Это параметры
 Kaggle, не скорость RTX3060 и не доказательство качества.
 
-Private kernel juice0lover/cctv-doorseg-c-background, version3 RUNNING.
+Private kernel juice0lover/cctv-doorseg-c-background, version4 RUNNING.
 Private dataset juice0lover/cctv-doorseg-c-bootstrap содержит лишь небольшой
 AES-GCM bootstrap (код/manifest/access), не новый состав данных. Секреты
 внеGit и журналов; kernel тоже private, ключ только в его private source.
 Version2 остановилась до переноса: system Python3.13 не смог создать pip
 через ensurepip. Исправлено: virtualenv с собственными pip seed wheels в
 /kaggle/temp/doorseg_venv, без замены библиотек базового образа. Version3
-сейчас installing; GPU convolution gate и настоящая DDP smoke ещё не
-подтверждены. Не утверждать, что обучение уже идёт.
+остановилась на CUDA gate: при изоляции был убран NVIDIA driver
+LD_LIBRARY_PATH, torch не видел карты. Version4 сохраняет драйверный путь,
+до установки проверяет две карты nvidia-smi. В06:47:47UTC (13:47:47UTC+7)
+реальные BF16 convolution И backward на ОБЕИХ T4 прошли с точными
+pinned torch2.13.0+cu130/vision0.28.0+cu130/Ultralytics8.4.108.
+Runner запущен, переносит smallbundle и первый TRAIN video. Настоящая
+DDP smoke batch6/rank ещё впереди; обучение пока не подтверждено.
 
 Новый door_seg_ddp.py: torchrun2rank/NCCL, один student, batch6 наGPU, общий12,
 lr1e-4 и расписание/потери прежние по localbatch6. DDP усредняет локальные
