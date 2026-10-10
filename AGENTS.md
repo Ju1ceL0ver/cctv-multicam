@@ -3850,3 +3850,65 @@ access0600, wrapper exec, новый runner и один keepalive. Датасе�
 отсутствия VM/runner и снятия COLAB_ACTIVE; GPU уступить живой двери/чужим
 программам, дневная пауза до21:00. Если Windows C уже идёт, не создавать
 одновременно Colab training. Боевая SAM/CRM/keeper неизменны.
+
+## 79. Kaggle: обе T4 для одного C, batch12 (10.10.2026, 13:40 UTC+7)
+
+Владелец попросил продолжить в Kaggle и использовать обе карты с большим
+батчем. Короткий приватный kernel version1 завершён: реально две Tesla T4
+по15360MiB, driver580.178.04, BF16 доступен, RAM available32.07GB. Исходный
+образ torch2.11/cu128/vision0.26; повторять его как обучение нельзя. Working
+имеет лишь20.94GB, зато /kaggle/temp более1TB: весь неизменный manifest
+57.7477GB и mmap идут в temp, только веса/логи в working. Это параметры
+Kaggle, не скорость RTX3060 и не доказательство качества.
+
+Private kernel juice0lover/cctv-doorseg-c-background, version3 RUNNING.
+Private dataset juice0lover/cctv-doorseg-c-bootstrap содержит лишь небольшой
+AES-GCM bootstrap (код/manifest/access), не новый состав данных. Секреты
+внеGit и журналов; kernel тоже private, ключ только в его private source.
+Version2 остановилась до переноса: system Python3.13 не смог создать pip
+через ensurepip. Исправлено: virtualenv с собственными pip seed wheels в
+/kaggle/temp/doorseg_venv, без замены библиотек базового образа. Version3
+сейчас installing; GPU convolution gate и настоящая DDP smoke ещё не
+подтверждены. Не утверждать, что обучение уже идёт.
+
+Новый door_seg_ddp.py: torchrun2rank/NCCL, один student, batch6 наGPU, общий12,
+lr1e-4 и расписание/потери прежние по localbatch6. DDP усредняет локальные
+потери/градиенты; масштаб не удваивается, BN остаётся local6. Это разрешённое
+изменение batch, не контрольная модель. Веса И optimizer восстанавливаются
+с проверенного8996 из78, SHA/manifest прежние, 148TRAIN/6VAL. На каждуюGPU
+два worker; offsets ±1, heads/labels прежние. Отпечаток/ConvGRU из75 отдельно.
+ОбеGPU обязаны закончить backward и согласовать finite loss/norm до любого
+optimizer.step. При сбое сохраняются rejected поrank и before_rejected,
+BN восстанавливается, та же пачка один раз пробуется вFP32. Новые .pt
+проверяются finite и пишутся атомарно в старом формате +parallel metadata.
+400val каждые2000successfulsteps, сохранённая последняя eval spacing учитывается.
+
+56 локальных проверок проходят. Реальные два CPU Gloo rank дают такой же
+градиент, как общий эталонный батч; NaN только уrank1 блокирует обе карты
+без изменения параметров/Adam/BN. Это проверка протокола, не CUDA smoke.
+Kaggle runner сначала проверяет точные pinned torch2.13/cu130/vision0.28/
+Ultralytics8.4.108 и finite BF16 convolution/backward на обеих GPU, затем
+полный batch6/rank настоящей модели на первом TRAIN source. Только при
+успехе переносит остальные видео и начинает DDP. Одного GPU gate мало.
+
+Kaggle foreground kernel ждёт свой runner; notebook keepalive ему не нужен.
+Лимит12h включает install/transfer; остановка обучения через11h отстарта,
+час оставлен на валидацию/finalbackup/output. Receiver43540 наWindows
+подтверждён живым CPU-only, Windows trainer/supervisor PID нет, Colab sessions
+пуст. COLAB_ACTIVE.json active=true/session=kaggle-c блокирует дубликат.
+Не выделять Colab и не запускать Windows training при QUEUED/RUNNING Kaggle!
+Final backup/ACK и атомарный finite restore из74 сохраняются; только после
+успешного finalbackup снимается ownership. При ERROR проверить свежий last
+наWindows, а не откатываться к8996/8604 автоматически.
+
+Проверка: kaggle kernels status juice0lover/cctv-doorseg-c-background;
+kaggle kernels logs тот жеref. Windows run сохраняет colab_status.json,
+kaggle_install.log (каждые120сек установки), kaggle_gpu_gate.log,
+colab_smoke.log, colab_train.log, kaggle_runner.log, progress.md/log.jsonl.
+Выход kernel — /kaggle/working/doorseg_c_background; полный набор/credentials
+туда не копируются. Code archive /tmp/doorseg_colab_code.zip обновлён сDDP/
+Kaggle, private bootstrap/kernel подготовлены внеGit в /tmp/doorseg_kaggle_*.
+Heartbeat automation обновлён: следить Kaggle/Windowsbackup, не просить
+Colab, молчать при нормальном ходе. Общий ресерч/80ms/dense/roles и условия
+безопасной замены двери из73 остаются; боевая SAM/CRM/keeper неизменны.
+Параллельные amodal/staff/label_pieces/.gitignore/66–67 не коммитились.

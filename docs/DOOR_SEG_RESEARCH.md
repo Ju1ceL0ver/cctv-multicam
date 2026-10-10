@@ -106,6 +106,37 @@ peak, without an optimizer update. This fixes storage, not model quality.
 
 A full release still requires: a successful selected-policy comparison on the frozen paired event cohort, clean and crowded end-to-end speed including side/role queues, mask equivalence after fusion, identity quality, then live shadow/integration checks preserving CRM IDs and format. GPU tests wait for the night window; CPU cache tests can run during the day. A fast isolated frame and a training-only event gain do not satisfy these conditions.
 
+## Kaggle continuation on two GPUs, 10 October
+
+The owner redirected recovery to Kaggle and approved using both GPUs for one
+student with a larger global batch. A completed private probe confirmed two
+15-GB Tesla T4s, driver580.178.04, BF16 support and 32.07GB available RAM.
+Working output storage is only20.94GB; the full frozen manifest and packed-mask
+mmap live on /kaggle/temp (over1TB free), with model/log artifacts in working.
+Kernel `juice0lover/cctv-doorseg-c-background` version3 is running environment
+installation. Version2 failed before transfer because the base Python lacked
+ensurepip; virtualenv with bundled pip seeds fixes environment creation.
+Actual pinned-library CUDA and full-model two-rank backward gates remain
+required before training. Credentials/bootstrap and kernel are private.
+
+`door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
+DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
+BN remains local, and the finite step8996 weights AND optimizer are restored.
+The source cohort, labels, offset heads and400-moment validation remain fixed.
+Both ranks finish backward and jointly approve finite loss/gradient before any
+update; rejection restores BN, captures each rank's batch and a finite state,
+and permits one FP32 retry. Real CPU two-rank tests verify gradient averaging
+and that NaN on either rank leaves both models/Adam/BN unchanged.56 door tests
+pass; these are protocol checks, not evidence of CUDA training speed or quality.
+
+The foreground committed kernel waits for its runner, with training ending11h
+from kernel start to reserve one hour within the12h allocation for final
+validation/backup/output. Large checkpoint pieces and Windows finite restore
+ACK are reused. Cloud ownership remains active through preparation/failures;
+no concurrent Windows/Colab trainer is allowed. The monitor follows Kaggle
+status/logs and the existing Windows run, and no longer allocates Colab. The
+fingerprint/ConvGRU work remains separate. Production acceptance is unchanged.
+
 ## Primary sources and relevance to this case
 
 The owner also requested implementing the fingerprint and ConvGRU heads while

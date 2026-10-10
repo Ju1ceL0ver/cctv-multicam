@@ -22,6 +22,20 @@ from urllib.parse import quote
 import requests
 
 
+def smoke_command(root, run, ddp=False):
+    if ddp:
+        return [sys.executable, '-u', '-m', 'torch.distributed.run', '--standalone',
+                '--nproc_per_node=2', str(root / 'door_seg_ddp.py'), 'smoke', run]
+    return [sys.executable, '-u', str(root / 'door_seg_colab_smoke.py')]
+
+
+def training_stop(deadline_epoch=None):
+    end = deadline_epoch if deadline_epoch is not None else time.time() + 12 * 3600
+    if end - time.time() < 600:
+        raise RuntimeError('Less than ten minutes remain; do not start training')
+    return time.strftime('%H:%M', time.localtime(end))
+
+
 def training_space_plan(root, manifest, reserve_bytes=3 * 1024 ** 3):
     """Count remaining files AND packed-mask mmap expansion, without inflating it.
 
@@ -211,13 +225,14 @@ def main(args):
             first_video = manifest['train'][0] + '/video.mp4'
             transfer.fetch(next(x for x in files if x['path'] == first_video))
             env = dict(os.environ, RA_DS_GLUED='1', RA_DS_EVAL_N='400')
-            smoke = subprocess.run([sys.executable, '-u', str(root / 'door_seg_colab_smoke.py')],
+            smoke = subprocess.run(smoke_command(root, args.run, args.ddp),
                                    cwd=root, env=env, stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, text=True)
             (run / 'colab_smoke.log').write_text(smoke.stdout)
             if smoke.returncode:
-                raise RuntimeError('Early BF16 batch6 compatibility smoke failed; inspect colab_smoke.log')
-            record(phase='downloading', early_smoke='finite batch6 forward/backward')
+                raise RuntimeError('Early compatibility smoke failed; inspect colab_smoke.log')
+            record(phase='downloading', early_smoke='finite backward',
+                   gpus=2 if args.ddp else 1, global_batch=12 if args.ddp else 6)
             ensure_training_space(root, manifest, run)
         completed = 0
         # Small labels/checkpoint first; two streams avoid saturating the shop's upload.
@@ -264,7 +279,7 @@ def main(args):
         # Original six-example update and BF16, including backward and finite gradients.
         # A failed smoke test blocks training rather than silently changing precision/batch.
         if not manifest.get('small_bundle'):
-            smoke = subprocess.run([sys.executable, '-u', str(root / 'door_seg_colab_smoke.py')],
+            smoke = subprocess.run(smoke_command(root, args.run, args.ddp),
                                    cwd=root, env=os.environ.copy(), stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, text=True)
             (run / 'colab_smoke.log').write_text(smoke.stdout)
@@ -275,12 +290,17 @@ def main(args):
                             "torch.set_num_threads(2);cv2.setNumThreads(2)\n"
                             "import door_seg as S\n"
                             "S.train(sys.argv[1],sys.argv[2],batch=6,workers=2)\n")
-        # Colab has no shop-hours constraint; twelve hours is a bounded allocation.
-        stop = time.strftime('%H:%M', time.localtime(time.time() + 12 * 3600))
+        # Kaggle's allocation includes installation and transfer. Its caller
+        # reserves one hour for validation, checkpoint ACK and output export.
+        stop = training_stop(args.deadline_epoch)
+        command = ([sys.executable, '-u', '-m', 'torch.distributed.run', '--standalone',
+                    '--nproc_per_node=2', str(root / 'door_seg_ddp.py'), 'train', args.run, stop]
+                   if args.ddp else [sys.executable, '-u', str(launcher), args.run, stop])
         with (run / 'colab_train.log').open('a') as out:
-            child = subprocess.Popen([sys.executable, '-u', str(launcher), args.run, stop],
+            child = subprocess.Popen(command,
                                      cwd=root, env=os.environ.copy(), stdout=out, stderr=subprocess.STDOUT)
-            record(phase='training', start_step=initial_step, stop_local=stop, workers=2, batch=6)
+            record(phase='training', start_step=initial_step, stop_local=stop, workers_per_gpu=2,
+                   batch_per_gpu=6, global_batch=12 if args.ddp else 6, gpus=2 if args.ddp else 1)
             sync_once()
             code = child.wait()
         record(phase='finished' if code == 0 else 'failed', returncode=code)
@@ -304,4 +324,6 @@ if __name__ == '__main__':
     parser.add_argument('--root', default='/content/doorseg')
     parser.add_argument('--run', default='doorseg_c_background')
     parser.add_argument('--session', default='doorseg-c')
+    parser.add_argument('--ddp', action='store_true')
+    parser.add_argument('--deadline-epoch', type=float)
     main(parser.parse_args())

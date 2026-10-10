@@ -12,6 +12,15 @@ import door_seg_colab as C
 import door_seg_supervise as supervisor
 
 
+def test_deadline_includes_transfer_and_keeps_ddp_gate(tmp_path, monkeypatch):
+    monkeypatch.setattr(C.time, 'time', lambda: 1000.)
+    with pytest.raises(RuntimeError, match='ten minutes'):
+        C.training_stop(1500.)
+    assert C.training_stop(2000.) == C.time.strftime('%H:%M', C.time.localtime(2000.))
+    command = C.smoke_command(tmp_path, 'candidate', True)
+    assert '--nproc_per_node=2' in command and command[-2:] == ['smoke', 'candidate']
+
+
 def test_disk_gate_counts_uncompressed_mmap_and_checkpoint_reserve(tmp_path, monkeypatch):
     source = tmp_path / 'source'
     source.mkdir()
