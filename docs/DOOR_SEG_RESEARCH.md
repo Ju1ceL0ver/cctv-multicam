@@ -66,11 +66,11 @@ The current role model has consumed the old annotated days. Its reported fit acc
 
 Role inference remains asynchronous on CPU. The view bank keeps eight high-scoring views but does not enforce temporal diversity; adjacent near-identical views need a measured person-level comparison before changing this. The role code and artifacts being worked on in parallel were left intact.
 
-A new `doorseg_c_background` candidate is staged from finite step8604 weights and optimizer, with the baseline validation recorded. Its only training change is the recording-date/background repair; no GPU training has started during shop hours.
+The `doorseg_c_background` candidate continues from finite step8604 weights and optimizer, with the baseline validation recorded. Its only training change is the recording-date/background repair. Colab training started at 05:14 UTC on 10 October; the Windows GPU remains reserved for the live door during shop hours.
 
 ## Colab continuation, 10 October
 
-The owner made Colab GPU quota available. Session `doorseg-c` has a Tesla T4 with 15360 MiB. A100 and L4 allocation were rejected. The complete unchanged data manifest is **148 training sources, six validation sources, 1216 files, 57.7477 GB**; video transfer is in progress, so no new successful training step or quality improvement is claimed yet. Small labels/backgrounds/checkpoint travel as one 1.099-GB stored ZIP to avoid hundreds of HTTP round trips.
+The owner made Colab GPU quota available. Session `doorseg-c` has a Tesla T4 with 15360 MiB. A100 and L4 allocation were rejected. The complete unchanged data manifest is **148 training sources, six validation sources, 1216 files, 57.7477 GB**; transfer completed at 05:12:12 UTC. The exact source composition and finite weights/optimizer gate passed at 05:14:21 UTC; the trainer restored step8604 and has logged step8700 with finite losses. New validation and quality improvement have not yet been measured. Small labels/backgrounds/checkpoint travel as one 1.099-GB stored ZIP to avoid hundreds of HTTP round trips.
 
 The VM uses the same torch 2.13.0+cu130, torchvision 0.28.0+cu130 and Ultralytics 8.4.108 as Windows. Installation exposed overlapping CUDA-12/CUDA-13 cuDNN packages; a real convolution failed with `CUDNN_STATUS_SUBLIBRARY_VERSION_MISMATCH`. Removing both distributions and installing only torch's required `nvidia-cudnn-cu13==9.20.0.48` fixed it. A six-example BF16 forward/backward from the finite checkpoint passed: loss 8.265064, peak allocation 5.4768 GB. This is compatibility evidence, not speed or accuracy evidence for production.
 
