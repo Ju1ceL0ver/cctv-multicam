@@ -338,3 +338,39 @@ fresh status reports6002s behind,233ms/tick and no skipping; it continues
 draining and counting events. Research GPU waits for this live work and
 foreign applications. No production restart or queue truncation occurred.
 Combined evidence: artifacts/doorseg_research/cpu_queue_roles_20261010.json.
+
+## Bounded TRAIN fragmentation diagnosis and rejected exact-mask suppression
+
+The new CPU-only `door_seg_fragment_probe.py` replays200 ticks of completed
+owner TRAIN01405/15375, verifies current/cached eligibility and cache SHA, and
+saves concrete missed/broken/contaminated observations with both offset gates
+and competing track/prediction details. Its greedy mask matcher is checked
+against the original function extracted through AST without importing torch.
+
+Dense15375:669/740 teacher observations matched,39 adjacent breaks in634
+matched adjacent pairs and11 breaks on28 matched reappearances. Of50 breaks,
+37 are ambiguity vetoes; their competing masks have median IoU .99068, and
+7 are exactly identical.33 have IoU≥.9, a descriptive statistic only. Most
+rivals are unmatched by the greedy teacher reference and their mask overlap
+suggests duplicate hypotheses; one rival has a different owner. The
+71 unmatched teacher observations include30 below the unchanged confidence
+threshold .4,37 below mask match IoU .5 and4 with no mask intersection.
+Tracker time is about.60ms/tick, so optimizing it cannot explain full latency.
+
+A separate experimental `door_seg_duplicates.exact_masks` retains the original
+highest-confidence prediction among bit-identical nonempty masks. It changes
+no mask pixels, near masks, ID merge rules or thresholds, and is disabled in
+inference and production. Every candidate tick passed exact foreground-union
+and retained-prediction identity checks. On dense200 ticks, removing5 exact
+duplicates reduced adjacent breaks39→33 and births63→52, with669 matched
+observations unchanged. However, contaminated matched observations increased
+17→18:tick90 owner o3 acquired an ID first matched to o5. **Rejected** by the
+identity guard. Fewer breaks and identical foreground union do not establish
+ID equivalence. No event/role acceptance run is justified by this failure.
+Light01405 remained unchanged. These are cached B8604 teacher/owner TRAIN
+results with a local tracker reset, not independent masks, C accuracy, event
+quality or RTX speed. Use the saved hard pairs for separate future research;
+do not automatically expand this into approximate-mask suppression.
+
+Evidence:`artifacts/doorseg_research/train_fragment_exact_masks_20261010.json`,
+including before/after failure, miss and wrong-observation examples.

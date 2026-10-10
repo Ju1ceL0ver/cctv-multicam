@@ -1,0 +1,6315 @@
+{
+  "date_local": "2026-10-10T21:48:00+07:00",
+  "decision": "REJECT exact-mask candidate: identity contamination guard worsened, no deployment/event acceptance.",
+  "protocol": {
+    "ticks_per_scene": 200,
+    "start_tick": 0,
+    "reset_tracker_at_start": true,
+    "confidence": 0.4,
+    "teacher_match_iou": 0.5,
+    "fit_thresholds": false,
+    "torch_or_gpu_imported": false,
+    "current_owner_and_cached_train_verified": true
+  },
+  "validation": {
+    "greedy_matcher_matches_original_ast": true,
+    "exact_mask_helper_identity_near_masks_empty_and_ties": true,
+    "baseline_ids_reproduced": true,
+    "candidate_foreground_union_and_retained_prediction_identity_checked_every_tick": true
+  },
+  "dense_findings": {
+    "breaks_total": 50,
+    "ambiguity_veto": 37,
+    "rival_mask_iou_median": 0.9906832298136646,
+    "rival_mask_iou_exact_one": 7,
+    "rival_mask_iou_at_least_0_9": 33,
+    "overlap_0_9_is_descriptive_not_candidate_threshold": true,
+    "candidate_removed_predictions": 5,
+    "adjacent_breaks_before_after": [
+      39,
+      33
+    ],
+    "reappeared_breaks_before_after": [
+      11,
+      11
+    ],
+    "wrong_observations_before_after": [
+      17,
+      18
+    ],
+    "new_wrong_observation": {
+      "tick": 90,
+      "owner": "o3",
+      "id_first_owner": "o5"
+    },
+    "removed_wrong_observations": 0
+  },
+  "limitations": "Cached B step8604 TRAIN with teacher masks and owner identities, local 200-tick context; no independent pixel ground truth, events, roles, C or full RTX speed tested. New numerical fault is not implied by rejected research candidate. Masks union equality is not identity equivalence.",
+  "baseline": {
+    "complete": true,
+    "exact_dedup": false,
+    "sources": {
+      "door_20260918_01405": {
+        "ticks": 200,
+        "start_tick": 0,
+        "counts": {
+          "truth": 269,
+          "predictions": 269,
+          "matched": 265,
+          "adjacent_matched_pairs": 262,
+          "reappeared_matched_pairs": 1
+        },
+        "break_reasons": {},
+        "miss_reasons": {
+          "mask_below_match": 3,
+          "confidence_filtered": 1
+        },
+        "failure_examples": [],
+        "miss_examples": [
+          {
+            "tick": 12,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.39855072463768115,
+            "teacher_box": [
+              469.0,
+              75.0,
+              497.0,
+              147.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 13,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4507042253521127,
+            "teacher_box": [
+              465.0,
+              78.0,
+              493.0,
+              150.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 14,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.45454545454545453,
+            "teacher_box": [
+              446.0,
+              41.0,
+              494.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 76,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              47.0,
+              299.0,
+              62.0,
+              316.0
+            ],
+            "teacher_visible_previous": true
+          }
+        ],
+        "wrong_examples": [],
+        "tracker_stats": {
+          "births": 2,
+          "adjacent": 267,
+          "recovered": 0,
+          "ambiguous": 0
+        },
+        "tracker_seconds": 0.030872599687427282,
+        "cost_matrix_seconds": 0.023267399985343218,
+        "cost_pairs": 429,
+        "exact_duplicates_removed": 0,
+        "dedup_seconds": 0.0,
+        "foreground_union_equal": null,
+        "total_seconds": 0.08563160011544824,
+        "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9",
+        "ids_sha256": "151238113112e0cc73be25b8df88718a2e7d33e48e824c674fa30e6fd36d8574"
+      },
+      "door_20260918_15375": {
+        "ticks": 200,
+        "start_tick": 0,
+        "counts": {
+          "truth": 740,
+          "predictions": 706,
+          "matched": 669,
+          "adjacent_matched_pairs": 634,
+          "adjacent_breaks": 39,
+          "reappeared_matched_pairs": 28,
+          "observations_on_id_first_matched_to_other_owner": 17,
+          "reappeared_breaks": 11
+        },
+        "break_reasons": {
+          "ambiguity_veto": 37,
+          "both_offset_gates": 5,
+          "claimed_by_adjacent_track": 1,
+          "gap_velocity_gate": 7
+        },
+        "miss_reasons": {
+          "confidence_filtered": 30,
+          "mask_below_match": 37,
+          "no_overlapping_mask": 4
+        },
+        "failure_examples": [
+          {
+            "gap": 1,
+            "cost": 0.171473306180573,
+            "displacement_px": 9.88468670469631,
+            "previous_box": [
+              751.75,
+              137.5,
+              856.0,
+              225.875
+            ],
+            "current_box": [
+              763.5,
+              139.0,
+              864.0,
+              223.5
+            ],
+            "forward_error_px": 4.644714157572097,
+            "backward_error_px": 4.103876966125402,
+            "gate_px": 25.349999999999998,
+            "forward_offset": [
+              5.2948455810546875,
+              0.3342221677303314
+            ],
+            "backward_offset": [
+              -5.890196800231934,
+              -0.5439018607139587
+            ],
+            "rival_cost": 0.09712036660679409,
+            "rival_kind": "track",
+            "rival_pid": 3,
+            "rival_tick": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9967741935483871,
+            "rival_box": [
+              756.0,
+              137.75,
+              857.0,
+              226.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 2,
+            "owner": "o1",
+            "previous_match_tick": 1,
+            "previous_pid": 4,
+            "assigned_pid": 7,
+            "teacher_mask_iou": 0.9695945945945946
+          },
+          {
+            "gap": 1,
+            "cost": 0.09967234166888109,
+            "displacement_px": 4.698736532303125,
+            "previous_box": [
+              346.375,
+              74.5,
+              388.875,
+              193.0
+            ],
+            "current_box": [
+              337.5,
+              76.0,
+              389.5,
+              196.0
+            ],
+            "forward_error_px": 1.3495460190270554,
+            "backward_error_px": 1.3542855088664318,
+            "gate_px": 35.55,
+            "forward_offset": [
+              -2.9260306358337402,
+              1.6305269002914429
+            ],
+            "backward_offset": [
+              3.0250048637390137,
+              -1.4600000381469727
+            ],
+            "rival_cost": 0.10490372027639538,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 1.0,
+            "rival_box": [
+              337.5,
+              76.5,
+              389.5,
+              196.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 2,
+            "owner": "o0",
+            "previous_match_tick": 1,
+            "previous_pid": 2,
+            "assigned_pid": 8,
+            "teacher_mask_iou": 0.9444444444444444
+          },
+          {
+            "gap": 1,
+            "cost": 0.14843702008869203,
+            "displacement_px": 3.389436715739062,
+            "previous_box": [
+              763.5,
+              139.0,
+              864.0,
+              223.5
+            ],
+            "current_box": [
+              766.25,
+              140.5,
+              868.0,
+              222.625
+            ],
+            "forward_error_px": 2.5289478134266417,
+            "backward_error_px": 3.4501914796884527,
+            "gate_px": 24.6375,
+            "forward_offset": [
+              5.893835544586182,
+              0.538430392742157
+            ],
+            "backward_offset": [
+              -6.777853488922119,
+              -0.88206946849823
+            ],
+            "rival_cost": 0.07741803333158617,
+            "rival_kind": "track",
+            "rival_pid": 6,
+            "rival_tick": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9965870307167235,
+            "rival_box": [
+              761.5,
+              139.0,
+              861.0,
+              223.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 3,
+            "owner": "o1",
+            "previous_match_tick": 2,
+            "previous_pid": 7,
+            "assigned_pid": 9,
+            "teacher_mask_iou": 0.9640287769784173
+          },
+          {
+            "gap": 1,
+            "cost": 0.07984782155079052,
+            "displacement_px": 2.5441415546309525,
+            "previous_box": [
+              337.5,
+              76.0,
+              389.5,
+              196.0
+            ],
+            "current_box": [
+              335.0,
+              78.5,
+              389.625,
+              198.0
+            ],
+            "forward_error_px": 1.8155296978789834,
+            "backward_error_px": 1.648330253916745,
+            "gate_px": 35.85,
+            "forward_offset": [
+              -2.9532032012939453,
+              1.827578067779541
+            ],
+            "backward_offset": [
+              2.6575238704681396,
+              -1.5043308734893799
+            ],
+            "rival_cost": 0.07881874623624908,
+            "rival_kind": "track",
+            "rival_pid": 5,
+            "rival_tick": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 1.0,
+            "rival_box": [
+              337.5,
+              76.5,
+              389.5,
+              196.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 3,
+            "owner": "o0",
+            "previous_match_tick": 2,
+            "previous_pid": 8,
+            "assigned_pid": 2,
+            "teacher_mask_iou": 0.9494949494949495
+          },
+          {
+            "gap": 1,
+            "cost": 0.09789092676944099,
+            "displacement_px": 8.518591799704925,
+            "previous_box": [
+              766.25,
+              140.5,
+              868.0,
+              222.625
+            ],
+            "current_box": [
+              776.5,
+              141.0,
+              874.75,
+              221.0
+            ],
+            "forward_error_px": 2.2266514004936857,
+            "backward_error_px": 2.355531239355925,
+            "gate_px": 24.0,
+            "forward_offset": [
+              6.791440010070801,
+              0.8653652667999268
+            ],
+            "backward_offset": [
+              -9.65185546875,
+              -1.4921913146972656
+            ],
+            "rival_cost": 0.08075847143004528,
+            "rival_kind": "track",
+            "rival_pid": 10,
+            "rival_tick": 3,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9963768115942029,
+            "rival_box": [
+              765.0,
+              139.5,
+              869.5,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 4,
+            "owner": "o1",
+            "previous_match_tick": 3,
+            "previous_pid": 9,
+            "assigned_pid": 12,
+            "teacher_mask_iou": 0.9429657794676806
+          },
+          {
+            "gap": 1,
+            "cost": 0.7635343822220365,
+            "displacement_px": 28.841159824112484,
+            "previous_box": [
+              776.5,
+              141.0,
+              874.75,
+              221.0
+            ],
+            "current_box": [
+              789.5,
+              143.5,
+              900.75,
+              261.0
+            ],
+            "forward_error_px": 22.098674001596972,
+            "backward_error_px": 21.5271902239464,
+            "gate_px": 24.0,
+            "forward_offset": [
+              9.70361328125,
+              1.4413604736328125
+            ],
+            "backward_offset": [
+              -10.835268020629883,
+              -1.5435965061187744
+            ],
+            "rival_cost": 0.7711071721704055,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9812734082397003,
+            "rival_box": [
+              790.75,
+              143.0,
+              899.5,
+              262.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 5,
+            "owner": "o1",
+            "previous_match_tick": 4,
+            "previous_pid": 12,
+            "assigned_pid": 13,
+            "teacher_mask_iou": 0.9637681159420289
+          },
+          {
+            "gap": 1,
+            "cost": 0.12992818455890337,
+            "displacement_px": 10.909607291282304,
+            "previous_box": [
+              789.5,
+              143.5,
+              900.75,
+              261.0
+            ],
+            "current_box": [
+              801.5,
+              142.5,
+              909.0,
+              270.125
+            ],
+            "forward_error_px": 2.749481817125601,
+            "backward_error_px": 2.681104394291277,
+            "gate_px": 35.25,
+            "forward_offset": [
+              10.938392639160156,
+              1.4360874891281128
+            ],
+            "backward_offset": [
+              -10.481513977050781,
+              -1.4052046537399292
+            ],
+            "rival_cost": 0.11879729452481408,
+            "rival_kind": "track",
+            "rival_pid": 15,
+            "rival_tick": 5,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9812734082397003,
+            "rival_box": [
+              790.75,
+              143.0,
+              899.5,
+              262.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 6,
+            "owner": "o1",
+            "previous_match_tick": 5,
+            "previous_pid": 13,
+            "assigned_pid": 3,
+            "teacher_mask_iou": 0.918918918918919
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 27.725918605160768,
+            "previous_box": [
+              198.0,
+              123.0,
+              257.75,
+              255.5
+            ],
+            "current_box": [
+              194.0,
+              123.625,
+              229.875,
+              209.5
+            ],
+            "forward_error_px": 27.19153937965858,
+            "backward_error_px": 27.36457320233639,
+            "gate_px": 25.7625,
+            "forward_offset": [
+              -3.6224422454833984,
+              1.555419921875
+            ],
+            "backward_offset": [
+              0.76495361328125,
+              -0.0855916365981102
+            ],
+            "reason": "both_offset_gates",
+            "tick": 27,
+            "owner": "o0",
+            "previous_match_tick": 26,
+            "previous_pid": 2,
+            "assigned_pid": 17,
+            "teacher_mask_iou": 0.512
+          },
+          {
+            "gap": 1,
+            "cost": 0.19434916443210393,
+            "displacement_px": 8.475147491341964,
+            "previous_box": [
+              183.0,
+              134.0,
+              256.5,
+              309.0
+            ],
+            "current_box": [
+              193.0,
+              127.0,
+              256.75,
+              302.5
+            ],
+            "forward_error_px": 6.8108297166354825,
+            "backward_error_px": 5.29445953436122,
+            "gate_px": 52.5,
+            "forward_offset": [
+              2.25604248046875,
+              -0.572906494140625
+            ],
+            "backward_offset": [
+              -5.958251953125,
+              1.521520972251892
+            ],
+            "rival_cost": 0.17239069623944103,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9307228915662651,
+            "rival_box": [
+              191.75,
+              128.0,
+              257.125,
+              304.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 29,
+            "owner": "o3",
+            "previous_match_tick": 28,
+            "previous_pid": 14,
+            "assigned_pid": 19,
+            "teacher_mask_iou": 0.8359621451104101
+          },
+          {
+            "gap": 1,
+            "cost": 0.18828745214426,
+            "displacement_px": 8.198942386064193,
+            "previous_box": [
+              193.0,
+              127.0,
+              256.75,
+              302.5
+            ],
+            "current_box": [
+              199.75,
+              122.0,
+              256.625,
+              292.5
+            ],
+            "forward_error_px": 6.524630420082543,
+            "backward_error_px": 6.498476532135431,
+            "gate_px": 51.15,
+            "forward_offset": [
+              5.896191596984863,
+              -1.50872802734375
+            ],
+            "backward_offset": [
+              -5.636265754699707,
+              1.4312019348144531
+            ],
+            "rival_cost": 0.204584468573923,
+            "rival_kind": "track",
+            "rival_pid": 18,
+            "rival_tick": 29,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9307228915662651,
+            "rival_box": [
+              191.75,
+              128.0,
+              257.125,
+              304.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 30,
+            "owner": "o3",
+            "previous_match_tick": 29,
+            "previous_pid": 19,
+            "assigned_pid": 14,
+            "teacher_mask_iou": 0.8571428571428571
+          },
+          {
+            "gap": 4,
+            "cost": 0.7055936558441092,
+            "displacement_px": 38.623634684607296,
+            "previous_box": [
+              194.0,
+              123.625,
+              229.875,
+              209.5
+            ],
+            "current_box": [
+              170.125,
+              131.5,
+              226.75,
+              274.0
+            ],
+            "gate_px": 49.807500000000005,
+            "velocity_error_px": 38.623634684607296,
+            "reason": "claimed_by_adjacent_track",
+            "tick": 31,
+            "owner": "o0",
+            "previous_match_tick": 27,
+            "previous_pid": 17,
+            "assigned_pid": 16,
+            "teacher_mask_iou": 0.7477064220183486
+          },
+          {
+            "gap": 3,
+            "cost": 0.32891206861440414,
+            "displacement_px": 31.98632520312391,
+            "previous_box": [
+              117.0,
+              155.0,
+              182.5,
+              271.0
+            ],
+            "current_box": [
+              98.0,
+              160.0,
+              142.0,
+              289.5
+            ],
+            "gate_px": 59.160000000000004,
+            "velocity_error_px": 16.636743972304195,
+            "rival_cost": 0.3085584213261899,
+            "rival_kind": "track",
+            "rival_pid": 2,
+            "rival_tick": 26,
+            "rival_owner": "o0",
+            "rival_mask_iou_to_previous": 0.0,
+            "rival_box": [
+              198.0,
+              123.0,
+              257.75,
+              255.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 43,
+            "owner": "o0",
+            "previous_match_tick": 40,
+            "previous_pid": 16,
+            "assigned_pid": 21,
+            "teacher_mask_iou": 0.9016393442622951
+          },
+          {
+            "gap": 7,
+            "cost": null,
+            "displacement_px": 245.64497374259463,
+            "previous_box": [
+              117.0,
+              155.0,
+              182.5,
+              271.0
+            ],
+            "current_box": [
+              352.5,
+              74.5,
+              416.25,
+              206.0
+            ],
+            "gate_px": 91.64,
+            "velocity_error_px": 284.05140929944355,
+            "reason": "gap_velocity_gate",
+            "tick": 47,
+            "owner": "o4",
+            "previous_match_tick": 30,
+            "previous_pid": 16,
+            "assigned_pid": 14,
+            "teacher_mask_iou": 0.5344827586206896
+          },
+          {
+            "gap": 1,
+            "cost": 0.7385177680098749,
+            "displacement_px": 22.25561726845607,
+            "previous_box": [
+              352.5,
+              74.5,
+              416.25,
+              206.0
+            ],
+            "current_box": [
+              347.0,
+              78.0,
+              422.75,
+              247.0
+            ],
+            "forward_error_px": 25.90203981925153,
+            "backward_error_px": 25.202759160601918,
+            "gate_px": 39.449999999999996,
+            "forward_offset": [
+              9.732142448425293,
+              -1.9508928060531616
+            ],
+            "backward_offset": [
+              -7.723323345184326,
+              1.8954482078552246
+            ],
+            "rival_cost": 0.22228649195169764,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 5,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.005291005291005291,
+            "rival_box": [
+              369.0,
+              75.5,
+              425.75,
+              200.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 48,
+            "owner": "o3",
+            "previous_match_tick": 46,
+            "previous_pid": 14,
+            "assigned_pid": 22,
+            "teacher_mask_iou": 0.8672566371681416
+          },
+          {
+            "gap": 1,
+            "cost": 0.5539122266165661,
+            "displacement_px": 22.53920196014047,
+            "previous_box": [
+              428.0,
+              51.5,
+              468.5,
+              171.5
+            ],
+            "current_box": [
+              434.0,
+              50.5,
+              494.25,
+              204.5
+            ],
+            "forward_error_px": 21.19243804038587,
+            "backward_error_px": 20.528235863503763,
+            "gate_px": 36.0,
+            "forward_offset": [
+              4.347222328186035,
+              -1.7828505039215088
+            ],
+            "backward_offset": [
+              -5.351222991943359,
+              1.62550950050354
+            ],
+            "rival_cost": 0.5346699484462127,
+            "rival_kind": "track",
+            "rival_pid": 22,
+            "rival_tick": 56,
+            "rival_owner": "o3",
+            "rival_mask_iou_to_previous": 0.0,
+            "rival_box": [
+              403.75,
+              60.0,
+              489.0,
+              223.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 57,
+            "owner": "o4",
+            "previous_match_tick": 56,
+            "previous_pid": 14,
+            "assigned_pid": 23,
+            "teacher_mask_iou": 0.7211538461538461
+          },
+          {
+            "gap": 2,
+            "cost": 0.43743240373210424,
+            "displacement_px": 25.106025173252736,
+            "previous_box": [
+              434.0,
+              50.5,
+              494.25,
+              204.5
+            ],
+            "current_box": [
+              454.5,
+              42.0,
+              504.75,
+              173.5
+            ],
+            "gate_px": 57.86,
+            "velocity_error_px": 25.106025173252736,
+            "rival_cost": 0.4114829245840962,
+            "rival_kind": "track",
+            "rival_pid": 14,
+            "rival_tick": 56,
+            "rival_owner": "o4",
+            "rival_mask_iou_to_previous": 0.30718954248366015,
+            "rival_box": [
+              428.0,
+              51.5,
+              468.5,
+              171.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 59,
+            "owner": "o4",
+            "previous_match_tick": 57,
+            "previous_pid": 23,
+            "assigned_pid": 24,
+            "teacher_mask_iou": 0.7364341085271318
+          },
+          {
+            "gap": 1,
+            "cost": 0.6107887402032511,
+            "displacement_px": 25.942318829472434,
+            "previous_box": [
+              273.25,
+              112.0,
+              333.125,
+              219.0
+            ],
+            "current_box": [
+              281.75,
+              108.5,
+              361.5,
+              259.0
+            ],
+            "forward_error_px": 22.804090546043465,
+            "backward_error_px": 23.46675808069915,
+            "gate_px": 32.1,
+            "forward_offset": [
+              7.474247455596924,
+              -1.7458405494689941
+            ],
+            "backward_offset": [
+              -5.52951717376709,
+              1.3477731943130493
+            ],
+            "rival_cost": 0.6153843260798698,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 6,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9501779359430605,
+            "rival_box": [
+              281.0,
+              106.5,
+              361.5,
+              262.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 60,
+            "owner": "o5",
+            "previous_match_tick": 59,
+            "previous_pid": 20,
+            "assigned_pid": 25,
+            "teacher_mask_iou": 0.8436482084690554
+          },
+          {
+            "gap": 1,
+            "cost": 0.2164539611506202,
+            "displacement_px": 13.115472732616237,
+            "previous_box": [
+              281.75,
+              108.5,
+              361.5,
+              259.0
+            ],
+            "current_box": [
+              291.25,
+              107.0,
+              377.75,
+              255.5
+            ],
+            "forward_error_px": 7.402263251530513,
+            "backward_error_px": 5.765073689328906,
+            "gate_px": 44.55,
+            "forward_offset": [
+              5.5612897872924805,
+              -1.3584465980529785
+            ],
+            "backward_offset": [
+              -7.168878555297852,
+              1.6776541471481323
+            ],
+            "rival_cost": 0.22410819496661208,
+            "rival_kind": "track",
+            "rival_pid": 26,
+            "rival_tick": 60,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9501779359430605,
+            "rival_box": [
+              281.0,
+              106.5,
+              361.5,
+              262.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 61,
+            "owner": "o5",
+            "previous_match_tick": 60,
+            "previous_pid": 25,
+            "assigned_pid": 20,
+            "teacher_mask_iou": 0.9061488673139159
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 49.38177366511353,
+            "previous_box": [
+              485.125,
+              38.5,
+              525.0,
+              165.0
+            ],
+            "current_box": [
+              493.0,
+              31.8125,
+              513.25,
+              73.0
+            ],
+            "forward_error_px": 49.0311077068075,
+            "backward_error_px": 48.78150475172683,
+            "gate_px": 12.35625,
+            "forward_offset": [
+              2.6960227489471436,
+              -0.5320711731910706
+            ],
+            "backward_offset": [
+              -2.925347328186035,
+              0.8052300214767456
+            ],
+            "reason": "both_offset_gates",
+            "tick": 65,
+            "owner": "o4",
+            "previous_match_tick": 64,
+            "previous_pid": 24,
+            "assigned_pid": 14,
+            "teacher_mask_iou": 0.7346938775510204
+          },
+          {
+            "gap": 1,
+            "cost": 0.1827805771530941,
+            "displacement_px": 12.775862250744566,
+            "previous_box": [
+              342.5,
+              90.5,
+              401.125,
+              254.0
+            ],
+            "current_box": [
+              352.0,
+              87.5,
+              417.0,
+              254.0
+            ],
+            "forward_error_px": 6.564200167240842,
+            "backward_error_px": 6.98964361767865,
+            "gate_px": 49.05,
+            "forward_offset": [
+              6.132179260253906,
+              -1.1586880683898926
+            ],
+            "backward_offset": [
+              -5.700695514678955,
+              1.3007991313934326
+            ],
+            "rival_cost": 0.18282913800711303,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9906832298136646,
+            "rival_box": [
+              352.5,
+              88.0,
+              416.5,
+              252.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 68,
+            "owner": "o5",
+            "previous_match_tick": 67,
+            "previous_pid": 20,
+            "assigned_pid": 27,
+            "teacher_mask_iou": 0.899390243902439
+          },
+          {
+            "gap": 1,
+            "cost": 0.12140179822260161,
+            "displacement_px": 9.055385138137417,
+            "previous_box": [
+              352.0,
+              87.5,
+              417.0,
+              254.0
+            ],
+            "current_box": [
+              358.5,
+              88.0,
+              428.5,
+              251.5
+            ],
+            "forward_error_px": 3.390680557597843,
+            "backward_error_px": 3.742886159907877,
+            "gate_px": 49.05,
+            "forward_offset": [
+              5.625190734863281,
+              -1.3276844024658203
+            ],
+            "backward_offset": [
+              -5.258467197418213,
+              1.1006433963775635
+            ],
+            "rival_cost": 0.12359234412866454,
+            "rival_kind": "track",
+            "rival_pid": 28,
+            "rival_tick": 68,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9906832298136646,
+            "rival_box": [
+              352.5,
+              88.0,
+              416.5,
+              252.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 69,
+            "owner": "o5",
+            "previous_match_tick": 68,
+            "previous_pid": 27,
+            "assigned_pid": 20,
+            "teacher_mask_iou": 0.8461538461538461
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 37.50317694875996,
+            "previous_box": [
+              502.625,
+              64.5,
+              566.0,
+              185.5
+            ],
+            "current_box": [
+              513.75,
+              140.875,
+              565.5,
+              183.375
+            ],
+            "gate_px": 18.7,
+            "velocity_error_px": 29.213986911238255,
+            "reason": "gap_velocity_gate",
+            "tick": 73,
+            "owner": "o3",
+            "previous_match_tick": 69,
+            "previous_pid": 22,
+            "assigned_pid": 29,
+            "teacher_mask_iou": 0.8863636363636364
+          },
+          {
+            "gap": 1,
+            "cost": 0.1577479848669862,
+            "displacement_px": 3.5637333391402897,
+            "previous_box": [
+              513.75,
+              140.875,
+              565.5,
+              183.375
+            ],
+            "current_box": [
+              516.0,
+              140.0625,
+              569.625,
+              181.0
+            ],
+            "forward_error_px": 1.1012923496592733,
+            "backward_error_px": 1.3371993391534207,
+            "gate_px": 12.28125,
+            "forward_offset": [
+              2.4427082538604736,
+              -0.7824978232383728
+            ],
+            "backward_offset": [
+              -2.281826972961426,
+              0.6099520325660706
+            ],
+            "rival_cost": 0.14736334516781524,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 3,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9459459459459459,
+            "rival_box": [
+              515.625,
+              139.125,
+              568.5,
+              181.875
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 74,
+            "owner": "o3",
+            "previous_match_tick": 73,
+            "previous_pid": 29,
+            "assigned_pid": 32,
+            "teacher_mask_iou": 0.9230769230769231
+          },
+          {
+            "gap": 9,
+            "cost": null,
+            "displacement_px": 87.68496633010986,
+            "previous_box": [
+              493.0,
+              31.8125,
+              513.25,
+              73.0
+            ],
+            "current_box": [
+              567.125,
+              24.0,
+              605.75,
+              135.5
+            ],
+            "gate_px": 38.30437500000001,
+            "velocity_error_px": 90.9952351087682,
+            "reason": "gap_velocity_gate",
+            "tick": 74,
+            "owner": "o4",
+            "previous_match_tick": 65,
+            "previous_pid": 14,
+            "assigned_pid": 30,
+            "teacher_mask_iou": 0.654320987654321
+          },
+          {
+            "gap": 1,
+            "cost": 0.3710400566422034,
+            "displacement_px": 5.446562132437305,
+            "previous_box": [
+              516.0,
+              140.0625,
+              569.625,
+              181.0
+            ],
+            "current_box": [
+              524.0,
+              138.875,
+              570.125,
+              175.375
+            ],
+            "forward_error_px": 3.440101493642836,
+            "backward_error_px": 2.8567071987614834,
+            "gate_px": 10.95,
+            "forward_offset": [
+              2.3219993114471436,
+              -0.5571954846382141
+            ],
+            "backward_offset": [
+              -2.93212890625,
+              0.8716905117034912
+            ],
+            "rival_cost": 0.3966935696400984,
+            "rival_kind": "track",
+            "rival_pid": 31,
+            "rival_tick": 74,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9459459459459459,
+            "rival_box": [
+              515.625,
+              139.125,
+              568.5,
+              181.875
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 75,
+            "owner": "o3",
+            "previous_match_tick": 74,
+            "previous_pid": 32,
+            "assigned_pid": 29,
+            "teacher_mask_iou": 0.8857142857142857
+          },
+          {
+            "gap": 1,
+            "cost": 0.1447201149387498,
+            "displacement_px": 12.188141008783907,
+            "previous_box": [
+              400.0,
+              72.5,
+              473.0,
+              228.75
+            ],
+            "current_box": [
+              410.0,
+              72.0,
+              487.375,
+              229.5
+            ],
+            "forward_error_px": 5.997956696464824,
+            "backward_error_px": 6.554065154686355,
+            "gate_px": 46.875,
+            "forward_offset": [
+              6.566906929016113,
+              -1.968900203704834
+            ],
+            "backward_offset": [
+              -5.876850128173828,
+              1.6445955038070679
+            ],
+            "rival_cost": 0.061357591332648564,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 0,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 1.0,
+            "rival_box": [
+              409.625,
+              70.0,
+              476.5,
+              230.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 76,
+            "owner": "o5",
+            "previous_match_tick": 75,
+            "previous_pid": 20,
+            "assigned_pid": 34,
+            "teacher_mask_iou": 0.9566563467492261
+          },
+          {
+            "gap": 1,
+            "cost": 0.07114924696746565,
+            "displacement_px": 5.984680964763284,
+            "previous_box": [
+              410.0,
+              72.0,
+              487.375,
+              229.5
+            ],
+            "current_box": [
+              416.0,
+              71.0,
+              492.25,
+              225.5
+            ],
+            "forward_error_px": 0.918409856411652,
+            "backward_error_px": 1.1051200534984684,
+            "gate_px": 46.35,
+            "forward_offset": [
+              5.832647800445557,
+              -1.6709433794021606
+            ],
+            "backward_offset": [
+              -5.129317283630371,
+              1.438720703125
+            ],
+            "rival_cost": 0.1494052753041511,
+            "rival_kind": "track",
+            "rival_pid": 33,
+            "rival_tick": 76,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 1.0,
+            "rival_box": [
+              409.625,
+              70.0,
+              476.5,
+              230.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 77,
+            "owner": "o5",
+            "previous_match_tick": 76,
+            "previous_pid": 34,
+            "assigned_pid": 20,
+            "teacher_mask_iou": 0.9237804878048781
+          },
+          {
+            "gap": 1,
+            "cost": 0.13791678876182506,
+            "displacement_px": 3.48209706929603,
+            "previous_box": [
+              416.0,
+              71.0,
+              492.25,
+              225.5
+            ],
+            "current_box": [
+              422.25,
+              67.0,
+              488.5,
+              223.0
+            ],
+            "forward_error_px": 4.2469182597665025,
+            "backward_error_px": 4.158076180460541,
+            "gate_px": 46.35,
+            "forward_offset": [
+              5.092721939086914,
+              -1.4417403936386108
+            ],
+            "backward_offset": [
+              -4.967371463775635,
+              1.3870059251785278
+            ],
+            "rival_cost": 0.1131160869873856,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9962825278810409,
+            "rival_box": [
+              421.5,
+              68.0,
+              493.0,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 78,
+            "owner": "o5",
+            "previous_match_tick": 77,
+            "previous_pid": 20,
+            "assigned_pid": 35,
+            "teacher_mask_iou": 0.9267399267399268
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 45.186959713229214,
+            "previous_box": [
+              537.25,
+              138.0625,
+              570.75,
+              168.75
+            ],
+            "current_box": [
+              556.9375,
+              56.5,
+              587.25,
+              167.5
+            ],
+            "gate_px": 13.5025,
+            "velocity_error_px": 34.22972141465659,
+            "reason": "gap_velocity_gate",
+            "tick": 78,
+            "owner": "o3",
+            "previous_match_tick": 76,
+            "previous_pid": 29,
+            "assigned_pid": 37,
+            "teacher_mask_iou": 0.6756756756756757
+          },
+          {
+            "gap": 1,
+            "cost": 0.15408665084046125,
+            "displacement_px": 7.3402252179343925,
+            "previous_box": [
+              422.25,
+              67.0,
+              488.5,
+              223.0
+            ],
+            "current_box": [
+              431.125,
+              64.5,
+              488.75,
+              214.0
+            ],
+            "forward_error_px": 4.407137904005167,
+            "backward_error_px": 4.213901362274862,
+            "gate_px": 44.85,
+            "forward_offset": [
+              5.001148700714111,
+              -1.36474609375
+            ],
+            "backward_offset": [
+              -5.633263111114502,
+              1.674410343170166
+            ],
+            "rival_cost": 0.16359748586986367,
+            "rival_kind": "track",
+            "rival_pid": 36,
+            "rival_tick": 78,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9962825278810409,
+            "rival_box": [
+              421.5,
+              68.0,
+              493.0,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 79,
+            "owner": "o5",
+            "previous_match_tick": 78,
+            "previous_pid": 35,
+            "assigned_pid": 38,
+            "teacher_mask_iou": 0.9198113207547169
+          },
+          {
+            "gap": 1,
+            "cost": 0.13647865465375186,
+            "displacement_px": 4.048654290316722,
+            "previous_box": [
+              584.4375,
+              17.5,
+              614.1875,
+              133.0
+            ],
+            "current_box": [
+              592.4375,
+              17.25,
+              614.25,
+              134.0
+            ],
+            "forward_error_px": 2.546980511670003,
+            "backward_error_px": 2.2970541749370468,
+            "gate_px": 34.65,
+            "forward_offset": [
+              1.5015593767166138,
+              0.07873141020536423
+            ],
+            "backward_offset": [
+              -1.7921874523162842,
+              0.13789062201976776
+            ],
+            "rival_cost": 0.18672087352294592,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9545454545454546,
+            "rival_box": [
+              591.875,
+              25.0,
+              613.0,
+              133.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 80,
+            "owner": "o4",
+            "previous_match_tick": 79,
+            "previous_pid": 30,
+            "assigned_pid": 39,
+            "teacher_mask_iou": 0.8118811881188119
+          },
+          {
+            "gap": 1,
+            "cost": 0.17294594730246654,
+            "displacement_px": 1.7677669529663689,
+            "previous_box": [
+              592.4375,
+              17.25,
+              614.25,
+              134.0
+            ],
+            "current_box": [
+              594.8125,
+              17.75,
+              615.375,
+              133.0
+            ],
+            "forward_error_px": 0.246853367412571,
+            "backward_error_px": 1.3699435873103727,
+            "gate_px": 34.574999999999996,
+            "forward_offset": [
+              1.7511718273162842,
+              -0.0031494139693677425
+            ],
+            "backward_offset": [
+              -0.4072641134262085,
+              -0.02167217619717121
+            ],
+            "rival_cost": 0.24769212350968775,
+            "rival_kind": "track",
+            "rival_pid": 40,
+            "rival_tick": 80,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9545454545454546,
+            "rival_box": [
+              591.875,
+              25.0,
+              613.0,
+              133.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 81,
+            "owner": "o4",
+            "previous_match_tick": 80,
+            "previous_pid": 39,
+            "assigned_pid": 30,
+            "teacher_mask_iou": 0.7313432835820896
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 47.13744240582533,
+            "previous_box": [
+              592.4375,
+              15.0,
+              615.6875,
+              148.5
+            ],
+            "current_box": [
+              602.25,
+              114.125,
+              617.9375,
+              142.875
+            ],
+            "forward_error_px": 47.140822943815465,
+            "backward_error_px": 47.418802559578104,
+            "gate_px": 8.625,
+            "forward_offset": [
+              2.9889705181121826,
+              -0.29255226254463196
+            ],
+            "backward_offset": [
+              -2.8385417461395264,
+              0.5611979365348816
+            ],
+            "reason": "both_offset_gates",
+            "tick": 90,
+            "owner": "o3",
+            "previous_match_tick": 89,
+            "previous_pid": 37,
+            "assigned_pid": 41,
+            "teacher_mask_iou": 0.7647058823529411
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 36.009764300811526,
+            "previous_box": [
+              501.5,
+              67.0,
+              565.0,
+              191.0
+            ],
+            "current_box": [
+              512.375,
+              141.75,
+              564.625,
+              187.5
+            ],
+            "gate_px": 20.13,
+            "velocity_error_px": 30.872975642137252,
+            "reason": "gap_velocity_gate",
+            "tick": 92,
+            "owner": "o5",
+            "previous_match_tick": 90,
+            "previous_pid": 38,
+            "assigned_pid": 42,
+            "teacher_mask_iou": 0.6612903225806451
+          },
+          {
+            "gap": 3,
+            "cost": null,
+            "displacement_px": 58.2763905480813,
+            "previous_box": [
+              552.1875,
+              140.375,
+              569.875,
+              173.75
+            ],
+            "current_box": [
+              569.625,
+              47.5,
+              600.625,
+              160.5
+            ],
+            "gate_px": 17.021250000000002,
+            "velocity_error_px": 51.22182914783501,
+            "reason": "gap_velocity_gate",
+            "tick": 98,
+            "owner": "o5",
+            "previous_match_tick": 94,
+            "previous_pid": 42,
+            "assigned_pid": 43,
+            "teacher_mask_iou": 0.696969696969697
+          },
+          {
+            "gap": 1,
+            "cost": 0.380144739283104,
+            "displacement_px": 14.044710970682166,
+            "previous_box": [
+              780.5,
+              142.0,
+              894.75,
+              233.875
+            ],
+            "current_box": [
+              769.5,
+              141.0,
+              882.75,
+              218.75
+            ],
+            "forward_error_px": 10.236663503911851,
+            "backward_error_px": 10.958612502815644,
+            "gate_px": 23.325,
+            "forward_offset": [
+              -4.349420070648193,
+              -0.7373046875
+            ],
+            "backward_offset": [
+              3.3807408809661865,
+              0.7025530338287354
+            ],
+            "rival_cost": 0.15004453575838797,
+            "rival_kind": "track",
+            "rival_pid": 44,
+            "rival_tick": 102,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9810606060606061,
+            "rival_box": [
+              772.0,
+              141.25,
+              893.0,
+              225.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 103,
+            "owner": "o1",
+            "previous_match_tick": 102,
+            "previous_pid": 3,
+            "assigned_pid": 44,
+            "teacher_mask_iou": 0.9595588235294118
+          },
+          {
+            "gap": 1,
+            "cost": 0.03923693224778902,
+            "displacement_px": 1.1524430571616109,
+            "previous_box": [
+              763.25,
+              135.5,
+              862.75,
+              220.75
+            ],
+            "current_box": [
+              762.75,
+              135.25,
+              861.5,
+              222.5
+            ],
+            "forward_error_px": 0.9320270086972241,
+            "backward_error_px": 0.9209973126420324,
+            "gate_px": 25.575,
+            "forward_offset": [
+              -0.3856157064437866,
+              -0.04320700839161873
+            ],
+            "backward_offset": [
+              0.582037091255188,
+              0.1231602281332016
+            ],
+            "rival_cost": 0.03439104961460619,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 0,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 1.0,
+            "rival_box": [
+              762.0,
+              134.5,
+              862.5,
+              223.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 111,
+            "owner": "o1",
+            "previous_match_tick": 110,
+            "previous_pid": 44,
+            "assigned_pid": 46,
+            "teacher_mask_iou": 0.9643916913946587
+          },
+          {
+            "gap": 1,
+            "cost": 0.060591830288276735,
+            "displacement_px": 2.1396553460779613,
+            "previous_box": [
+              762.75,
+              135.25,
+              861.5,
+              222.5
+            ],
+            "current_box": [
+              760.5,
+              133.75,
+              859.5,
+              223.5
+            ],
+            "forward_error_px": 1.583567920539119,
+            "backward_error_px": 0.5164688521905335,
+            "gate_px": 26.175,
+            "forward_offset": [
+              -0.5507696270942688,
+              -0.078284852206707
+            ],
+            "backward_offset": [
+              1.6093405485153198,
+              0.22109661996364594
+            ],
+            "rival_cost": 0.04989080488096738,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9970501474926253,
+            "rival_box": [
+              761.75,
+              134.25,
+              859.0,
+              222.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 112,
+            "owner": "o1",
+            "previous_match_tick": 111,
+            "previous_pid": 46,
+            "assigned_pid": 47,
+            "teacher_mask_iou": 0.9764705882352941
+          },
+          {
+            "gap": 1,
+            "cost": 0.06929089005497488,
+            "displacement_px": 2.9712160810011783,
+            "previous_box": [
+              760.5,
+              133.75,
+              859.5,
+              223.5
+            ],
+            "current_box": [
+              758.25,
+              133.5,
+              856.25,
+              226.0
+            ],
+            "forward_error_px": 1.7564334024118,
+            "backward_error_px": 1.4333893309742347,
+            "gate_px": 26.925,
+            "forward_offset": [
+              -1.5550378561019897,
+              -0.1622931957244873
+            ],
+            "backward_offset": [
+              2.4494118690490723,
+              0.2765176594257355
+            ],
+            "rival_cost": 0.04647572781614108,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9827586206896551,
+            "rival_box": [
+              759.25,
+              134.0,
+              857.75,
+              224.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 113,
+            "owner": "o1",
+            "previous_match_tick": 112,
+            "previous_pid": 47,
+            "assigned_pid": 49,
+            "teacher_mask_iou": 0.96875
+          },
+          {
+            "gap": 1,
+            "cost": 0.10369902018932045,
+            "displacement_px": 5.340002340823457,
+            "previous_box": [
+              758.25,
+              133.5,
+              856.25,
+              226.0
+            ],
+            "current_box": [
+              751.0,
+              134.75,
+              853.5,
+              228.5
+            ],
+            "forward_error_px": 3.348669302560412,
+            "backward_error_px": 2.6674779300395426,
+            "gate_px": 27.75,
+            "forward_offset": [
+              -2.3618106842041016,
+              -0.18741199374198914
+            ],
+            "backward_offset": [
+              3.840858221054077,
+              0.5274630784988403
+            ],
+            "rival_cost": 0.04688714835655932,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 1.0,
+            "rival_box": [
+              755.0,
+              134.0,
+              853.75,
+              226.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 114,
+            "owner": "o1",
+            "previous_match_tick": 113,
+            "previous_pid": 49,
+            "assigned_pid": 52,
+            "teacher_mask_iou": 0.9804469273743017
+          },
+          {
+            "gap": 1,
+            "cost": 0.11161538710844955,
+            "displacement_px": 1.505199322349037,
+            "previous_box": [
+              751.0,
+              134.75,
+              853.5,
+              228.5
+            ],
+            "current_box": [
+              750.5,
+              134.5,
+              851.0,
+              229.0
+            ],
+            "forward_error_px": 2.245602362337753,
+            "backward_error_px": 3.5555366939862125,
+            "gate_px": 28.125,
+            "forward_offset": [
+              -3.6849935054779053,
+              -0.3932020366191864
+            ],
+            "backward_offset": [
+              4.961686134338379,
+              0.6865234375
+            ],
+            "rival_cost": 0.09231999665291822,
+            "rival_kind": "track",
+            "rival_pid": 51,
+            "rival_tick": 114,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 1.0,
+            "rival_box": [
+              755.0,
+              134.0,
+              853.75,
+              226.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 115,
+            "owner": "o1",
+            "previous_match_tick": 114,
+            "previous_pid": 52,
+            "assigned_pid": 53,
+            "teacher_mask_iou": 0.962059620596206
+          },
+          {
+            "gap": 1,
+            "cost": 0.09998738059818746,
+            "displacement_px": 7.276889788913942,
+            "previous_box": [
+              750.5,
+              134.5,
+              851.0,
+              229.0
+            ],
+            "current_box": [
+              743.5,
+              135.0,
+              843.5,
+              229.75
+            ],
+            "forward_error_px": 2.734921444195033,
+            "backward_error_px": 1.5759790117237356,
+            "gate_px": 28.349999999999998,
+            "forward_offset": [
+              -4.763590335845947,
+              -0.5141059160232544
+            ],
+            "backward_offset": [
+              6.881011486053467,
+              0.9071740508079529
+            ],
+            "rival_cost": 0.07016366010746185,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9919354838709677,
+            "rival_box": [
+              745.0,
+              134.0,
+              844.0,
+              227.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 116,
+            "owner": "o1",
+            "previous_match_tick": 115,
+            "previous_pid": 53,
+            "assigned_pid": 54,
+            "teacher_mask_iou": 0.976
+          },
+          {
+            "gap": 1,
+            "cost": 0.052516409436595975,
+            "displacement_px": 6.654415827103082,
+            "previous_box": [
+              743.5,
+              135.0,
+              843.5,
+              229.75
+            ],
+            "current_box": [
+              737.0,
+              134.0,
+              836.75,
+              229.5
+            ],
+            "forward_error_px": 0.0427378423721236,
+            "backward_error_px": 1.2929734404896265,
+            "gate_px": 28.425,
+            "forward_offset": [
+              -6.627551555633545,
+              -0.6676616072654724
+            ],
+            "backward_offset": [
+              7.76953125,
+              1.2265218496322632
+            ],
+            "rival_cost": 0.07996253458401065,
+            "rival_kind": "track",
+            "rival_pid": 55,
+            "rival_tick": 116,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9919354838709677,
+            "rival_box": [
+              745.0,
+              134.0,
+              844.0,
+              227.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 117,
+            "owner": "o1",
+            "previous_match_tick": 116,
+            "previous_pid": 54,
+            "assigned_pid": 56,
+            "teacher_mask_iou": 0.9742268041237113
+          },
+          {
+            "gap": 6,
+            "cost": null,
+            "displacement_px": 83.79197292439473,
+            "previous_box": [
+              573.6875,
+              63.5,
+              598.375,
+              128.75
+            ],
+            "current_box": [
+              483.75,
+              67.0,
+              547.75,
+              216.5
+            ],
+            "gate_px": 46.98,
+            "velocity_error_px": 50.833530780012715,
+            "reason": "gap_velocity_gate",
+            "tick": 169,
+            "owner": "o0.1",
+            "previous_match_tick": 163,
+            "previous_pid": 57,
+            "assigned_pid": 58,
+            "teacher_mask_iou": 0.6102941176470589
+          },
+          {
+            "gap": 1,
+            "cost": 0.3108795496762947,
+            "displacement_px": 14.133846787056948,
+            "previous_box": [
+              457.25,
+              64.0,
+              507.125,
+              224.0
+            ],
+            "current_box": [
+              440.125,
+              76.0,
+              506.5,
+              234.0
+            ],
+            "forward_error_px": 9.33886726109217,
+            "backward_error_px": 9.85537197067955,
+            "gate_px": 47.4,
+            "forward_offset": [
+              -6.048611164093018,
+              2.0991029739379883
+            ],
+            "backward_offset": [
+              6.0174479484558105,
+              -1.5679931640625
+            ],
+            "rival_cost": 0.3010348124892027,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9958847736625515,
+            "rival_box": [
+              438.625,
+              75.0,
+              508.0,
+              233.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 174,
+            "owner": "o0.1",
+            "previous_match_tick": 173,
+            "previous_pid": 58,
+            "assigned_pid": 60,
+            "teacher_mask_iou": 0.852589641434263
+          },
+          {
+            "gap": 1,
+            "cost": 0.22061324600062315,
+            "displacement_px": 7.861347292290298,
+            "previous_box": [
+              440.125,
+              76.0,
+              506.5,
+              234.0
+            ],
+            "current_box": [
+              424.25,
+              71.0,
+              506.75,
+              237.25
+            ],
+            "forward_error_px": 3.6663343830117414,
+            "backward_error_px": 2.7444877398307352,
+            "gate_px": 47.4,
+            "forward_offset": [
+              -5.713281154632568,
+              2.130875587463379
+            ],
+            "backward_offset": [
+              6.303075313568115,
+              -1.4171278476715088
+            ],
+            "rival_cost": 0.2119108825054484,
+            "rival_kind": "track",
+            "rival_pid": 59,
+            "rival_tick": 174,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9958847736625515,
+            "rival_box": [
+              438.625,
+              75.0,
+              508.0,
+              233.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 175,
+            "owner": "o0.1",
+            "previous_match_tick": 174,
+            "previous_pid": 60,
+            "assigned_pid": 58,
+            "teacher_mask_iou": 0.8703703703703703
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 38.34755737005944,
+            "previous_box": [
+              264.75,
+              119.0,
+              346.25,
+              263.5
+            ],
+            "current_box": [
+              250.625,
+              120.0,
+              304.0,
+              210.5
+            ],
+            "forward_error_px": 33.91656570680642,
+            "backward_error_px": 33.89078741045266,
+            "gate_px": 27.15,
+            "forward_offset": [
+              -7.895625114440918,
+              1.1767040491104126
+            ],
+            "backward_offset": [
+              7.466933250427246,
+              -0.8187170624732971
+            ],
+            "reason": "both_offset_gates",
+            "tick": 191,
+            "owner": "o0.1",
+            "previous_match_tick": 190,
+            "previous_pid": 58,
+            "assigned_pid": 61,
+            "teacher_mask_iou": 0.8941798941798942
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 51.2310940738142,
+            "previous_box": [
+              231.5,
+              130.0,
+              281.875,
+              237.0
+            ],
+            "current_box": [
+              215.0,
+              146.5,
+              266.875,
+              318.0
+            ],
+            "forward_error_px": 47.77683883727525,
+            "backward_error_px": 48.62967144719786,
+            "gate_px": 32.1,
+            "forward_offset": [
+              -6.657525539398193,
+              1.8463408946990967
+            ],
+            "backward_offset": [
+              7.138124942779541,
+              -0.8889453411102295
+            ],
+            "reason": "both_offset_gates",
+            "tick": 194,
+            "owner": "o0.1",
+            "previous_match_tick": 193,
+            "previous_pid": 61,
+            "assigned_pid": 58,
+            "teacher_mask_iou": 0.8037383177570093
+          },
+          {
+            "gap": 1,
+            "cost": 0.2289481818604212,
+            "displacement_px": 11.730202736952162,
+            "previous_box": [
+              215.0,
+              146.5,
+              266.875,
+              318.0
+            ],
+            "current_box": [
+              202.0,
+              141.5,
+              256.5,
+              325.0
+            ],
+            "forward_error_px": 4.909610335865857,
+            "backward_error_px": 3.70797187621662,
+            "gate_px": 51.449999999999996,
+            "forward_offset": [
+              -6.796875,
+              1.4313476085662842
+            ],
+            "backward_offset": [
+              7.97971248626709,
+              -1.0369755029678345
+            ],
+            "rival_cost": 0.18454380126516723,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9882352941176471,
+            "rival_box": [
+              203.5,
+              142.0,
+              264.5,
+              321.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 195,
+            "owner": "o0.1",
+            "previous_match_tick": 194,
+            "previous_pid": 58,
+            "assigned_pid": 63,
+            "teacher_mask_iou": 0.8413284132841329
+          },
+          {
+            "gap": 1,
+            "cost": 0.13065785242804434,
+            "displacement_px": 6.2327888019729984,
+            "previous_box": [
+              202.0,
+              141.5,
+              256.5,
+              325.0
+            ],
+            "current_box": [
+              191.75,
+              144.0,
+              254.375,
+              324.0
+            ],
+            "forward_error_px": 1.6155845529013848,
+            "backward_error_px": 0.4260192173849794,
+            "gate_px": 54.0,
+            "forward_offset": [
+              -7.518901348114014,
+              1.6651414632797241
+            ],
+            "backward_offset": [
+              6.61128044128418,
+              -0.7063822150230408
+            ],
+            "rival_cost": 0.17115196447482323,
+            "rival_kind": "track",
+            "rival_pid": 62,
+            "rival_tick": 195,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9882352941176471,
+            "rival_box": [
+              203.5,
+              142.0,
+              264.5,
+              321.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 196,
+            "owner": "o0.1",
+            "previous_match_tick": 195,
+            "previous_pid": 63,
+            "assigned_pid": 58,
+            "teacher_mask_iou": 0.922360248447205
+          }
+        ],
+        "miss_examples": [
+          {
+            "tick": 0,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              751.0,
+              138.0,
+              850.0,
+              228.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 16,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.004246284501061571,
+            "teacher_box": [
+              86.0,
+              166.0,
+              156.0,
+              339.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 24,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.028871391076115485,
+            "teacher_box": [
+              131.0,
+              146.0,
+              157.0,
+              302.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 25,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              138.0,
+              142.0,
+              209.0,
+              297.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 26,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4496124031007752,
+            "teacher_box": [
+              146.0,
+              136.0,
+              212.0,
+              284.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 28,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.23880597014925373,
+            "teacher_box": [
+              185.0,
+              124.0,
+              239.0,
+              279.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 28,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4596774193548387,
+            "teacher_box": [
+              166.0,
+              128.0,
+              227.0,
+              270.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 30,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.20535714285714285,
+            "teacher_box": [
+              173.0,
+              130.0,
+              222.0,
+              260.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 31,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14224137931034483,
+            "teacher_box": [
+              197.0,
+              136.0,
+              231.0,
+              276.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 32,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.15985130111524162,
+            "teacher_box": [
+              206.0,
+              135.0,
+              240.0,
+              265.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 33,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.12648221343873517,
+            "teacher_box": [
+              212.0,
+              137.0,
+              246.0,
+              246.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 34,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              235.0,
+              109.0,
+              282.0,
+              291.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 34,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              229.0,
+              123.0,
+              241.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 35,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.015267175572519083,
+            "teacher_box": [
+              234.0,
+              124.0,
+              262.0,
+              231.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 36,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.05371900826446281,
+            "teacher_box": [
+              244.0,
+              123.0,
+              266.0,
+              232.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 37,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.010344827586206896,
+            "teacher_box": [
+              242.0,
+              122.0,
+              273.0,
+              228.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 38,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.03436426116838488,
+            "teacher_box": [
+              244.0,
+              117.0,
+              274.0,
+              213.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 39,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.038869257950530034,
+            "teacher_box": [
+              270.0,
+              91.0,
+              311.0,
+              140.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 40,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.05405405405405406,
+            "teacher_box": [
+              282.0,
+              89.0,
+              327.0,
+              160.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 41,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.02456140350877193,
+            "teacher_box": [
+              109.0,
+              156.0,
+              203.0,
+              331.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 41,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.09615384615384616,
+            "teacher_box": [
+              292.0,
+              86.0,
+              354.0,
+              209.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 42,
+            "owner": "o0",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.023391812865497075,
+            "teacher_box": [
+              103.0,
+              159.0,
+              208.0,
+              331.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 42,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.11370262390670553,
+            "teacher_box": [
+              313.0,
+              86.0,
+              368.0,
+              209.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 43,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.11142857142857143,
+            "teacher_box": [
+              320.0,
+              84.0,
+              374.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 44,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.1246684350132626,
+            "teacher_box": [
+              314.0,
+              79.0,
+              366.0,
+              211.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 45,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.13105413105413105,
+            "teacher_box": [
+              341.0,
+              76.0,
+              370.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 46,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14204545454545456,
+            "teacher_box": [
+              348.0,
+              74.0,
+              392.0,
+              211.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 47,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              338.0,
+              76.0,
+              400.0,
+              247.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 48,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.35064935064935066,
+            "teacher_box": [
+              354.0,
+              71.0,
+              425.0,
+              213.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 49,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.48322147651006714,
+            "teacher_box": [
+              357.0,
+              69.0,
+              429.0,
+              208.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 51,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4230769230769231,
+            "teacher_box": [
+              386.0,
+              61.0,
+              430.0,
+              194.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 52,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.02654867256637168,
+            "teacher_box": [
+              399.0,
+              57.0,
+              430.0,
+              193.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 55,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.01256281407035176,
+            "teacher_box": [
+              398.0,
+              61.0,
+              469.0,
+              224.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 55,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              241.0,
+              126.0,
+              289.0,
+              256.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 56,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              250.0,
+              123.0,
+              298.0,
+              224.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 58,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.006153846153846154,
+            "teacher_box": [
+              441.0,
+              48.0,
+              482.0,
+              178.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 59,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              913.0,
+              165.0,
+              1055.0,
+              350.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 61,
+            "owner": "o0",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              45.0,
+              301.0,
+              65.0,
+              328.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 62,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4198473282442748,
+            "teacher_box": [
+              458.0,
+              46.0,
+              523.0,
+              165.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 63,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4083333333333333,
+            "teacher_box": [
+              461.0,
+              47.0,
+              523.0,
+              163.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 64,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4787234042553192,
+            "teacher_box": [
+              466.0,
+              77.0,
+              526.0,
+              201.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 65,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.43214285714285716,
+            "teacher_box": [
+              476.0,
+              116.0,
+              532.0,
+              201.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 66,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.025362318840579712,
+            "teacher_box": [
+              496.0,
+              29.0,
+              524.0,
+              159.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 67,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14746543778801843,
+            "teacher_box": [
+              485.0,
+              41.0,
+              511.0,
+              81.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 68,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.12903225806451613,
+            "teacher_box": [
+              494.0,
+              38.0,
+              512.0,
+              77.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 69,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14093959731543623,
+            "teacher_box": [
+              496.0,
+              37.0,
+              514.0,
+              70.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 70,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.36496350364963503,
+            "teacher_box": [
+              512.0,
+              148.0,
+              554.0,
+              185.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 70,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.059602649006622516,
+            "teacher_box": [
+              499.0,
+              31.0,
+              522.0,
+              75.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 71,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.42718446601941745,
+            "teacher_box": [
+              514.0,
+              143.0,
+              567.0,
+              186.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 71,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.07766990291262135,
+            "teacher_box": [
+              502.0,
+              38.0,
+              514.0,
+              80.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 72,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              514.0,
+              141.0,
+              565.0,
+              185.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 72,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              579.0,
+              113.0,
+              598.0,
+              139.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 73,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              574.0,
+              85.0,
+              605.0,
+              134.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 77,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              555.0,
+              138.0,
+              571.0,
+              168.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 79,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              558.0,
+              58.0,
+              602.0,
+              167.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 81,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.36477987421383645,
+            "teacher_box": [
+              566.0,
+              49.0,
+              608.0,
+              154.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 82,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              594.0,
+              16.0,
+              616.0,
+              120.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 83,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.004310344827586207,
+            "teacher_box": [
+              594.0,
+              16.0,
+              613.0,
+              100.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 84,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              597.0,
+              16.0,
+              607.0,
+              41.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 88,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              593.0,
+              39.0,
+              969.0,
+              310.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 89,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.15789473684210525,
+            "teacher_box": [
+              593.0,
+              16.0,
+              607.0,
+              40.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 90,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              593.0,
+              39.0,
+              962.0,
+              304.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 91,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              508.0,
+              144.0,
+              558.0,
+              190.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 99,
+            "owner": "o5",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.48214285714285715,
+            "teacher_box": [
+              575.0,
+              69.0,
+              601.0,
+              159.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 100,
+            "owner": "o5",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.49032258064516127,
+            "teacher_box": [
+              575.0,
+              59.0,
+              602.0,
+              157.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 157,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              601.0,
+              52.0,
+              619.0,
+              140.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 164,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.005383580080753701,
+            "teacher_box": [
+              560.0,
+              69.0,
+              589.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 165,
+            "owner": "o0.1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.0014005602240896359,
+            "teacher_box": [
+              547.0,
+              89.0,
+              581.0,
+              156.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 166,
+            "owner": "o0.1",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              532.0,
+              141.0,
+              560.0,
+              161.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 167,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.007194244604316547,
+            "teacher_box": [
+              521.0,
+              141.0,
+              559.0,
+              173.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 168,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              495.0,
+              109.0,
+              554.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          }
+        ],
+        "wrong_examples": [
+          {
+            "tick": 31,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7477064220183486
+          },
+          {
+            "tick": 32,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8536585365853658
+          },
+          {
+            "tick": 33,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8253968253968254
+          },
+          {
+            "tick": 34,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7396449704142012
+          },
+          {
+            "tick": 35,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.6858974358974359
+          },
+          {
+            "tick": 36,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8227848101265823
+          },
+          {
+            "tick": 37,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8413793103448276
+          },
+          {
+            "tick": 38,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8702290076335878
+          },
+          {
+            "tick": 39,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8260869565217391
+          },
+          {
+            "tick": 40,
+            "owner": "o0",
+            "pid": 16,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7640449438202247
+          },
+          {
+            "tick": 47,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.5344827586206896
+          },
+          {
+            "tick": 50,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.625
+          },
+          {
+            "tick": 53,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.6938775510204082
+          },
+          {
+            "tick": 54,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.8545454545454545
+          },
+          {
+            "tick": 55,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.8545454545454545
+          },
+          {
+            "tick": 56,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.831858407079646
+          },
+          {
+            "tick": 65,
+            "owner": "o4",
+            "pid": 14,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.7346938775510204
+          }
+        ],
+        "tracker_stats": {
+          "births": 63,
+          "adjacent": 620,
+          "recovered": 23,
+          "ambiguous": 306
+        },
+        "tracker_seconds": 0.12049600249156356,
+        "cost_matrix_seconds": 0.10204389807768166,
+        "cost_pairs": 7846,
+        "exact_duplicates_removed": 0,
+        "dedup_seconds": 0.0,
+        "foreground_union_equal": null,
+        "total_seconds": 0.37761400011368096,
+        "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f",
+        "ids_sha256": "fc62a5150c1372073fbe08434c83565b38e151f409aa455f2fc885f7de81b174"
+      }
+    },
+    "limitations": "Cached B baseline; local tracker reset; teacher masks/owner IDs, not independent pixels or events. No TEST, fitting, GPU or production changes."
+  },
+  "candidate": {
+    "complete": true,
+    "exact_dedup": true,
+    "sources": {
+      "door_20260918_01405": {
+        "ticks": 200,
+        "start_tick": 0,
+        "counts": {
+          "truth": 269,
+          "predictions": 269,
+          "matched": 265,
+          "adjacent_matched_pairs": 262,
+          "reappeared_matched_pairs": 1
+        },
+        "break_reasons": {},
+        "miss_reasons": {
+          "mask_below_match": 3,
+          "confidence_filtered": 1
+        },
+        "failure_examples": [],
+        "miss_examples": [
+          {
+            "tick": 12,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.39855072463768115,
+            "teacher_box": [
+              469.0,
+              75.0,
+              497.0,
+              147.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 13,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4507042253521127,
+            "teacher_box": [
+              465.0,
+              78.0,
+              493.0,
+              150.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 14,
+            "owner": "o1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.45454545454545453,
+            "teacher_box": [
+              446.0,
+              41.0,
+              494.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 76,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              47.0,
+              299.0,
+              62.0,
+              316.0
+            ],
+            "teacher_visible_previous": true
+          }
+        ],
+        "wrong_examples": [],
+        "tracker_stats": {
+          "births": 2,
+          "adjacent": 267,
+          "recovered": 0,
+          "ambiguous": 0
+        },
+        "tracker_seconds": 0.031538001261651516,
+        "cost_matrix_seconds": 0.023647000081837177,
+        "cost_pairs": 429,
+        "exact_duplicates_removed": 0,
+        "dedup_seconds": 0.00342260068282485,
+        "foreground_union_equal": true,
+        "total_seconds": 0.09627740015275776,
+        "cache_sha256": "6e2b421e6fe826d07abfe1ac1a56518a09431fc7942e7883e94c77be46e73cc9",
+        "ids_sha256": "151238113112e0cc73be25b8df88718a2e7d33e48e824c674fa30e6fd36d8574"
+      },
+      "door_20260918_15375": {
+        "ticks": 200,
+        "start_tick": 0,
+        "counts": {
+          "truth": 740,
+          "predictions": 701,
+          "matched": 669,
+          "adjacent_matched_pairs": 634,
+          "adjacent_breaks": 33,
+          "reappeared_matched_pairs": 28,
+          "observations_on_id_first_matched_to_other_owner": 18,
+          "reappeared_breaks": 11
+        },
+        "break_reasons": {
+          "ambiguity_veto": 31,
+          "both_offset_gates": 5,
+          "claimed_by_adjacent_track": 1,
+          "gap_velocity_gate": 7
+        },
+        "miss_reasons": {
+          "confidence_filtered": 30,
+          "mask_below_match": 37,
+          "no_overlapping_mask": 4
+        },
+        "failure_examples": [
+          {
+            "gap": 1,
+            "cost": 0.171473306180573,
+            "displacement_px": 9.88468670469631,
+            "previous_box": [
+              751.75,
+              137.5,
+              856.0,
+              225.875
+            ],
+            "current_box": [
+              763.5,
+              139.0,
+              864.0,
+              223.5
+            ],
+            "forward_error_px": 4.644714157572097,
+            "backward_error_px": 4.103876966125402,
+            "gate_px": 25.349999999999998,
+            "forward_offset": [
+              5.2948455810546875,
+              0.3342221677303314
+            ],
+            "backward_offset": [
+              -5.890196800231934,
+              -0.5439018607139587
+            ],
+            "rival_cost": 0.09712036660679409,
+            "rival_kind": "track",
+            "rival_pid": 3,
+            "rival_tick": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9967741935483871,
+            "rival_box": [
+              756.0,
+              137.75,
+              857.0,
+              226.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 2,
+            "owner": "o1",
+            "previous_match_tick": 1,
+            "previous_pid": 4,
+            "assigned_pid": 6,
+            "teacher_mask_iou": 0.9695945945945946
+          },
+          {
+            "gap": 1,
+            "cost": 0.14843702008869203,
+            "displacement_px": 3.389436715739062,
+            "previous_box": [
+              763.5,
+              139.0,
+              864.0,
+              223.5
+            ],
+            "current_box": [
+              766.25,
+              140.5,
+              868.0,
+              222.625
+            ],
+            "forward_error_px": 2.5289478134266417,
+            "backward_error_px": 3.4501914796884527,
+            "gate_px": 24.6375,
+            "forward_offset": [
+              5.893835544586182,
+              0.538430392742157
+            ],
+            "backward_offset": [
+              -6.777853488922119,
+              -0.88206946849823
+            ],
+            "rival_cost": 0.07741803333158617,
+            "rival_kind": "track",
+            "rival_pid": 5,
+            "rival_tick": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9965870307167235,
+            "rival_box": [
+              761.5,
+              139.0,
+              861.0,
+              223.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 3,
+            "owner": "o1",
+            "previous_match_tick": 2,
+            "previous_pid": 6,
+            "assigned_pid": 7,
+            "teacher_mask_iou": 0.9640287769784173
+          },
+          {
+            "gap": 1,
+            "cost": 0.09789092676944099,
+            "displacement_px": 8.518591799704925,
+            "previous_box": [
+              766.25,
+              140.5,
+              868.0,
+              222.625
+            ],
+            "current_box": [
+              776.5,
+              141.0,
+              874.75,
+              221.0
+            ],
+            "forward_error_px": 2.2266514004936857,
+            "backward_error_px": 2.355531239355925,
+            "gate_px": 24.0,
+            "forward_offset": [
+              6.791440010070801,
+              0.8653652667999268
+            ],
+            "backward_offset": [
+              -9.65185546875,
+              -1.4921913146972656
+            ],
+            "rival_cost": 0.08075847143004528,
+            "rival_kind": "track",
+            "rival_pid": 8,
+            "rival_tick": 3,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9963768115942029,
+            "rival_box": [
+              765.0,
+              139.5,
+              869.5,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 4,
+            "owner": "o1",
+            "previous_match_tick": 3,
+            "previous_pid": 7,
+            "assigned_pid": 9,
+            "teacher_mask_iou": 0.9429657794676806
+          },
+          {
+            "gap": 1,
+            "cost": 0.7635343822220365,
+            "displacement_px": 28.841159824112484,
+            "previous_box": [
+              776.5,
+              141.0,
+              874.75,
+              221.0
+            ],
+            "current_box": [
+              789.5,
+              143.5,
+              900.75,
+              261.0
+            ],
+            "forward_error_px": 22.098674001596972,
+            "backward_error_px": 21.5271902239464,
+            "gate_px": 24.0,
+            "forward_offset": [
+              9.70361328125,
+              1.4413604736328125
+            ],
+            "backward_offset": [
+              -10.835268020629883,
+              -1.5435965061187744
+            ],
+            "rival_cost": 0.7711071721704055,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9812734082397003,
+            "rival_box": [
+              790.75,
+              143.0,
+              899.5,
+              262.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 5,
+            "owner": "o1",
+            "previous_match_tick": 4,
+            "previous_pid": 9,
+            "assigned_pid": 10,
+            "teacher_mask_iou": 0.9637681159420289
+          },
+          {
+            "gap": 1,
+            "cost": 0.12992818455890337,
+            "displacement_px": 10.909607291282304,
+            "previous_box": [
+              789.5,
+              143.5,
+              900.75,
+              261.0
+            ],
+            "current_box": [
+              801.5,
+              142.5,
+              909.0,
+              270.125
+            ],
+            "forward_error_px": 2.749481817125601,
+            "backward_error_px": 2.681104394291277,
+            "gate_px": 35.25,
+            "forward_offset": [
+              10.938392639160156,
+              1.4360874891281128
+            ],
+            "backward_offset": [
+              -10.481513977050781,
+              -1.4052046537399292
+            ],
+            "rival_cost": 0.11879729452481408,
+            "rival_kind": "track",
+            "rival_pid": 12,
+            "rival_tick": 5,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9812734082397003,
+            "rival_box": [
+              790.75,
+              143.0,
+              899.5,
+              262.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 6,
+            "owner": "o1",
+            "previous_match_tick": 5,
+            "previous_pid": 10,
+            "assigned_pid": 3,
+            "teacher_mask_iou": 0.918918918918919
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 27.725918605160768,
+            "previous_box": [
+              198.0,
+              123.0,
+              257.75,
+              255.5
+            ],
+            "current_box": [
+              194.0,
+              123.625,
+              229.875,
+              209.5
+            ],
+            "forward_error_px": 27.19153937965858,
+            "backward_error_px": 27.36457320233639,
+            "gate_px": 25.7625,
+            "forward_offset": [
+              -3.6224422454833984,
+              1.555419921875
+            ],
+            "backward_offset": [
+              0.76495361328125,
+              -0.0855916365981102
+            ],
+            "reason": "both_offset_gates",
+            "tick": 27,
+            "owner": "o0",
+            "previous_match_tick": 26,
+            "previous_pid": 2,
+            "assigned_pid": 14,
+            "teacher_mask_iou": 0.512
+          },
+          {
+            "gap": 1,
+            "cost": 0.19434916443210393,
+            "displacement_px": 8.475147491341964,
+            "previous_box": [
+              183.0,
+              134.0,
+              256.5,
+              309.0
+            ],
+            "current_box": [
+              193.0,
+              127.0,
+              256.75,
+              302.5
+            ],
+            "forward_error_px": 6.8108297166354825,
+            "backward_error_px": 5.29445953436122,
+            "gate_px": 52.5,
+            "forward_offset": [
+              2.25604248046875,
+              -0.572906494140625
+            ],
+            "backward_offset": [
+              -5.958251953125,
+              1.521520972251892
+            ],
+            "rival_cost": 0.17239069623944103,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9307228915662651,
+            "rival_box": [
+              191.75,
+              128.0,
+              257.125,
+              304.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 29,
+            "owner": "o3",
+            "previous_match_tick": 28,
+            "previous_pid": 11,
+            "assigned_pid": 16,
+            "teacher_mask_iou": 0.8359621451104101
+          },
+          {
+            "gap": 1,
+            "cost": 0.18828745214426,
+            "displacement_px": 8.198942386064193,
+            "previous_box": [
+              193.0,
+              127.0,
+              256.75,
+              302.5
+            ],
+            "current_box": [
+              199.75,
+              122.0,
+              256.625,
+              292.5
+            ],
+            "forward_error_px": 6.524630420082543,
+            "backward_error_px": 6.498476532135431,
+            "gate_px": 51.15,
+            "forward_offset": [
+              5.896191596984863,
+              -1.50872802734375
+            ],
+            "backward_offset": [
+              -5.636265754699707,
+              1.4312019348144531
+            ],
+            "rival_cost": 0.204584468573923,
+            "rival_kind": "track",
+            "rival_pid": 15,
+            "rival_tick": 29,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9307228915662651,
+            "rival_box": [
+              191.75,
+              128.0,
+              257.125,
+              304.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 30,
+            "owner": "o3",
+            "previous_match_tick": 29,
+            "previous_pid": 16,
+            "assigned_pid": 11,
+            "teacher_mask_iou": 0.8571428571428571
+          },
+          {
+            "gap": 4,
+            "cost": 0.7055936558441092,
+            "displacement_px": 38.623634684607296,
+            "previous_box": [
+              194.0,
+              123.625,
+              229.875,
+              209.5
+            ],
+            "current_box": [
+              170.125,
+              131.5,
+              226.75,
+              274.0
+            ],
+            "gate_px": 49.807500000000005,
+            "velocity_error_px": 38.623634684607296,
+            "reason": "claimed_by_adjacent_track",
+            "tick": 31,
+            "owner": "o0",
+            "previous_match_tick": 27,
+            "previous_pid": 14,
+            "assigned_pid": 13,
+            "teacher_mask_iou": 0.7477064220183486
+          },
+          {
+            "gap": 3,
+            "cost": 0.32891206861440414,
+            "displacement_px": 31.98632520312391,
+            "previous_box": [
+              117.0,
+              155.0,
+              182.5,
+              271.0
+            ],
+            "current_box": [
+              98.0,
+              160.0,
+              142.0,
+              289.5
+            ],
+            "gate_px": 59.160000000000004,
+            "velocity_error_px": 16.636743972304195,
+            "rival_cost": 0.3085584213261899,
+            "rival_kind": "track",
+            "rival_pid": 2,
+            "rival_tick": 26,
+            "rival_owner": "o0",
+            "rival_mask_iou_to_previous": 0.0,
+            "rival_box": [
+              198.0,
+              123.0,
+              257.75,
+              255.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 43,
+            "owner": "o0",
+            "previous_match_tick": 40,
+            "previous_pid": 13,
+            "assigned_pid": 18,
+            "teacher_mask_iou": 0.9016393442622951
+          },
+          {
+            "gap": 7,
+            "cost": null,
+            "displacement_px": 245.64497374259463,
+            "previous_box": [
+              117.0,
+              155.0,
+              182.5,
+              271.0
+            ],
+            "current_box": [
+              352.5,
+              74.5,
+              416.25,
+              206.0
+            ],
+            "gate_px": 91.64,
+            "velocity_error_px": 284.05140929944355,
+            "reason": "gap_velocity_gate",
+            "tick": 47,
+            "owner": "o4",
+            "previous_match_tick": 30,
+            "previous_pid": 13,
+            "assigned_pid": 11,
+            "teacher_mask_iou": 0.5344827586206896
+          },
+          {
+            "gap": 1,
+            "cost": 0.7385177680098749,
+            "displacement_px": 22.25561726845607,
+            "previous_box": [
+              352.5,
+              74.5,
+              416.25,
+              206.0
+            ],
+            "current_box": [
+              347.0,
+              78.0,
+              422.75,
+              247.0
+            ],
+            "forward_error_px": 25.90203981925153,
+            "backward_error_px": 25.202759160601918,
+            "gate_px": 39.449999999999996,
+            "forward_offset": [
+              9.732142448425293,
+              -1.9508928060531616
+            ],
+            "backward_offset": [
+              -7.723323345184326,
+              1.8954482078552246
+            ],
+            "rival_cost": 0.22228649195169764,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 5,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.005291005291005291,
+            "rival_box": [
+              369.0,
+              75.5,
+              425.75,
+              200.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 48,
+            "owner": "o3",
+            "previous_match_tick": 46,
+            "previous_pid": 11,
+            "assigned_pid": 19,
+            "teacher_mask_iou": 0.8672566371681416
+          },
+          {
+            "gap": 1,
+            "cost": 0.5539122266165661,
+            "displacement_px": 22.53920196014047,
+            "previous_box": [
+              428.0,
+              51.5,
+              468.5,
+              171.5
+            ],
+            "current_box": [
+              434.0,
+              50.5,
+              494.25,
+              204.5
+            ],
+            "forward_error_px": 21.19243804038587,
+            "backward_error_px": 20.528235863503763,
+            "gate_px": 36.0,
+            "forward_offset": [
+              4.347222328186035,
+              -1.7828505039215088
+            ],
+            "backward_offset": [
+              -5.351222991943359,
+              1.62550950050354
+            ],
+            "rival_cost": 0.5346699484462127,
+            "rival_kind": "track",
+            "rival_pid": 19,
+            "rival_tick": 56,
+            "rival_owner": "o3",
+            "rival_mask_iou_to_previous": 0.0,
+            "rival_box": [
+              403.75,
+              60.0,
+              489.0,
+              223.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 57,
+            "owner": "o4",
+            "previous_match_tick": 56,
+            "previous_pid": 11,
+            "assigned_pid": 20,
+            "teacher_mask_iou": 0.7211538461538461
+          },
+          {
+            "gap": 2,
+            "cost": 0.43743240373210424,
+            "displacement_px": 25.106025173252736,
+            "previous_box": [
+              434.0,
+              50.5,
+              494.25,
+              204.5
+            ],
+            "current_box": [
+              454.5,
+              42.0,
+              504.75,
+              173.5
+            ],
+            "gate_px": 57.86,
+            "velocity_error_px": 25.106025173252736,
+            "rival_cost": 0.4114829245840962,
+            "rival_kind": "track",
+            "rival_pid": 11,
+            "rival_tick": 56,
+            "rival_owner": "o4",
+            "rival_mask_iou_to_previous": 0.30718954248366015,
+            "rival_box": [
+              428.0,
+              51.5,
+              468.5,
+              171.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 59,
+            "owner": "o4",
+            "previous_match_tick": 57,
+            "previous_pid": 20,
+            "assigned_pid": 21,
+            "teacher_mask_iou": 0.7364341085271318
+          },
+          {
+            "gap": 1,
+            "cost": 0.6107887402032511,
+            "displacement_px": 25.942318829472434,
+            "previous_box": [
+              273.25,
+              112.0,
+              333.125,
+              219.0
+            ],
+            "current_box": [
+              281.75,
+              108.5,
+              361.5,
+              259.0
+            ],
+            "forward_error_px": 22.804090546043465,
+            "backward_error_px": 23.46675808069915,
+            "gate_px": 32.1,
+            "forward_offset": [
+              7.474247455596924,
+              -1.7458405494689941
+            ],
+            "backward_offset": [
+              -5.52951717376709,
+              1.3477731943130493
+            ],
+            "rival_cost": 0.6153843260798698,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 6,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9501779359430605,
+            "rival_box": [
+              281.0,
+              106.5,
+              361.5,
+              262.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 60,
+            "owner": "o5",
+            "previous_match_tick": 59,
+            "previous_pid": 17,
+            "assigned_pid": 22,
+            "teacher_mask_iou": 0.8436482084690554
+          },
+          {
+            "gap": 1,
+            "cost": 0.2164539611506202,
+            "displacement_px": 13.115472732616237,
+            "previous_box": [
+              281.75,
+              108.5,
+              361.5,
+              259.0
+            ],
+            "current_box": [
+              291.25,
+              107.0,
+              377.75,
+              255.5
+            ],
+            "forward_error_px": 7.402263251530513,
+            "backward_error_px": 5.765073689328906,
+            "gate_px": 44.55,
+            "forward_offset": [
+              5.5612897872924805,
+              -1.3584465980529785
+            ],
+            "backward_offset": [
+              -7.168878555297852,
+              1.6776541471481323
+            ],
+            "rival_cost": 0.22410819496661208,
+            "rival_kind": "track",
+            "rival_pid": 23,
+            "rival_tick": 60,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9501779359430605,
+            "rival_box": [
+              281.0,
+              106.5,
+              361.5,
+              262.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 61,
+            "owner": "o5",
+            "previous_match_tick": 60,
+            "previous_pid": 22,
+            "assigned_pid": 17,
+            "teacher_mask_iou": 0.9061488673139159
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 49.38177366511353,
+            "previous_box": [
+              485.125,
+              38.5,
+              525.0,
+              165.0
+            ],
+            "current_box": [
+              493.0,
+              31.8125,
+              513.25,
+              73.0
+            ],
+            "forward_error_px": 49.0311077068075,
+            "backward_error_px": 48.78150475172683,
+            "gate_px": 12.35625,
+            "forward_offset": [
+              2.6960227489471436,
+              -0.5320711731910706
+            ],
+            "backward_offset": [
+              -2.925347328186035,
+              0.8052300214767456
+            ],
+            "reason": "both_offset_gates",
+            "tick": 65,
+            "owner": "o4",
+            "previous_match_tick": 64,
+            "previous_pid": 21,
+            "assigned_pid": 11,
+            "teacher_mask_iou": 0.7346938775510204
+          },
+          {
+            "gap": 1,
+            "cost": 0.1827805771530941,
+            "displacement_px": 12.775862250744566,
+            "previous_box": [
+              342.5,
+              90.5,
+              401.125,
+              254.0
+            ],
+            "current_box": [
+              352.0,
+              87.5,
+              417.0,
+              254.0
+            ],
+            "forward_error_px": 6.564200167240842,
+            "backward_error_px": 6.98964361767865,
+            "gate_px": 49.05,
+            "forward_offset": [
+              6.132179260253906,
+              -1.1586880683898926
+            ],
+            "backward_offset": [
+              -5.700695514678955,
+              1.3007991313934326
+            ],
+            "rival_cost": 0.18282913800711303,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9906832298136646,
+            "rival_box": [
+              352.5,
+              88.0,
+              416.5,
+              252.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 68,
+            "owner": "o5",
+            "previous_match_tick": 67,
+            "previous_pid": 17,
+            "assigned_pid": 24,
+            "teacher_mask_iou": 0.899390243902439
+          },
+          {
+            "gap": 1,
+            "cost": 0.12140179822260161,
+            "displacement_px": 9.055385138137417,
+            "previous_box": [
+              352.0,
+              87.5,
+              417.0,
+              254.0
+            ],
+            "current_box": [
+              358.5,
+              88.0,
+              428.5,
+              251.5
+            ],
+            "forward_error_px": 3.390680557597843,
+            "backward_error_px": 3.742886159907877,
+            "gate_px": 49.05,
+            "forward_offset": [
+              5.625190734863281,
+              -1.3276844024658203
+            ],
+            "backward_offset": [
+              -5.258467197418213,
+              1.1006433963775635
+            ],
+            "rival_cost": 0.12359234412866454,
+            "rival_kind": "track",
+            "rival_pid": 25,
+            "rival_tick": 68,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9906832298136646,
+            "rival_box": [
+              352.5,
+              88.0,
+              416.5,
+              252.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 69,
+            "owner": "o5",
+            "previous_match_tick": 68,
+            "previous_pid": 24,
+            "assigned_pid": 17,
+            "teacher_mask_iou": 0.8461538461538461
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 37.50317694875996,
+            "previous_box": [
+              502.625,
+              64.5,
+              566.0,
+              185.5
+            ],
+            "current_box": [
+              513.75,
+              140.875,
+              565.5,
+              183.375
+            ],
+            "gate_px": 18.7,
+            "velocity_error_px": 29.213986911238255,
+            "reason": "gap_velocity_gate",
+            "tick": 73,
+            "owner": "o3",
+            "previous_match_tick": 69,
+            "previous_pid": 19,
+            "assigned_pid": 26,
+            "teacher_mask_iou": 0.8863636363636364
+          },
+          {
+            "gap": 1,
+            "cost": 0.1577479848669862,
+            "displacement_px": 3.5637333391402897,
+            "previous_box": [
+              513.75,
+              140.875,
+              565.5,
+              183.375
+            ],
+            "current_box": [
+              516.0,
+              140.0625,
+              569.625,
+              181.0
+            ],
+            "forward_error_px": 1.1012923496592733,
+            "backward_error_px": 1.3371993391534207,
+            "gate_px": 12.28125,
+            "forward_offset": [
+              2.4427082538604736,
+              -0.7824978232383728
+            ],
+            "backward_offset": [
+              -2.281826972961426,
+              0.6099520325660706
+            ],
+            "rival_cost": 0.14736334516781524,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 3,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9459459459459459,
+            "rival_box": [
+              515.625,
+              139.125,
+              568.5,
+              181.875
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 74,
+            "owner": "o3",
+            "previous_match_tick": 73,
+            "previous_pid": 26,
+            "assigned_pid": 29,
+            "teacher_mask_iou": 0.9230769230769231
+          },
+          {
+            "gap": 9,
+            "cost": null,
+            "displacement_px": 87.68496633010986,
+            "previous_box": [
+              493.0,
+              31.8125,
+              513.25,
+              73.0
+            ],
+            "current_box": [
+              567.125,
+              24.0,
+              605.75,
+              135.5
+            ],
+            "gate_px": 38.30437500000001,
+            "velocity_error_px": 90.9952351087682,
+            "reason": "gap_velocity_gate",
+            "tick": 74,
+            "owner": "o4",
+            "previous_match_tick": 65,
+            "previous_pid": 11,
+            "assigned_pid": 27,
+            "teacher_mask_iou": 0.654320987654321
+          },
+          {
+            "gap": 1,
+            "cost": 0.3710400566422034,
+            "displacement_px": 5.446562132437305,
+            "previous_box": [
+              516.0,
+              140.0625,
+              569.625,
+              181.0
+            ],
+            "current_box": [
+              524.0,
+              138.875,
+              570.125,
+              175.375
+            ],
+            "forward_error_px": 3.440101493642836,
+            "backward_error_px": 2.8567071987614834,
+            "gate_px": 10.95,
+            "forward_offset": [
+              2.3219993114471436,
+              -0.5571954846382141
+            ],
+            "backward_offset": [
+              -2.93212890625,
+              0.8716905117034912
+            ],
+            "rival_cost": 0.3966935696400984,
+            "rival_kind": "track",
+            "rival_pid": 28,
+            "rival_tick": 74,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9459459459459459,
+            "rival_box": [
+              515.625,
+              139.125,
+              568.5,
+              181.875
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 75,
+            "owner": "o3",
+            "previous_match_tick": 74,
+            "previous_pid": 29,
+            "assigned_pid": 26,
+            "teacher_mask_iou": 0.8857142857142857
+          },
+          {
+            "gap": 1,
+            "cost": 0.13791678876182506,
+            "displacement_px": 3.48209706929603,
+            "previous_box": [
+              416.0,
+              71.0,
+              492.25,
+              225.5
+            ],
+            "current_box": [
+              422.25,
+              67.0,
+              488.5,
+              223.0
+            ],
+            "forward_error_px": 4.2469182597665025,
+            "backward_error_px": 4.158076180460541,
+            "gate_px": 46.35,
+            "forward_offset": [
+              5.092721939086914,
+              -1.4417403936386108
+            ],
+            "backward_offset": [
+              -4.967371463775635,
+              1.3870059251785278
+            ],
+            "rival_cost": 0.1131160869873856,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9962825278810409,
+            "rival_box": [
+              421.5,
+              68.0,
+              493.0,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 78,
+            "owner": "o5",
+            "previous_match_tick": 77,
+            "previous_pid": 17,
+            "assigned_pid": 30,
+            "teacher_mask_iou": 0.9267399267399268
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 45.186959713229214,
+            "previous_box": [
+              537.25,
+              138.0625,
+              570.75,
+              168.75
+            ],
+            "current_box": [
+              556.9375,
+              56.5,
+              587.25,
+              167.5
+            ],
+            "gate_px": 13.5025,
+            "velocity_error_px": 34.22972141465659,
+            "reason": "gap_velocity_gate",
+            "tick": 78,
+            "owner": "o3",
+            "previous_match_tick": 76,
+            "previous_pid": 26,
+            "assigned_pid": 32,
+            "teacher_mask_iou": 0.6756756756756757
+          },
+          {
+            "gap": 1,
+            "cost": 0.15408665084046125,
+            "displacement_px": 7.3402252179343925,
+            "previous_box": [
+              422.25,
+              67.0,
+              488.5,
+              223.0
+            ],
+            "current_box": [
+              431.125,
+              64.5,
+              488.75,
+              214.0
+            ],
+            "forward_error_px": 4.407137904005167,
+            "backward_error_px": 4.213901362274862,
+            "gate_px": 44.85,
+            "forward_offset": [
+              5.001148700714111,
+              -1.36474609375
+            ],
+            "backward_offset": [
+              -5.633263111114502,
+              1.674410343170166
+            ],
+            "rival_cost": 0.16359748586986367,
+            "rival_kind": "track",
+            "rival_pid": 31,
+            "rival_tick": 78,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9962825278810409,
+            "rival_box": [
+              421.5,
+              68.0,
+              493.0,
+              222.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 79,
+            "owner": "o5",
+            "previous_match_tick": 78,
+            "previous_pid": 30,
+            "assigned_pid": 33,
+            "teacher_mask_iou": 0.9198113207547169
+          },
+          {
+            "gap": 1,
+            "cost": 0.13647865465375186,
+            "displacement_px": 4.048654290316722,
+            "previous_box": [
+              584.4375,
+              17.5,
+              614.1875,
+              133.0
+            ],
+            "current_box": [
+              592.4375,
+              17.25,
+              614.25,
+              134.0
+            ],
+            "forward_error_px": 2.546980511670003,
+            "backward_error_px": 2.2970541749370468,
+            "gate_px": 34.65,
+            "forward_offset": [
+              1.5015593767166138,
+              0.07873141020536423
+            ],
+            "backward_offset": [
+              -1.7921874523162842,
+              0.13789062201976776
+            ],
+            "rival_cost": 0.18672087352294592,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 4,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9545454545454546,
+            "rival_box": [
+              591.875,
+              25.0,
+              613.0,
+              133.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 80,
+            "owner": "o4",
+            "previous_match_tick": 79,
+            "previous_pid": 27,
+            "assigned_pid": 34,
+            "teacher_mask_iou": 0.8118811881188119
+          },
+          {
+            "gap": 1,
+            "cost": 0.17294594730246654,
+            "displacement_px": 1.7677669529663689,
+            "previous_box": [
+              592.4375,
+              17.25,
+              614.25,
+              134.0
+            ],
+            "current_box": [
+              594.8125,
+              17.75,
+              615.375,
+              133.0
+            ],
+            "forward_error_px": 0.246853367412571,
+            "backward_error_px": 1.3699435873103727,
+            "gate_px": 34.574999999999996,
+            "forward_offset": [
+              1.7511718273162842,
+              -0.0031494139693677425
+            ],
+            "backward_offset": [
+              -0.4072641134262085,
+              -0.02167217619717121
+            ],
+            "rival_cost": 0.24769212350968775,
+            "rival_kind": "track",
+            "rival_pid": 35,
+            "rival_tick": 80,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9545454545454546,
+            "rival_box": [
+              591.875,
+              25.0,
+              613.0,
+              133.25
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 81,
+            "owner": "o4",
+            "previous_match_tick": 80,
+            "previous_pid": 34,
+            "assigned_pid": 27,
+            "teacher_mask_iou": 0.7313432835820896
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 47.13744240582533,
+            "previous_box": [
+              592.4375,
+              15.0,
+              615.6875,
+              148.5
+            ],
+            "current_box": [
+              602.25,
+              114.125,
+              617.9375,
+              142.875
+            ],
+            "forward_error_px": 47.140822943815465,
+            "backward_error_px": 47.418802559578104,
+            "gate_px": 8.625,
+            "forward_offset": [
+              2.9889705181121826,
+              -0.29255226254463196
+            ],
+            "backward_offset": [
+              -2.8385417461395264,
+              0.5611979365348816
+            ],
+            "reason": "both_offset_gates",
+            "tick": 90,
+            "owner": "o3",
+            "previous_match_tick": 89,
+            "previous_pid": 32,
+            "assigned_pid": 17,
+            "teacher_mask_iou": 0.7647058823529411
+          },
+          {
+            "gap": 2,
+            "cost": null,
+            "displacement_px": 36.009764300811526,
+            "previous_box": [
+              501.5,
+              67.0,
+              565.0,
+              191.0
+            ],
+            "current_box": [
+              512.375,
+              141.75,
+              564.625,
+              187.5
+            ],
+            "gate_px": 20.13,
+            "velocity_error_px": 30.872975642137252,
+            "reason": "gap_velocity_gate",
+            "tick": 92,
+            "owner": "o5",
+            "previous_match_tick": 90,
+            "previous_pid": 33,
+            "assigned_pid": 36,
+            "teacher_mask_iou": 0.6612903225806451
+          },
+          {
+            "gap": 3,
+            "cost": null,
+            "displacement_px": 58.2763905480813,
+            "previous_box": [
+              552.1875,
+              140.375,
+              569.875,
+              173.75
+            ],
+            "current_box": [
+              569.625,
+              47.5,
+              600.625,
+              160.5
+            ],
+            "gate_px": 17.021250000000002,
+            "velocity_error_px": 51.22182914783501,
+            "reason": "gap_velocity_gate",
+            "tick": 98,
+            "owner": "o5",
+            "previous_match_tick": 94,
+            "previous_pid": 36,
+            "assigned_pid": 37,
+            "teacher_mask_iou": 0.696969696969697
+          },
+          {
+            "gap": 1,
+            "cost": 0.380144739283104,
+            "displacement_px": 14.044710970682166,
+            "previous_box": [
+              780.5,
+              142.0,
+              894.75,
+              233.875
+            ],
+            "current_box": [
+              769.5,
+              141.0,
+              882.75,
+              218.75
+            ],
+            "forward_error_px": 10.236663503911851,
+            "backward_error_px": 10.958612502815644,
+            "gate_px": 23.325,
+            "forward_offset": [
+              -4.349420070648193,
+              -0.7373046875
+            ],
+            "backward_offset": [
+              3.3807408809661865,
+              0.7025530338287354
+            ],
+            "rival_cost": 0.15004453575838797,
+            "rival_kind": "track",
+            "rival_pid": 38,
+            "rival_tick": 102,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9810606060606061,
+            "rival_box": [
+              772.0,
+              141.25,
+              893.0,
+              225.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 103,
+            "owner": "o1",
+            "previous_match_tick": 102,
+            "previous_pid": 3,
+            "assigned_pid": 38,
+            "teacher_mask_iou": 0.9595588235294118
+          },
+          {
+            "gap": 1,
+            "cost": 0.06323638556287317,
+            "displacement_px": 2.2534695471649933,
+            "previous_box": [
+              762.0,
+              134.5,
+              862.5,
+              223.0
+            ],
+            "current_box": [
+              760.5,
+              133.75,
+              859.5,
+              223.5
+            ],
+            "forward_error_px": 1.6998723967517972,
+            "backward_error_px": 0.6478264375163217,
+            "gate_px": 26.55,
+            "forward_offset": [
+              -0.5507696270942688,
+              -0.078284852206707
+            ],
+            "backward_offset": [
+              1.6093405485153198,
+              0.22109661996364594
+            ],
+            "rival_cost": 0.052213580046269206,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9970501474926253,
+            "rival_box": [
+              761.75,
+              134.25,
+              859.0,
+              222.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 112,
+            "owner": "o1",
+            "previous_match_tick": 111,
+            "previous_pid": 38,
+            "assigned_pid": 39,
+            "teacher_mask_iou": 0.9764705882352941
+          },
+          {
+            "gap": 1,
+            "cost": 0.06929089005497488,
+            "displacement_px": 2.9712160810011783,
+            "previous_box": [
+              760.5,
+              133.75,
+              859.5,
+              223.5
+            ],
+            "current_box": [
+              758.25,
+              133.5,
+              856.25,
+              226.0
+            ],
+            "forward_error_px": 1.7564334024118,
+            "backward_error_px": 1.4333893309742347,
+            "gate_px": 26.925,
+            "forward_offset": [
+              -1.5550378561019897,
+              -0.1622931957244873
+            ],
+            "backward_offset": [
+              2.4494118690490723,
+              0.2765176594257355
+            ],
+            "rival_cost": 0.04647572781614108,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9827586206896551,
+            "rival_box": [
+              759.25,
+              134.0,
+              857.75,
+              224.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 113,
+            "owner": "o1",
+            "previous_match_tick": 112,
+            "previous_pid": 39,
+            "assigned_pid": 41,
+            "teacher_mask_iou": 0.96875
+          },
+          {
+            "gap": 1,
+            "cost": 0.04688714835655932,
+            "displacement_px": 2.885849095153799,
+            "previous_box": [
+              758.25,
+              133.5,
+              856.25,
+              226.0
+            ],
+            "current_box": [
+              755.0,
+              134.0,
+              853.75,
+              226.0
+            ],
+            "forward_error_px": 0.6743089248381666,
+            "backward_error_px": 1.2398915039658271,
+            "gate_px": 27.599999999999998,
+            "forward_offset": [
+              -2.3618106842041016,
+              -0.18741199374198914
+            ],
+            "backward_offset": [
+              3.840858221054077,
+              0.5274630784988403
+            ],
+            "rival_cost": 0.07645551420970398,
+            "rival_kind": "track",
+            "rival_pid": 42,
+            "rival_tick": 113,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9827586206896551,
+            "rival_box": [
+              759.25,
+              134.0,
+              857.75,
+              224.0
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 114,
+            "owner": "o1",
+            "previous_match_tick": 113,
+            "previous_pid": 41,
+            "assigned_pid": 43,
+            "teacher_mask_iou": 0.9804469273743017
+          },
+          {
+            "gap": 1,
+            "cost": 0.09998738059818746,
+            "displacement_px": 7.276889788913942,
+            "previous_box": [
+              750.5,
+              134.5,
+              851.0,
+              229.0
+            ],
+            "current_box": [
+              743.5,
+              135.0,
+              843.5,
+              229.75
+            ],
+            "forward_error_px": 2.734921444195033,
+            "backward_error_px": 1.5759790117237356,
+            "gate_px": 28.349999999999998,
+            "forward_offset": [
+              -4.763590335845947,
+              -0.5141059160232544
+            ],
+            "backward_offset": [
+              6.881011486053467,
+              0.9071740508079529
+            ],
+            "rival_cost": 0.07016366010746185,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9919354838709677,
+            "rival_box": [
+              745.0,
+              134.0,
+              844.0,
+              227.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 116,
+            "owner": "o1",
+            "previous_match_tick": 115,
+            "previous_pid": 43,
+            "assigned_pid": 44,
+            "teacher_mask_iou": 0.976
+          },
+          {
+            "gap": 1,
+            "cost": 0.052516409436595975,
+            "displacement_px": 6.654415827103082,
+            "previous_box": [
+              743.5,
+              135.0,
+              843.5,
+              229.75
+            ],
+            "current_box": [
+              737.0,
+              134.0,
+              836.75,
+              229.5
+            ],
+            "forward_error_px": 0.0427378423721236,
+            "backward_error_px": 1.2929734404896265,
+            "gate_px": 28.425,
+            "forward_offset": [
+              -6.627551555633545,
+              -0.6676616072654724
+            ],
+            "backward_offset": [
+              7.76953125,
+              1.2265218496322632
+            ],
+            "rival_cost": 0.07996253458401065,
+            "rival_kind": "track",
+            "rival_pid": 45,
+            "rival_tick": 116,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9919354838709677,
+            "rival_box": [
+              745.0,
+              134.0,
+              844.0,
+              227.5
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 117,
+            "owner": "o1",
+            "previous_match_tick": 116,
+            "previous_pid": 44,
+            "assigned_pid": 43,
+            "teacher_mask_iou": 0.9742268041237113
+          },
+          {
+            "gap": 6,
+            "cost": null,
+            "displacement_px": 83.79197292439473,
+            "previous_box": [
+              573.6875,
+              63.5,
+              598.375,
+              128.75
+            ],
+            "current_box": [
+              483.75,
+              67.0,
+              547.75,
+              216.5
+            ],
+            "gate_px": 46.98,
+            "velocity_error_px": 50.833530780012715,
+            "reason": "gap_velocity_gate",
+            "tick": 169,
+            "owner": "o0.1",
+            "previous_match_tick": 163,
+            "previous_pid": 46,
+            "assigned_pid": 47,
+            "teacher_mask_iou": 0.6102941176470589
+          },
+          {
+            "gap": 1,
+            "cost": 0.3108795496762947,
+            "displacement_px": 14.133846787056948,
+            "previous_box": [
+              457.25,
+              64.0,
+              507.125,
+              224.0
+            ],
+            "current_box": [
+              440.125,
+              76.0,
+              506.5,
+              234.0
+            ],
+            "forward_error_px": 9.33886726109217,
+            "backward_error_px": 9.85537197067955,
+            "gate_px": 47.4,
+            "forward_offset": [
+              -6.048611164093018,
+              2.0991029739379883
+            ],
+            "backward_offset": [
+              6.0174479484558105,
+              -1.5679931640625
+            ],
+            "rival_cost": 0.3010348124892027,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 1,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9958847736625515,
+            "rival_box": [
+              438.625,
+              75.0,
+              508.0,
+              233.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 174,
+            "owner": "o0.1",
+            "previous_match_tick": 173,
+            "previous_pid": 47,
+            "assigned_pid": 49,
+            "teacher_mask_iou": 0.852589641434263
+          },
+          {
+            "gap": 1,
+            "cost": 0.22061324600062315,
+            "displacement_px": 7.861347292290298,
+            "previous_box": [
+              440.125,
+              76.0,
+              506.5,
+              234.0
+            ],
+            "current_box": [
+              424.25,
+              71.0,
+              506.75,
+              237.25
+            ],
+            "forward_error_px": 3.6663343830117414,
+            "backward_error_px": 2.7444877398307352,
+            "gate_px": 47.4,
+            "forward_offset": [
+              -5.713281154632568,
+              2.130875587463379
+            ],
+            "backward_offset": [
+              6.303075313568115,
+              -1.4171278476715088
+            ],
+            "rival_cost": 0.2119108825054484,
+            "rival_kind": "track",
+            "rival_pid": 48,
+            "rival_tick": 174,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9958847736625515,
+            "rival_box": [
+              438.625,
+              75.0,
+              508.0,
+              233.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 175,
+            "owner": "o0.1",
+            "previous_match_tick": 174,
+            "previous_pid": 49,
+            "assigned_pid": 47,
+            "teacher_mask_iou": 0.8703703703703703
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 38.34755737005944,
+            "previous_box": [
+              264.75,
+              119.0,
+              346.25,
+              263.5
+            ],
+            "current_box": [
+              250.625,
+              120.0,
+              304.0,
+              210.5
+            ],
+            "forward_error_px": 33.91656570680642,
+            "backward_error_px": 33.89078741045266,
+            "gate_px": 27.15,
+            "forward_offset": [
+              -7.895625114440918,
+              1.1767040491104126
+            ],
+            "backward_offset": [
+              7.466933250427246,
+              -0.8187170624732971
+            ],
+            "reason": "both_offset_gates",
+            "tick": 191,
+            "owner": "o0.1",
+            "previous_match_tick": 190,
+            "previous_pid": 47,
+            "assigned_pid": 50,
+            "teacher_mask_iou": 0.8941798941798942
+          },
+          {
+            "gap": 1,
+            "cost": null,
+            "displacement_px": 51.2310940738142,
+            "previous_box": [
+              231.5,
+              130.0,
+              281.875,
+              237.0
+            ],
+            "current_box": [
+              215.0,
+              146.5,
+              266.875,
+              318.0
+            ],
+            "forward_error_px": 47.77683883727525,
+            "backward_error_px": 48.62967144719786,
+            "gate_px": 32.1,
+            "forward_offset": [
+              -6.657525539398193,
+              1.8463408946990967
+            ],
+            "backward_offset": [
+              7.138124942779541,
+              -0.8889453411102295
+            ],
+            "reason": "both_offset_gates",
+            "tick": 194,
+            "owner": "o0.1",
+            "previous_match_tick": 193,
+            "previous_pid": 50,
+            "assigned_pid": 47,
+            "teacher_mask_iou": 0.8037383177570093
+          },
+          {
+            "gap": 1,
+            "cost": 0.2289481818604212,
+            "displacement_px": 11.730202736952162,
+            "previous_box": [
+              215.0,
+              146.5,
+              266.875,
+              318.0
+            ],
+            "current_box": [
+              202.0,
+              141.5,
+              256.5,
+              325.0
+            ],
+            "forward_error_px": 4.909610335865857,
+            "backward_error_px": 3.70797187621662,
+            "gate_px": 51.449999999999996,
+            "forward_offset": [
+              -6.796875,
+              1.4313476085662842
+            ],
+            "backward_offset": [
+              7.97971248626709,
+              -1.0369755029678345
+            ],
+            "rival_cost": 0.18454380126516723,
+            "rival_kind": "prediction",
+            "rival_prediction_row": 2,
+            "rival_owner": null,
+            "rival_mask_iou_to_current": 0.9882352941176471,
+            "rival_box": [
+              203.5,
+              142.0,
+              264.5,
+              321.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 195,
+            "owner": "o0.1",
+            "previous_match_tick": 194,
+            "previous_pid": 47,
+            "assigned_pid": 52,
+            "teacher_mask_iou": 0.8413284132841329
+          },
+          {
+            "gap": 1,
+            "cost": 0.13065785242804434,
+            "displacement_px": 6.2327888019729984,
+            "previous_box": [
+              202.0,
+              141.5,
+              256.5,
+              325.0
+            ],
+            "current_box": [
+              191.75,
+              144.0,
+              254.375,
+              324.0
+            ],
+            "forward_error_px": 1.6155845529013848,
+            "backward_error_px": 0.4260192173849794,
+            "gate_px": 54.0,
+            "forward_offset": [
+              -7.518901348114014,
+              1.6651414632797241
+            ],
+            "backward_offset": [
+              6.61128044128418,
+              -0.7063822150230408
+            ],
+            "rival_cost": 0.17115196447482323,
+            "rival_kind": "track",
+            "rival_pid": 51,
+            "rival_tick": 195,
+            "rival_owner": null,
+            "rival_mask_iou_to_previous": 0.9882352941176471,
+            "rival_box": [
+              203.5,
+              142.0,
+              264.5,
+              321.75
+            ],
+            "reason": "ambiguity_veto",
+            "tick": 196,
+            "owner": "o0.1",
+            "previous_match_tick": 195,
+            "previous_pid": 52,
+            "assigned_pid": 47,
+            "teacher_mask_iou": 0.922360248447205
+          }
+        ],
+        "miss_examples": [
+          {
+            "tick": 0,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              751.0,
+              138.0,
+              850.0,
+              228.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 16,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.004246284501061571,
+            "teacher_box": [
+              86.0,
+              166.0,
+              156.0,
+              339.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 24,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.028871391076115485,
+            "teacher_box": [
+              131.0,
+              146.0,
+              157.0,
+              302.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 25,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              138.0,
+              142.0,
+              209.0,
+              297.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 26,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4496124031007752,
+            "teacher_box": [
+              146.0,
+              136.0,
+              212.0,
+              284.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 28,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.23880597014925373,
+            "teacher_box": [
+              185.0,
+              124.0,
+              239.0,
+              279.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 28,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4596774193548387,
+            "teacher_box": [
+              166.0,
+              128.0,
+              227.0,
+              270.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 30,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.20535714285714285,
+            "teacher_box": [
+              173.0,
+              130.0,
+              222.0,
+              260.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 31,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14224137931034483,
+            "teacher_box": [
+              197.0,
+              136.0,
+              231.0,
+              276.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 32,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.15985130111524162,
+            "teacher_box": [
+              206.0,
+              135.0,
+              240.0,
+              265.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 33,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.12648221343873517,
+            "teacher_box": [
+              212.0,
+              137.0,
+              246.0,
+              246.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 34,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              235.0,
+              109.0,
+              282.0,
+              291.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 34,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              229.0,
+              123.0,
+              241.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 35,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.015267175572519083,
+            "teacher_box": [
+              234.0,
+              124.0,
+              262.0,
+              231.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 36,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.05371900826446281,
+            "teacher_box": [
+              244.0,
+              123.0,
+              266.0,
+              232.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 37,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.010344827586206896,
+            "teacher_box": [
+              242.0,
+              122.0,
+              273.0,
+              228.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 38,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.03436426116838488,
+            "teacher_box": [
+              244.0,
+              117.0,
+              274.0,
+              213.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 39,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.038869257950530034,
+            "teacher_box": [
+              270.0,
+              91.0,
+              311.0,
+              140.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 40,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.05405405405405406,
+            "teacher_box": [
+              282.0,
+              89.0,
+              327.0,
+              160.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 41,
+            "owner": "o0",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.02456140350877193,
+            "teacher_box": [
+              109.0,
+              156.0,
+              203.0,
+              331.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 41,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.09615384615384616,
+            "teacher_box": [
+              292.0,
+              86.0,
+              354.0,
+              209.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 42,
+            "owner": "o0",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.023391812865497075,
+            "teacher_box": [
+              103.0,
+              159.0,
+              208.0,
+              331.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 42,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.11370262390670553,
+            "teacher_box": [
+              313.0,
+              86.0,
+              368.0,
+              209.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 43,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.11142857142857143,
+            "teacher_box": [
+              320.0,
+              84.0,
+              374.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 44,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.1246684350132626,
+            "teacher_box": [
+              314.0,
+              79.0,
+              366.0,
+              211.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 45,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.13105413105413105,
+            "teacher_box": [
+              341.0,
+              76.0,
+              370.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 46,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14204545454545456,
+            "teacher_box": [
+              348.0,
+              74.0,
+              392.0,
+              211.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 47,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              338.0,
+              76.0,
+              400.0,
+              247.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 48,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.35064935064935066,
+            "teacher_box": [
+              354.0,
+              71.0,
+              425.0,
+              213.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 49,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.48322147651006714,
+            "teacher_box": [
+              357.0,
+              69.0,
+              429.0,
+              208.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 51,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4230769230769231,
+            "teacher_box": [
+              386.0,
+              61.0,
+              430.0,
+              194.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 52,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.02654867256637168,
+            "teacher_box": [
+              399.0,
+              57.0,
+              430.0,
+              193.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 55,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.01256281407035176,
+            "teacher_box": [
+              398.0,
+              61.0,
+              469.0,
+              224.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 55,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              241.0,
+              126.0,
+              289.0,
+              256.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 56,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              250.0,
+              123.0,
+              298.0,
+              224.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 58,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.006153846153846154,
+            "teacher_box": [
+              441.0,
+              48.0,
+              482.0,
+              178.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 59,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              913.0,
+              165.0,
+              1055.0,
+              350.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 61,
+            "owner": "o0",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              45.0,
+              301.0,
+              65.0,
+              328.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 62,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4198473282442748,
+            "teacher_box": [
+              458.0,
+              46.0,
+              523.0,
+              165.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 63,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4083333333333333,
+            "teacher_box": [
+              461.0,
+              47.0,
+              523.0,
+              163.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 64,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.4787234042553192,
+            "teacher_box": [
+              466.0,
+              77.0,
+              526.0,
+              201.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 65,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.43214285714285716,
+            "teacher_box": [
+              476.0,
+              116.0,
+              532.0,
+              201.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 66,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.025362318840579712,
+            "teacher_box": [
+              496.0,
+              29.0,
+              524.0,
+              159.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 67,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14746543778801843,
+            "teacher_box": [
+              485.0,
+              41.0,
+              511.0,
+              81.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 68,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.12903225806451613,
+            "teacher_box": [
+              494.0,
+              38.0,
+              512.0,
+              77.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 69,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.14093959731543623,
+            "teacher_box": [
+              496.0,
+              37.0,
+              514.0,
+              70.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 70,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.36496350364963503,
+            "teacher_box": [
+              512.0,
+              148.0,
+              554.0,
+              185.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 70,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.059602649006622516,
+            "teacher_box": [
+              499.0,
+              31.0,
+              522.0,
+              75.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 71,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.42718446601941745,
+            "teacher_box": [
+              514.0,
+              143.0,
+              567.0,
+              186.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 71,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.07766990291262135,
+            "teacher_box": [
+              502.0,
+              38.0,
+              514.0,
+              80.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 72,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              514.0,
+              141.0,
+              565.0,
+              185.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 72,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              579.0,
+              113.0,
+              598.0,
+              139.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 73,
+            "owner": "o4",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              574.0,
+              85.0,
+              605.0,
+              134.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 77,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              555.0,
+              138.0,
+              571.0,
+              168.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 79,
+            "owner": "o3",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              558.0,
+              58.0,
+              602.0,
+              167.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 81,
+            "owner": "o3",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.36477987421383645,
+            "teacher_box": [
+              566.0,
+              49.0,
+              608.0,
+              154.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 82,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              594.0,
+              16.0,
+              616.0,
+              120.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 83,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.004310344827586207,
+            "teacher_box": [
+              594.0,
+              16.0,
+              613.0,
+              100.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 84,
+            "owner": "o4",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              597.0,
+              16.0,
+              607.0,
+              41.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 88,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              593.0,
+              39.0,
+              969.0,
+              310.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 89,
+            "owner": "o4",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.15789473684210525,
+            "teacher_box": [
+              593.0,
+              16.0,
+              607.0,
+              40.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 90,
+            "owner": "o1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              593.0,
+              39.0,
+              962.0,
+              304.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 91,
+            "owner": "o5",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              508.0,
+              144.0,
+              558.0,
+              190.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 99,
+            "owner": "o5",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.48214285714285715,
+            "teacher_box": [
+              575.0,
+              69.0,
+              601.0,
+              159.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 100,
+            "owner": "o5",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.49032258064516127,
+            "teacher_box": [
+              575.0,
+              59.0,
+              602.0,
+              157.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 157,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              601.0,
+              52.0,
+              619.0,
+              140.0
+            ],
+            "teacher_visible_previous": false
+          },
+          {
+            "tick": 164,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.005383580080753701,
+            "teacher_box": [
+              560.0,
+              69.0,
+              589.0,
+              153.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 165,
+            "owner": "o0.1",
+            "reason": "mask_below_match",
+            "best_iou_above_confidence": 0.0014005602240896359,
+            "teacher_box": [
+              547.0,
+              89.0,
+              581.0,
+              156.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 166,
+            "owner": "o0.1",
+            "reason": "no_overlapping_mask",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              532.0,
+              141.0,
+              560.0,
+              161.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 167,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.007194244604316547,
+            "teacher_box": [
+              521.0,
+              141.0,
+              559.0,
+              173.0
+            ],
+            "teacher_visible_previous": true
+          },
+          {
+            "tick": 168,
+            "owner": "o0.1",
+            "reason": "confidence_filtered",
+            "best_iou_above_confidence": 0.0,
+            "teacher_box": [
+              495.0,
+              109.0,
+              554.0,
+              210.0
+            ],
+            "teacher_visible_previous": true
+          }
+        ],
+        "wrong_examples": [
+          {
+            "tick": 31,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7477064220183486
+          },
+          {
+            "tick": 32,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8536585365853658
+          },
+          {
+            "tick": 33,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8253968253968254
+          },
+          {
+            "tick": 34,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7396449704142012
+          },
+          {
+            "tick": 35,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.6858974358974359
+          },
+          {
+            "tick": 36,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8227848101265823
+          },
+          {
+            "tick": 37,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8413793103448276
+          },
+          {
+            "tick": 38,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8702290076335878
+          },
+          {
+            "tick": 39,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.8260869565217391
+          },
+          {
+            "tick": 40,
+            "owner": "o0",
+            "pid": 13,
+            "first_owner": "o4",
+            "teacher_mask_iou": 0.7640449438202247
+          },
+          {
+            "tick": 47,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.5344827586206896
+          },
+          {
+            "tick": 50,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.625
+          },
+          {
+            "tick": 53,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.6938775510204082
+          },
+          {
+            "tick": 54,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.8545454545454545
+          },
+          {
+            "tick": 55,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.8545454545454545
+          },
+          {
+            "tick": 56,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.831858407079646
+          },
+          {
+            "tick": 65,
+            "owner": "o4",
+            "pid": 11,
+            "first_owner": "o3",
+            "teacher_mask_iou": 0.7346938775510204
+          },
+          {
+            "tick": 90,
+            "owner": "o3",
+            "pid": 17,
+            "first_owner": "o5",
+            "teacher_mask_iou": 0.7647058823529411
+          }
+        ],
+        "tracker_stats": {
+          "births": 52,
+          "adjacent": 626,
+          "recovered": 23,
+          "ambiguous": 215
+        },
+        "tracker_seconds": 0.11794389970600605,
+        "cost_matrix_seconds": 0.0995792024768889,
+        "cost_pairs": 6995,
+        "exact_duplicates_removed": 5,
+        "dedup_seconds": 0.008800698909908533,
+        "foreground_union_equal": true,
+        "total_seconds": 0.39981540013104677,
+        "cache_sha256": "1ae692ea68be47510f7bff60fbdae448841c446db860457cbf02293c62f8e26f",
+        "ids_sha256": "a08a318fcc767bffe03bd57d6a6ad5ebe534f92ac3b5669b978c85898faf8684"
+      }
+    },
+    "limitations": "Cached B baseline; local tracker reset; teacher masks/owner IDs, not independent pixels or events. No TEST, fitting, GPU or production changes."
+  }
+}

@@ -4292,3 +4292,67 @@ quality_backups/doorseg_cpu_queue_abba{,2}_20261010,
 doorseg_cpu_queue_events2_20261010,doorseg_cpu_role{,2}_20261010.
 Дальше свободный guarded GPU profile и TRAIN accuracy/sequence work;
 не повторять завершённые CPU ABBA/role прогоны без новой причины.
+
+## 91. TRAIN причины разрывов и отклонённое exact-mask dedup (10.10.2026, 21:49 UTC+7)
+
+Добавлен CPU-only door_seg_fragment_probe.py:200 contiguous TRAIN ticks0:200
+01405/15375, текущий owner done/train и frozen cache state обязательны,
+SHA cache до/после, отдельные новые output directories, no Torch/GPU/video.
+Сохранены конкретные failure/miss/wrong examples: tick, owner, PID,
+box, оба offset errors/gates, rival kind/owner/mask overlap/cost. Greedy
+mask matcher .5 совпал с исходным door_seg._match, извлечённым через AST
+без импорта Torch; Tracker association/config прежние. Диагностика не
+подбирает пороги и не меняет owner labels, модель C или production.
+
+Light:269 teacher observations,265 matched,262 adjacent matched pairs,
+1 reappearance,0 breaks. Dense:740 teacher observations,669 matched,
+634 adjacent matched pairs/39 breaks;28 reappearances/11 breaks.
+17 matched observations на ID, впервые matched к другому owner; это
+не число уникальных merges/switches. Причины50 breaks:37 ambiguity veto,
+5 both-offset gates,7 gap-velocity gates,1 claimed-by-adjacent.
+У37 ambiguity rivals mask IoU median .99068;7 точно1.0,33 ≥.9 — только
+описательная статистика, .9 не используется как новый merge threshold.
+Чаще соперник не matched к отдельному teacher человеку:17 rival tracks
+и17 rival predictions без owner;2 track rivals same owner,1 other owner.
+71 teacher unmatched:30 confidence-filtered ниже прежних .4,
+37 mask IoU ниже .5,4 без пересечения predicted masks. Это teacher/owner
+TRAIN диагностика, не независимые human outlines или event accuracy.
+Сам tracker≈.120s/200 dense ticks (~.60ms/tick), cost matrix .102s;
+ускорение этого этапа не решает полный80ms target.
+
+Реально реализован отдельный door_seg_duplicates.exact_masks: только
+побитно одинаковые непустые boolean masks, retain исходный highest-score
+prediction, first tie, original winner order; near masks не подавляются,
+empty masks сохраняются. Никаких IoU/association thresholds или ID merges.
+CPU checks: near-mask preservation/empty/ties/retained object identity,
+на каждом replay tick foreground union побитно прежний. Не подключён
+к predict/door_seg_run/C/production. 200tick before/after:light неизменен;
+dense удалены5 duplicate observations, matched669 прежние, births63→52,
+adjacent breaks39→33, gap breaks11→11. НО wrong observations17→18:
+новый случай tick90 owner o3 попал в ID, first owner o5, прежние wrong
+не устранены. Кандидат ОТКЛОНЁН по guard identity, несмотря на меньше
+разрывов/одинаковую mask union. Events/roles не прогонялись для приёмки
+уже провалившего identity кандидата. Не объявлять mask/ID equivalence
+или повторять exact-mask high-score suppression как принятое улучшение.
+Более широкую approximate-mask NMS автоматически не внедрять.
+
+Отчёт artifacts/doorseg_research/train_fragment_exact_masks_20261010.json
+содержит baseline/candidate конкретные пары и rejection. Windows outputs:
+quality_backups/doorseg_fragment_final_baseline_20261010 и
+doorseg_fragment_final_candidate_20261010.
+Ранние diagnostic outputs doorseg_fragment_20261010,
+doorseg_fragment_rivals_20261010 и doorseg_exact_masks_20261010 завершены,
+финальный отчёт использует version with wrong_examples. Cached B8604,
+короткий local-reset context; не переносить вывод на C14604 автоматически.
+Следующее полезное качество: использовать эти hard pairs для отдельного
+sequence/fingerprint инструмента или проверить raw duplicate hypothesis
+на guarded GPU/C candidate после освобождения, не ослаблять identity guard.
+Не повторять уже законченные CPU side/role ABBA из90.
+
+Kaggle current RUNNING/noSTOP, fresh18100(14:46:03UTC), finite losses;
+finite model Иoptimizer receiver ACKlast17787
+21:39:52 SHA9b1cea9ddb5c7092969384298e918e507d8c145f7b59eaaa5c9ab9492350a687.
+Recovery latest CPU/optimizer/SHA/step/precision check, сохранять FP32;
+не откатывать к16604/15191/8996. Best14604/one stale16604 прежние.
+Night waiter91396/50744 один job уступает live/Photoshop. GPU report пока
+нет; не запускать дубль/не обрезать live queue. Mac caffeinate38319 жив.
