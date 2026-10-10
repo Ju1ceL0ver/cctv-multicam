@@ -138,6 +138,14 @@ ten-minute save and receiver ACK. Stop17:43UTC leaves one hour for final
 validation and backup within the12-hour allocation. Do not restart this
 healthy training job because of the known nonfatal sitecustomize/DDP warnings.
 
+First new Kaggle checkpoint acknowledged on Windows at15:35:22UTC+7:
+step9196, finite model AND optimizer, SHA256
+`bcf8d8bd28276abef00a5f02dbb29186b92d0fc3a1103b69f2b05b19659874df`.
+A verified immutable copy lives in `data/quality_backups/doorseg_c_kaggle/`.
+Recovery must use the latest verified backup and refresh manifest/bundle;
+the old8996 snapshot is no longer the default recovery point. Fresh training
+log reached9300 at08:37:11UTC without a new validation or numerical rejection.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

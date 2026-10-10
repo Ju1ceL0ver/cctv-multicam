@@ -4029,3 +4029,14 @@ backup guard. Stop17:43UTC=11.10 00:43UTC+7, час на finalval/backup/output.
 жив, .err пуст, до21:00 CUDA не открыт. БоевыеSAM/CRM/keeper и параллельные
 работы сохранены. Heartbeat обновлён новым cloud состоянием; обычный
 здоровый запуск/перенос не требует уведомления владельца.
+
+**Первый новый backup Kaggle C, 15:35:22 UTC+7:** CPU receiver43540
+атомарно восстановил last.pt step9196, finite model Иoptimizer, SHA256
+bcf8d8bd28276abef00a5f02dbb29186b92d0fc3a1103b69f2b05b19659874df.
+В15:40 проверена SHA копии data/quality_backups/doorseg_c_kaggle/
+step9196_bcf8d8bd2827.pt; метаданные step9196_verified.json. При потере
+облака использовать latest finite backup (сейчас9196), не старый8996bundle.
+Новый manifest/bundle строить только при recovery, frozen labels сохранять.
+Kaggle log дошёл до свежего9300 t1791621431 (08:37:11UTC), потери finite.
+Новой валидации ещё нет. Pending manifests/STOP/ошибок receiver нет;
+ночнойCPU waiter жив, GPUWindows не использовался. Обычный ход молча.
