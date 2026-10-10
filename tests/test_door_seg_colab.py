@@ -4,10 +4,77 @@ import sys
 from pathlib import Path
 
 import pytest
+import zipfile
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'multicam'))
 import door_seg_colab as C
 import door_seg_supervise as supervisor
+
+
+def test_disk_gate_counts_uncompressed_mmap_and_checkpoint_reserve(tmp_path, monkeypatch):
+    source = tmp_path / 'source'
+    source.mkdir()
+    npz = source / 'chunks.npz'
+    with zipfile.ZipFile(npz, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr('buf.npy', b'0' * 10000)
+    manifest = {'train': ['source'], 'val': [],
+                'files': [{'path': 'source/chunks.npz', 'size': npz.stat().st_size},
+                          {'path': 'source/video.mp4', 'size': 1000}]}
+    # Compressed dataset alone fits, mmap plus atomic-write reserve does not.
+    monkeypatch.setattr(C.shutil, 'disk_usage', lambda root: SimpleNamespace(free=12000))
+    with pytest.raises(RuntimeError, match='mask mmap'):
+        C.training_space_plan(tmp_path, manifest, reserve_bytes=2000)
+    monkeypatch.setattr(C.shutil, 'disk_usage', lambda root: SimpleNamespace(free=14000))
+    plan = C.training_space_plan(tmp_path, manifest, reserve_bytes=2000)
+    assert plan['mmap_bytes'] == 10000 and plan['remaining_bytes'] == 1000
+    assert plan['required_bytes'] == 13000
+    (source / 'chunks_buf.npy').write_bytes(b'0' * 10000)
+    assert C.training_space_plan(tmp_path, manifest, reserve_bytes=2000)['mmap_bytes'] == 0
+    # An incomplete final-name download must still count as needing replacement.
+    (source / 'video.mp4').write_bytes(b'bad')
+    assert C.training_space_plan(tmp_path, manifest, reserve_bytes=2000)['remaining_bytes'] == 1000
+
+
+def test_ram_cache_is_bounded_identical_and_reused_by_masks(tmp_path, monkeypatch):
+    import numpy as np
+    import door_seg_colab_cache as cache
+    from sam31_reid import Masks
+    source = tmp_path / 'source'
+    source.mkdir()
+    buf = np.arange(10000, dtype=np.uint8)
+    npz = source / 'chunks.npz'
+    np.savez_compressed(npz, buf=buf, rows=np.zeros((1,8)), offs=np.array([0,10000]))
+    manifest = {'train':['source'], 'val':[],
+                'files':[{'path':'source/chunks.npz','size':npz.stat().st_size}]}
+    monkeypatch.setattr(cache.psutil, 'virtual_memory', lambda: SimpleNamespace(available=100000))
+    monkeypatch.setattr(cache.shutil, 'disk_usage', lambda root: SimpleNamespace(free=100000))
+    result = cache.prepare(tmp_path, manifest, tmp_path/'ram', budget_bytes=15000, ram_reserve_bytes=50000)
+    path = source/'chunks_buf.npy'
+    assert path.is_symlink() and np.array_equal(np.load(path), buf)
+    assert result['ram_cache_bytes'] <= 15000
+    assert Masks.to_npy(npz) == path and path.is_symlink()
+    assert np.array_equal(Masks(npz,mmap=True).buf, buf)
+    assert cache.prepare(tmp_path, manifest, tmp_path/'ram', budget_bytes=15000,
+                         ram_reserve_bytes=50000)['ram_cache_bytes'] == 0
+    assert C.training_space_plan(tmp_path, manifest, reserve_bytes=0)['mmap_bytes'] == 0
+    # A later source cannot grow the already-owned cache above the total budget.
+    source2=tmp_path/'source2';source2.mkdir()
+    np.savez_compressed(source2/'chunks.npz',buf=buf)
+    manifest['train'].append('source2')
+    assert cache.prepare(tmp_path,manifest,tmp_path/'ram',budget_bytes=15000,
+                         ram_reserve_bytes=50000)['ram_cache_bytes']==0
+
+
+def test_ram_cache_preserves_memory_reserve(tmp_path, monkeypatch):
+    import door_seg_colab_cache as cache
+    import numpy as np
+    source=tmp_path/'source'; source.mkdir()
+    np.savez_compressed(source/'chunks.npz',buf=np.zeros(10000,np.uint8))
+    monkeypatch.setattr(cache.psutil,'virtual_memory',lambda:SimpleNamespace(available=20000))
+    result=cache.prepare(tmp_path,{'train':['source'],'val':[]},tmp_path/'ram',
+                         budget_bytes=20000,ram_reserve_bytes=15000)
+    assert result['ram_cache_bytes']==0 and not (source/'chunks_buf.npy').exists()
 
 
 def transport(tmp_path):

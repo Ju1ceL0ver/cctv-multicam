@@ -22,6 +22,49 @@ from urllib.parse import quote
 import requests
 
 
+def training_space_plan(root, manifest, reserve_bytes=3 * 1024 ** 3):
+    """Count remaining files AND packed-mask mmap expansion, without inflating it.
+
+    Small NPZ files must already be present. Checkpoint/temporary-write reserve
+    is additional to the exact dataset; compressed NPZ size is not mmap size.
+    """
+    remaining = sum(item['size'] for item in manifest['files']
+                    if not (root / item['path']).exists() or
+                    (root / item['path']).stat().st_size != item['size'])
+    mmap_bytes = 0
+    for source in dict.fromkeys(manifest['train'] + manifest['val']):
+        npz = root / source / 'chunks.npz'
+        npy = npz.with_name('chunks_buf.npy')
+        if npy.exists() and npy.stat().st_mtime >= npz.stat().st_mtime:
+            continue
+        with zipfile.ZipFile(npz) as archive:
+            mmap_bytes += archive.getinfo('buf.npy').file_size
+    free = shutil.disk_usage(root).free
+    required = remaining + mmap_bytes + reserve_bytes
+    if free < required:
+        raise RuntimeError('Insufficient disk for dataset + mask mmap + checkpoint reserve: '
+                           'free=%d required=%d remaining=%d mmap=%d reserve=%d' %
+                           (free, required, remaining, mmap_bytes, reserve_bytes))
+    return dict(free_bytes=free, remaining_bytes=remaining, mmap_bytes=mmap_bytes,
+                reserve_bytes=reserve_bytes, required_bytes=required)
+
+
+def ensure_training_space(root, manifest, run):
+    try:
+        return training_space_plan(root, manifest)
+    except RuntimeError:
+        # Colab's base-image libraries often occupy lower filesystem layers:
+        # uninstalling them does not reclaim actual writable-layer capacity.
+        # Cache identical packed masks on shared RAM, bounded to 3 GiB total
+        # and leaving at least 6 GiB available for workers/sequence buffers.
+        if not Path('/dev/shm').is_dir():
+            raise
+        from door_seg_colab_cache import prepare
+        cached = prepare(root, manifest, Path('/dev/shm/doorseg_masks'))
+        (run / 'ram_cache_manifest.json').write_text(json.dumps(cached))
+        return training_space_plan(root, manifest)  # Fail safely if still short.
+
+
 class Transfer:
     def __init__(self, access, root):
         credentials = json.loads(Path(access).read_text())
@@ -175,6 +218,7 @@ def main(args):
             if smoke.returncode:
                 raise RuntimeError('Early BF16 batch6 compatibility smoke failed; inspect colab_smoke.log')
             record(phase='downloading', early_smoke='finite batch6 forward/backward')
+            ensure_training_space(root, manifest, run)
         completed = 0
         # Small labels/checkpoint first; two streams avoid saturating the shop's upload.
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
@@ -210,6 +254,7 @@ def main(args):
         if state['step'] != initial_step or 'opt' not in state:
             raise RuntimeError('Expected the manifest-verified weights AND optimizer')
         del state
+        record(phase='preparing_masks', space_plan=ensure_training_space(root, manifest, run))
         for d in S.sources() + S.sources(True):
             R.Masks.to_npy(d / 'chunks.npz')
         record(phase='compatibility_check', checkpoint_sha256=digest,

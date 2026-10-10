@@ -84,6 +84,24 @@ python3 tools/doorseg_colab_control.py exec --file /tmp/probe.py
 
 The pinger stops when the runner exits; restart it after recovering a failed runner. Its log is `data/logs/colab_doorseg-c_keepalive.log`. The existing task heartbeat now checks every ten minutes throughout the day, stays quiet during healthy transfer/training, and retains the wider research/production acceptance requirements. Release the owned Colab session only after Windows checkpoint restoration is verified.
 
+Storage preflight found another constraint before training: packed-mask mmap
+files need **11.1759 GB**, beyond the 57.7477-GB compressed/video manifest.
+Projected disk reserve was only 1.09 GB. Cache cleaning and removing unused
+base-image TensorFlow/JAX reclaimed only a few MB because their base filesystem
+layers remain allocated. The torch/vision/Ultralytics recipe is unchanged.
+
+`door_seg_colab_cache.py` placed 3.2212 GB of identical packed buffers from
+18 sources on `/dev/shm/doorseg_masks`, with adjacent NPY symlinks that the
+existing Masks reader accepts. Each buffer is compared to its original NPZ
+array; cache is bounded to 3 GiB total and leaves at least 6 GiB available RAM.
+After preparation, available RAM was 8.54 GB; projected final disk reserve
+was 3.90 GB. Do not remove this shared cache while the Colab trainer is active.
+The runner now counts remaining dataset files, uncompressed mmap and a 3-GiB
+checkpoint reserve. It attempts the bounded shared cache if necessary and
+fails before training if space still does not fit. Repeated BF16 batch-six
+forward/backward passed with the identical 8.265064 loss and 5.4768-GB GPU
+peak, without an optimizer update. This fixes storage, not model quality.
+
 A full release still requires: a successful selected-policy comparison on the frozen paired event cohort, clean and crowded end-to-end speed including side/role queues, mask equivalence after fusion, identity quality, then live shadow/integration checks preserving CRM IDs and format. GPU tests wait for the night window; CPU cache tests can run during the day. A fast isolated frame and a training-only event gain do not satisfy these conditions.
 
 ## Primary sources and relevance to this case
