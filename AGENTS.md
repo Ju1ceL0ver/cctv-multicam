@@ -4169,3 +4169,14 @@ before_rejected, разобрать данные/градиенты отдель
 не объявлять испорченными labels/weights по одному warning. Отдельный
 Windows GPU repro днём не запускался, torch/GPU для проверки не импортирован.
 Best proxy14604 из86 сохраняется; боевойSAM/CRM и ночной CPU waiter сохранены.
+
+**Первый post-retry FP32 backup подтверждён20:31 UTC+7:** CPU receiver
+ACK20:24:20 finite model Иoptimizer last15191 SHA
+09d1cb7cad79a0bd08a7e439f08cce77236a405e6d8e4c7cdc3d6d0685cf0efc.
+Precision=fp32 прочитана через zip/pickletools без torch. Immutable SHA copy
+step15191_fp32_09d1cb7cad79.pt / step15191_verified.json в прежнем backup.
+Recovery с latest finite15191 или новее, FP32 сохранять. Предыдущие пять
+incomplete parts digest65c02f… без completion manifest не использовать;
+это остаток неудачного upload, свежий15191 полностью ACK и проверен.
+Successful15500 t1791638921 (13:28:41UTC) finite, STOP отсутствует;
+нового numerical rejection нет. Причину14862 исследовать после privateoutputs.

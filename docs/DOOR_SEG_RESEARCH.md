@@ -218,6 +218,15 @@ a version4 private-output request returned no matching files while RUNNING.
 Download both rejected_14862_rank0/1.pt and before_rejected on completion,
 then diagnose them separately. No daytime Windows GPU reproduction occurred.
 
+Update13:31UTC: the first post-retry FP32 last15191 was acknowledged on
+Windows at20:24:20UTC+7 with finite model AND optimizer, SHA
+`09d1cb7cad79a0bd08a7e439f08cce77236a405e6d8e4c7cdc3d6d0685cf0efc`.
+Its FP32 metadata was inspected without torch via zip/pickletools; an
+immutable SHA-verified copy andstep15191_verified.json are retained.
+Recovery must use latest finite15191 or newer and preserve FP32. Five older
+orphan upload parts without a completion manifest remain incomplete and
+must not be used. Fresh15500 losses are finite with no further rejection.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.
