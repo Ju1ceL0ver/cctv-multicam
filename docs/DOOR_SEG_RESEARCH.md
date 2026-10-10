@@ -182,6 +182,24 @@ Kaggle backup directory. Recovery must check latest finite12604 or newer.
 Last SHA `ca1c017baee7d396a82d36ea92cbaaa45a9af060731e4840527d704b5285a178`;
 eval SHA `233dca6e8d8b90a1aeedbe73a7285f80559d6c52c0323673c85af0438813f371`.
 
+Third spaced evaluation completed13:00UTC atstep14604 on the unchanged
+400-moment23September proxy: found .9109, precision .9718, F1 .9403,
+maskIoU .9052, links .9838,926links/1021truth,56.9ms T4 proxy.
+Against baseline8604: F1 +0.58percentage points, maskIoU +0.78points,
+links +0.64points. Found remains0.39points below baseline .9148; higher
+precision drives the F1 gain. This measured proxy improvement does not
+establish better door events, role quality or full RTX3060 deployment speed.
+The gain .0058 exceeds plateau min_delta .005, so14604 becomes the new
+best and resets the two stale evaluations. Training continued to14700;
+no STOP or recipe/label/threshold change. The existing DDP job remains RUNNING.
+Windows CPU receiver acknowledged finite model AND optimizer last14604 at
+20:03:36UTC+7 and evalstep14604 at20:05:17. SHA-checked immutable copies
+andstep14604_verified.json are saved in the existing Kaggle backup directory.
+Last SHA `b43f0b69c08c1f20eed1cbc4b0bfeabaa8b527eb12c2ce6c87dae032c494112f`;
+eval SHA `ce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66`.
+Recovery must check latest finite14604 or newer, preserving weights and
+optimizer rather than restoring a stale12604/8996 bundle.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

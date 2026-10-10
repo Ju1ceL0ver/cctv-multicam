@@ -4110,3 +4110,31 @@ step12604.pt в18:26:45 SHA
 12604 или новее после свежей CPU проверки; не stale10604/8996bundle.
 Pending manifests нет, ночной CPU waiter91396/50744 жив/.err пуст;
 продакшенSAM/CRM/keeper и чужие работы сохранены.
+
+## 86. Первый прирост F1 C выше plateau margin (10.10.2026, 20:12 UTC+7)
+
+Третья неизменная400moment proxy23.09 оценка step14604 завершена13:00UTC:
+found .9109, precision .9718, F1 .9403, maskIoU .9052, links .9838,
+n_links926/truth1021,56.9ms T4 proxy. Против baseline8604:
+F1 +.0058 (+.58пп), maskIoU +.0078 (+.78пп), links +.0064 (+.64пп).
+Found всё ещё ниже .9148 baseline на.0039; прирост F1 получен в основном
+за счёт precision .9550→.9718. Это реальный прирост на прежнем proxy,
+но не доказательство лучших событий/ролей/полного RTX3060 прохода в бою.
+TRAIN/VAL/labels/thresholds/recipe unchanged; TEST не использован для выбора.
+
++.0058 превышает plateau min_delta .005: прежние два stale результата
+не дают плато, новый best14604 сбрасывает stale count. Kaggle version4
+RUNNING, successful14700 t1791637501 (13:05:01UTC), STOP отсутствует.
+Продолжать тот же один DDP student; не запускать Windows C/Colab.
+
+Windows CPU receiver43540 подтвердил finite model Иoptimizer last14604
+в20:03:36 SHA b43f0b69c08c1f20eed1cbc4b0bfeabaa8b527eb12c2ce6c87dae032c494112f;
+step14604.pt в20:05:17 SHA
+ce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66.
+В20:12 сохранены и SHA-проверены immutable copies
+step14604_last_b43f0b69c08c.pt / step14604_eval_ce9b0a8498d3.pt и
+step14604_verified.json в data/quality_backups/doorseg_c_kaggle.
+При recovery проверить latest finite14604 или новее model Иoptimizer,
+не stale12604/8996 bundle. Pending manifests нет, CPU ночной waiter
+91396/50744 жив/.err пуст. GPU Windows днём не открыт; до21:00 ожидание.
+ПродакшенSAM/CRM/keeper и параллельные файлы/разметка сохранены.
