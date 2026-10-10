@@ -127,6 +127,17 @@ training stability. No optimizer update or new checkpoint/validation occurred.
 Full unchanged transfer continues; training is not yet confirmed. Credentials,
 bootstrap and kernel are private.
 
+Update08:30UTC: the full1217-file/57,747,616,016-byte transfer finished at
+08:21:17UTC. Exact148TRAIN/6VAL, checkpoint/optimizer finite and SHA gates
+passed at08:22:23UTC. DDP resumed from8996 on bothT4s/global12 with two
+workers per rank. New successful steps9000(08:24:22UTC) and9100(08:28:40UTC)
+are in log.jsonl with global_batch12 and finite losses; older Colab steps
+are separate history. No new validation/quality/plateau result yet.
+The latest acknowledged Windows checkpoint remains8996 pending the next
+ten-minute save and receiver ACK. Stop17:43UTC leaves one hour for final
+validation and backup within the12-hour allocation. Do not restart this
+healthy training job because of the known nonfatal sitecustomize/DDP warnings.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

@@ -3999,3 +3999,33 @@ Codex должно оставаться открытым, Mac на питани�
 Будильник/эксперименты не требуют ручного запуска владельцем. Нормальный ход
 молча; уведомлять о значимом результате/новом сбое/нужном действии.
 Боевая дверь/CRM/keeper и параллельные amodal/staff/label_pieces сохранены.
+
+
+## 82. Перенос Kaggle завершён, новые DDP шаги подтверждены (10.10.2026, 15:31 UTC+7)
+
+Все1217 файлов/57,747,616,016bytes перенесены к08:21:17UTC. Packed mmap
+подготовлен, свободный temp1.085TB, запас3GiB; новый shared RAM cache не нужен.
+В08:22:23UTC пройдены exact148TRAIN/6VAL и finite checkpoint/optimizer/SHA
+step8996 (0a2b537b…e9265d0b65), pinned torch2.13/cu130. phase=training,
+runner122/torchrun child203, обеT4, localbatch6/global12, workers2/rank.
+Сверять актуальные PID и timestamp; не перезапускать живой kernel version4.
+
+Теперь log.jsonl содержит СВЕЖИЕ Kaggle successful steps:9000 t1791620662
+(08:24:22UTC),9100 t1791620920 (08:28:40UTC), global_batch12. Step9100
+box .7288,seg .7200,cls .4204,off .0681,lr9.5e-5 — потери finite.
+Это новые optimizer updates, не старые Colab8700–9200. Успешный DDP smoke
+из80 уже стал настоящим обучением. Качество/плато ещё НЕ проверено;
+ждать очередные400val после2000successful steps согласно сохранённому spacing.
+
+Windows последний подтверждённый backup пока8996 (receiver43540 жив,
+pending completion manifests нет), очередной last сохраняется раз10мин.
+Не возвращаться к8604; при отказе сначала свежий final/privateoutputs и
+проверенный latest model Иoptimizer. Kaggle phase RUNNING не отменяет
+backup guard. Stop17:43UTC=11.10 00:43UTC+7, час на finalval/backup/output.
+Сообщения wrapt/sitecustomize и DDP deprecated/unused warning были и на
+успешном smoke; по ним одним активнуюVM не менять.
+
+НаWindows нет C trainer/supervisor. Ночной CPU waiter91396/50744 из81
+жив, .err пуст, до21:00 CUDA не открыт. БоевыеSAM/CRM/keeper и параллельные
+работы сохранены. Heartbeat обновлён новым cloud состоянием; обычный
+здоровый запуск/перенос не требует уведомления владельца.
