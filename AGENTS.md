@@ -3691,3 +3691,8 @@ Heartbeat `automation`, ACTIVE, теперь каждые10мин круглос
 двери из73 сохраняются; proxyвалидация и T4скорость не доказывают их выполнение.
 36 проверок проходят, включая transport/ownership/rollback/finite receiver.
 Параллельные66–67/amodal/staff/label_pieces/.gitignore не включенывкоммит.
+
+**Проверка backup10:50:34 UTC+7:** реальный checkpoint140436765bytes из Colab
+собран receiver наWindows какlast.pt, step8604; SHA25618b4fab92332e26bcae520bddb1771c947cb21fe407e30aafd5350e6cc8b4b4f
+совпал, веса иoptimizer конечны, completionmanifest/parts удалены.
+Передача иCPUпроверка подтверждены; перенос видео иkeepalive продолжаются.
