@@ -4138,3 +4138,34 @@ step14604_verified.json в data/quality_backups/doorseg_c_kaggle.
 не stale12604/8996 bundle. Pending manifests нет, CPU ночной waiter
 91396/50744 жив/.err пуст. GPU Windows днём не открыт; до21:00 ожидание.
 ПродакшенSAM/CRM/keeper и параллельные файлы/разметка сохранены.
+
+## 87. BF16 отказ DDP14862 безопасно переведён в FP32 (10.10.2026, 20:24 UTC+7)
+
+В13:12UTC на successful step14862 хотя бы один rank дал nonfinite
+loss/gradient. DDP общий finite gate отверг update до optimizer.step,
+восстановил BN buffers обоих rank, сохранил rejected_14862_rank0/1.pt и
+before_rejected_14862.pt. Повтор ТОГО ЖЕ batch в FP32 finite; штатная
+защита оставила последующие шаги в FP32. Новые successful14900/15000/
+15100 finite, последний t1791638314 (13:18:34UTC); STOP отсутствует,
+Kaggle version4 RUNNING. Не сбрасывать precision обратно в BF16 и не
+перезапускать живой trainer. Это numerical incident, не новая оценка качества.
+
+CPU receiver43540 ACK20:16:38 проверил finite model Иoptimizer
+before_rejected_14862.pt SHA
+52923c7d057baa1ad92ebd2a98d1a120e5c61501ecfc04239fef2bf1f86cbbab,
+140465237bytes. SHA-verified immutable copy
+ data/quality_backups/doorseg_c_kaggle/before_rejected14862_52923c7d057b.pt.
+Последний обычный ACKlast14834 пока предшествует отказу (precision bf16
+прочитана без torch через zip/pickletools), не считать его FP32 backup.
+При recovery нужен latest model Иoptimizer/step/SHA и сохранённая precision;
+не использовать старый BF16 last автоматически после этого инцидента.
+
+Причина BF16 failure пока не установлена: лог общего DDP gate не различает
+bad loss и bad grad/rank. По коду sync_once rejected_* batch намеренно
+не отправляются на Windows, остаются в working output VM. Запрос private
+Kaggle version4 outputs с точным rejected14862 pattern пока не дал файлов,
+поскольку job жив. После завершения обязательно скачать ОБА batch и
+before_rejected, разобрать данные/градиенты отдельным bounded опытом;
+не объявлять испорченными labels/weights по одному warning. Отдельный
+Windows GPU repro днём не запускался, torch/GPU для проверки не импортирован.
+Best proxy14604 из86 сохраняется; боевойSAM/CRM и ночной CPU waiter сохранены.

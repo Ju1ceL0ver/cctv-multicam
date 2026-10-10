@@ -200,6 +200,24 @@ eval SHA `ce9b0a8498d3e69494d528c66498657e4103337929f4de9859489a3459154c66`.
 Recovery must check latest finite14604 or newer, preserving weights and
 optimizer rather than restoring a stale12604/8996 bundle.
 
+At13:12UTC, step14862 was rejected by the joint DDP finite gate before
+any optimizer update. BN buffers rolled back; each rank retained its actual
+batch and rank0 saved a finite before_rejected checkpoint. Retrying the
+same batch in FP32 passed, so later steps stay in FP32. Fresh14900–15100
+losses are finite, with no STOP and the same RUNNING kernel. Do not reset
+precision to BF16 or restart the healthy trainer. This is a numerical incident,
+not a new quality measurement. Its specific cause and failing rank/loss versus
+gradient remain unresolved; the combined gate log does not distinguish them.
+The CPU receiver verified before_rejected_14862.pt weights AND optimizer,
+SHA `52923c7d057baa1ad92ebd2a98d1a120e5c61501ecfc04239fef2bf1f86cbbab`;
+a SHA-checked immutable copy is retained in the Kaggle backup directory.
+The latest normal ACK14834 still predates the incident and is marked BF16;
+recovery must verify a current checkpoint and its saved precision.
+The sender intentionally skips rejected batch files. They remain on the VM;
+a version4 private-output request returned no matching files while RUNNING.
+Download both rejected_14862_rank0/1.pt and before_rejected on completion,
+then diagnose them separately. No daytime Windows GPU reproduction occurred.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.
