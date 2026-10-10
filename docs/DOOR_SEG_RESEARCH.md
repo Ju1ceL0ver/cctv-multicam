@@ -119,8 +119,13 @@ virtualenv with bundled pip seeds fixes environment creation. Version3 lost
 CUDA access when isolation removed the mounted NVIDIA driver library path;
 version4 preserves it and preflights both allocated GPUs. At06:47:47UTC the
 exact torch2.13.0+cu130/vision0.28.0+cu130/Ultralytics8.4.108 passed finite BF16
-convolution/backward on both T4s. Full-model two-rank smoke remains required
-before training. Credentials/bootstrap and kernel are private.
+convolution/backward on both T4s. At06:51:50–53UTC the actual full model
+passed two-rank BF16 backward with six examples per GPU, global12. Losses
+were8.5238256/10.3039169; averaged gradient norms matched at23.7682285 before
+clip10. Peak allocation13.4544GB on each T4; retain localbatch6 pending real
+training stability. No optimizer update or new checkpoint/validation occurred.
+Full unchanged transfer continues; training is not yet confirmed. Credentials,
+bootstrap and kernel are private.
 
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,

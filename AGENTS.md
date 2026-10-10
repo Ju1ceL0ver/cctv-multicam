@@ -3917,3 +3917,35 @@ Heartbeat automation обновлён: следить Kaggle/Windowsbackup, не
 Colab, молчать при нормальном ходе. Общий ресерч/80ms/dense/roles и условия
 безопасной замены двери из73 остаются; боевая SAM/CRM/keeper неизменны.
 Параллельные amodal/staff/label_pieces/.gitignore/66–67 не коммитились.
+
+## 80. Настоящая DDP smoke на обеих T4 конечна (10.10.2026, 14:01 UTC+7)
+
+В13:51:50–53UTC+7 (06:51:50–53UTC) Kaggle version4 выполнила совместный
+forward/backward door_seg_ddp.py smoke с verified step8996 model И optimizer.
+ДвеGPU, по6 примеров, global12, BF16, pinned библиотеки из79. Loss rank0
+8.5238256454, rank1 10.3039169312; norm общих усреднённых градиентов наОБЕИХ
+23.7682285309 (исходная norm доclip10). Проверка all_gather равенстваградиентов
+прошла. Optimizer.step НЕ выполнялся, checkpoint не менялся, это совместимость
+DDP/precision/данных, не новое качество/скорость/обучение.
+
+Peak torch allocation на каждойкарте13.4544256GB. Не увеличивать localbatch
+сверх6 по одному успешному smoke: запас ограничен, нужны реальные trainsteps
+и устойчивость. Это настоящий full model+DDP, не маленький convolutiongate.
+Предупреждения sitecustomize wrapt и find_unused_parameters/депрекация
+broadcast_buffers не сорвали smoke; не менять активнуюVM только ради них.
+
+Runner122 жив (сверятьphase/PID), private kernel RUNNING, послеуспешногоsmoke
+продолжил полный frozen148TRAIN/6VAL перенос. В06:59:52UTC счётчик завершённых
+файлов5,978,626,882 из57,747,616,016bytes, около10.35%; потока идутштатно.
+Состав/labels не сокращались. phase=downloading, trainer child_pid=null,
+новых Kaggle trainsteps/валидаций ещё нет. Старые logsteps8700–9200 относятся
+к потерянной Colab, не считать их новой тренировкой.
+
+Windows receiver43540 жив, нет Windows trainer/supervisor. В13:52:40UTC+7
+повторный transfer ACK подтвердил тотже last.pt step8996 и SHA256
+0a2b537b7a94b49977b74b095891f5bfe7e4de8c83601c2b6705c0e9265d0b65:
+веса Иoptimizer конечны. COLAB_ACTIVE/session=kaggle-c остаётсяtrue;
+не запускатьдубликат. Новый pinned GPUgate и DDP smoke теперь подтверждены,
+дальше ждать fullmanifest/exactcohort/finite gate и phase=training со свежими
+успешнымиsteps. Не перезапускать живой RUNNING job ради повторнойпроверки.
+Heartbeatprefix обновлён. БоевыеSAM/CRM/keeper неизменны.
