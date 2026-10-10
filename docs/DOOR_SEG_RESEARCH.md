@@ -145,6 +145,34 @@ no concurrent Windows/Colab trainer is allowed. The monitor follows Kaggle
 status/logs and the existing Windows run, and no longer allocates Colab. The
 fingerprint/ConvGRU work remains separate. Production acceptance is unchanged.
 
+## Autonomous night work, 10 October
+
+The owner authorized unattended RTX3060 research from21:00: latest finite
+Windows training recovery if cloud C ends, or a separate speed/accuracy
+experiment while Kaggle is healthy. The existing ten-minute heartbeat now
+continues implementation at night, beyond monitoring. No duplicate C trainer,
+no fitting on TEST, and production acceptance remains unchanged.
+
+`door_seg_night_probe.py --wait` is actually waiting on Windows under venv_sam3,
+without importing torch during the day. Its CPU preflight verified completed
+TRAIN01405/15375 and refused daytime GPU use. It runs24 same-input comparisons
+and120 fast processing ticks per source, with an180-second research budget,
+night boundaries, foreign-process guards and initial GPU utilization gate.
+Fixed B step8604 weights; only new experiment outputs are written.
+`data/quality_backups/doorseg_night_20261010/report.json` will contain channel/
+mask/offset comparisons and stage timings including decode and compressed
+export. Guard overhead is excluded and separately recorded. Side/role queues
+need their own profile. No new GPU speed/equivalence claim is made yet.
+Two CPU tests cover night/foreign-process/Windows-wrapper guards and refusal
+when an owner TRAIN source becomes TEST. Windows venv's redirector has its
+own python PID: ignore own ancestors, never an unrelated research job.
+
+After the short profile, implement and measure an improvement to the actual
+slow stage on short TRAIN excerpts; if speed is sufficient, work on concrete
+missed detections or fragmentation. Do not spend a full event TEST pass merely
+on profiling. A bounded Mac caffeinate runs until11October09:40 to support
+local heartbeat execution; the app and machine must remain available.
+
 ## Primary sources and relevance to this case
 
 The owner also requested implementing the fingerprint and ConvGRU heads while

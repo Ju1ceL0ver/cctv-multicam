@@ -3949,3 +3949,53 @@ Windows receiver43540 жив, нет Windows trainer/supervisor. В13:52:40UTC+7
 дальше ждать fullmanifest/exactcohort/finite gate и phase=training со свежими
 успешнымиsteps. Не перезапускать живой RUNNING job ради повторнойпроверки.
 Heartbeatprefix обновлён. БоевыеSAM/CRM/keeper неизменны.
+
+
+## 81. Самостоятельные ночные улучшения (10.10.2026, 15:02 UTC+7)
+
+Владелец будет спать и разрешил самостоятельно использовать RTX3060 ночью:
+если cloud C потеряна — восстановить последний finite model И optimizer
+на Windows; если облако живо — отдельные быстрые эксперименты по скорости/
+точности. Не ограничиваться мониторингом или длинными TEST прогонами.
+Цель и допуск в бой из73 прежние; без доказанного улучшения SAM/CRM не менять.
+
+Создан door_seg_night_probe.py, выложен Windows root. Проверка --check
+на Windows: обе сцены door_20260918_01405/15375 owner done/TRAIN, daytime
+blocker, gpu_opened=false, exit0. До21:00 torch/CUDA не импортируются.
+Detached --wait реально запущен через venv_sam3 python bg.py; parent91396/
+child50744 (сверять PID/cmdline), log data/logs/doorseg_night_probe_20261010.log
+и .err. CPU-only waiter до свободной карты21:00–09:35, утром прекращается.
+Первый waiter через cctv_base исправлен до GPU запуска: остановлены лишь
+проверенные свои PID/cmdline. Windows venv redirector даёт parent/child
+python PID одного job: blockers игнорирует своих ancestors, чужой probe
+не игнорирует. Не считать эти два PID двумя экспериментами.
+
+План: same-input/previous-mask equivalence unfused vs fast24 момента
+на каждой TRAIN сцене, full decode/channels/network/tracker/crop-export120
+кадров на каждой, потолок180сек. Фиксированный speed reference B step8604,
+не новые C веса. GPU лишь ночью без live door/Photoshop/3dsMax/других GPU
+задач, перед стартом utilization gate; во время опыта guard каждые16кадров.
+Guard overhead вычитается и записывается отдельно. Выход
+data/quality_backups/doorseg_night_20261010/report.json + отдельные chunks;
+существующие кеши/weights/owner labels не меняет. Новых измерений скорости/
+equivalence пока нет. Side/role CPU очереди не входят в первый замер:
+обязательны отдельные профили до утверждения полной скорости.
+Две локальные проверки проходят: границы21:00/09:35, foreign/own-wrapper
+процессы и отказ при смене owner TRAIN→TEST. Это CPU guards, не GPU качество.
+
+Существующая heartbeat automation обновлена, ACTIVE каждые10мин в том же
+чате: после21:00 читать short probe, реально исправлять измеренное узкое
+место, повторять короткий TRAIN before/after, затем следующий полезный
+speed/accuracy опыт. Не завершать ночь одним профилем, не повторять
+отклонённые идеи и не настраивать TEST10. При RUNNING/QUEUED Kaggle не
+запускать второй C/Colab. При cloud end/failure сначала private outputs/
+backup/latest finite/SHA/step/cohort/STOP, затем снять ownership и один
+Windows supervisor с дневной паузой09:40. Численный STOP/плато не сбрасывать
+автоматически. Windows probe и Windows training не работают одновременно.
+
+Mac caffeinate -i -t до11.10 09:40 запущен и PID38319 проверен; metadata
+/tmp/cctv_doorseg_night_awake.json. Это предотвращает idle sleep; приложение
+Codex должно оставаться открытым, Mac на питании с открытой крышкой.
+Будильник/эксперименты не требуют ручного запуска владельцем. Нормальный ход
+молча; уведомлять о значимом результате/новом сбое/нужном действии.
+Боевая дверь/CRM/keeper и параллельные amodal/staff/label_pieces сохранены.
