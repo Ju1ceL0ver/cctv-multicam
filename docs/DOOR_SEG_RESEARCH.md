@@ -169,6 +169,19 @@ for30minutes. Explicitly refreshing the existing OAuth credentials via
 changing the live kernel. Never interpret this CLI failure alone as VM loss;
 check fresh mirrored progress and backup. No token was logged or SDK patched.
 
+Second spaced proxy validation at11:22UTC/step12604: found .9001,
+precision .9603, F1 .9292, maskIoU .9017, links .9803,915links/1021truth.
+Against baseline8604: F1 −0.53percentage points, maskIoU +0.43points,
+links +0.29points. Recall fell despite better precision/masks/links; overall
+improvement remains unproven.57.8ms is T4 proxy inference only. Two stale
+spaced evaluations followed the baseline; plateau requires three. The
+healthy job continued to12700 with no STOP. No labels/thresholds changed.
+Windows CPU receiver verified finite model AND optimizer12604; SHA-checked
+immutable last/eval copies andstep12604_verified.json are in the existing
+Kaggle backup directory. Recovery must check latest finite12604 or newer.
+Last SHA `ca1c017baee7d396a82d36ea92cbaaa45a9af060731e4840527d704b5285a178`;
+eval SHA `233dca6e8d8b90a1aeedbe73a7285f80559d6c52c0323673c85af0438813f371`.
+
 `door_seg_ddp.py` runs one student via NCCL, six examples per GPU, twelve total.
 DDP averages losses with the legacy local batch-six scale; lr1e-4 is retained,
 BN remains local, and the finite step8996 weights AND optimizer are restored.

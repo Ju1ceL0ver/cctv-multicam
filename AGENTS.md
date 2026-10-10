@@ -4085,3 +4085,28 @@ STOP/pending manifests отсутствуют, receiver43540/ночной waiter
 живы. Последний ACKlast11064 SHA256
 a455970b6027fac836d6fad56598698562ae47b1e6ec644e0cc66405f8a14c42;
 при recovery всегда проверить latest model Иoptimizer, не stale snapshot.
+
+## 85. Вторая spaced валидация C: меньше найденных, лучшие маски/links (10.10.2026, 18:30 UTC+7)
+
+На неизменной400moment proxy23.09 в11:22UTC step12604:
+found .9001, precision .9603, F1 .9292, maskIoU .9017, links .9803,
+n_links915/truth1021. Против baseline8604 .9345/.8974/.9774:
+F1 −.0053 (−.53пп), maskIoU +.0043, links +.0029. Precision выше,
+recall ниже; улучшение масок не компенсировало пропуски в F1.
+Общий прирост/готовность к бою не доказаны.57.8ms — T4 proxy, не
+RTX3060 full pipeline. TRAIN/VAL состав/labels/пороги/рецепт не изменены.
+После10604→12604 прошло2000successful steps. Пока два stale spaced
+результата послеbaseline; plateau требует3, STOP отсутствует. Новый
+successful12700 в11:26:17UTC, Kaggle version4 RUNNING. Не останавливать
+и не возобновлять trainer преждевременно из-за одной метрики.
+
+Windows CPU receiver43540 подтвердил finite model Иoptimizer last12604
+в18:25:23 SHA ca1c017baee7d396a82d36ea92cbaaa45a9af060731e4840527d704b5285a178;
+step12604.pt в18:26:45 SHA
+233dca6e8d8b90a1aeedbe73a7285f80559d6c52c0323673c85af0438813f371.
+Сохранены SHA-verified immutable copies step12604_last_ca1c017baee7.pt
+и step12604_eval_233dca6e8d8b.pt, step12604_verified.json в
+ data/quality_backups/doorseg_c_kaggle. Recovery лишь с latest finite
+12604 или новее после свежей CPU проверки; не stale10604/8996bundle.
+Pending manifests нет, ночной CPU waiter91396/50744 жив/.err пуст;
+продакшенSAM/CRM/keeper и чужие работы сохранены.
