@@ -88,6 +88,14 @@ A full release still requires: a successful selected-policy comparison on the fr
 
 ## Primary sources and relevance to this case
 
+The owner also requested implementing the fingerprint and ConvGRU heads while
+the dataset transfers. They are staged separately, with ordered TRAIN unroll
+and checkpoint/context guards; see [DOOR_SEG_TEMPORAL.md](DOOR_SEG_TEMPORAL.md).
+Four real TRAIN frames passed BF16 backward without updating weights. Initialized
+heads preserved original predictions on a short frame check. Heads plus mask
+pool averaged 3.139 ms on T4; full RTX3060 pipeline and trained quality remain
+unverified. The existing C recipe has not acquired these heads.
+
 - [ByteTrack](https://arxiv.org/abs/2110.06864): recover existing tracks with low-confidence boxes rather than discarding all low scores. Implemented as a bounded experiment; measured contamination here prevents adopting it indiscriminately.
 - [OC-SORT](https://arxiv.org/abs/2203.14360): use observed motion and correct state after occlusion. Supports retaining measured motion and rejecting naive extrapolation of one-tick displacement heads over long gaps.
 - [Deep SORT](https://arxiv.org/abs/1703.07402) and [Deep OC-SORT](https://arxiv.org/abs/2302.11813): appearance is an association cue with motion constraints, not sufficient evidence for unrestricted long-gap identity merges. Our appearance tests preserve hard physical limits.
