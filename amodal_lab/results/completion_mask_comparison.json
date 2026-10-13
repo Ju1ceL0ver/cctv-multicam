@@ -1,0 +1,62 @@
+{
+  "per_type_hidden_IoU": {
+    "pole": {
+      "legacy": 0.6890253381004197,
+      "rich": 0.6583578244621022
+    },
+    "double_pole": {
+      "legacy": 0.6580849000531799,
+      "rich": 0.6257620623584741
+    },
+    "stand": {
+      "legacy": 0.39583950251702693,
+      "rich": 0.39097772744431863
+    },
+    "top": {
+      "legacy": 0.42066749264364256,
+      "rich": 0.4267221088969088
+    },
+    "left_edge": {
+      "legacy": 0.5450972207728965,
+      "rich": 0.5419706784861916
+    },
+    "right_edge": {
+      "legacy": 0.4613585705411627,
+      "rich": 0.503926434097212
+    },
+    "bottom_edge": {
+      "legacy": 0.3693404382962205,
+      "rich": 0.37595753019560335
+    },
+    "top_edge": {
+      "legacy": 0.4300569349992092,
+      "rich": 0.4322276741903827
+    },
+    "diagonal": {
+      "legacy": 0.5681478316599017,
+      "rich": 0.43808739281836223
+    },
+    "rectangle": {
+      "legacy": 0.6301877470355731,
+      "rich": 0.6125026837472268
+    },
+    "person": {
+      "legacy": 0.5324690538482565,
+      "rich": 0.3805299266619352
+    },
+    "multiple": {
+      "legacy": 0.5327529689934978,
+      "rich": 0.5288701581080718
+    },
+    "irregular": {
+      "legacy": 0.3559740442939766,
+      "rich": 0.23453994228732147
+    }
+  },
+  "macro_hidden_IoU": {
+    "legacy": 0.5068463110580741,
+    "rich": 0.4731101649041624
+  },
+  "examples_per_type": 24,
+  "limitation": "same validation day used for epoch selection; synthetic only, no final blind test; stand/bottom and top/top_edge overlap in geometry"
+}

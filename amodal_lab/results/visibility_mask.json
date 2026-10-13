@@ -1,0 +1,43 @@
+{
+  "device": "mps",
+  "parameters": 118050,
+  "checkpoint_epoch": 1,
+  "train": {
+    "n": 328,
+    "confusion_matrix": [
+      [
+        203,
+        0
+      ],
+      [
+        125,
+        0
+      ]
+    ],
+    "accuracy": 0.6189024390243902,
+    "balanced_accuracy": 0.5,
+    "full_recall": 1.0,
+    "occluded_recall": 0.0
+  },
+  "validation": {
+    "n": 41,
+    "confusion_matrix": [
+      [
+        24,
+        0
+      ],
+      [
+        17,
+        0
+      ]
+    ],
+    "accuracy": 0.5853658536585366,
+    "balanced_accuracy": 0.5,
+    "full_recall": 1.0,
+    "occluded_recall": 0.0
+  },
+  "latency_ms_median": 1.0810420208144933,
+  "latency_ms_p90": 1.7220090026967232,
+  "latency_scope": "batch 1 network only, input already on MPS, synchronized; excludes preprocessing",
+  "limitation": "validation day used to select best epoch; no independent final test, identities across days unverified"
+}

@@ -1,0 +1,15 @@
+{
+  "device": "mps",
+  "parameters": 118050,
+  "train": 203,
+  "validation": 24,
+  "best_epoch": 30,
+  "hidden_region_IoU": 0.5125057541813718,
+  "full_mask_IoU": 0.7418182450526901,
+  "visible_only_full_IoU": 0.5692110426825715,
+  "visible_only_hidden_IoU": 0,
+  "latency_ms_median": 4.240479494910687,
+  "latency_ms_p90": 7.482403912581506,
+  "latency_scope": "network only, batch1 input on MPS, synchronized",
+  "limitation": "synthetic occlusions on approved full masks; day used to select checkpoint, no real hidden ground truth; cross-day identities unverified"
+}

@@ -31,3 +31,9 @@ inout_lab/*.npz
 # Regenerable float32 cache for minibatch CNN training on the Mac
 inout_lab/cnn_frames_88x160.npy
 inout_lab/cnn_frames_88x160.json
+
+# Local amodal experiment data and model runs
+amodal_lab/data/
+amodal_lab/runs/
+amodal_lab/*.zip
+amodal_lab/*.log
