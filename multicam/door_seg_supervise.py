@@ -84,6 +84,7 @@ def main(name, until='09:40'):
         print(time.strftime('%d.%m %H:%M:%S'), text, flush=True)
     env = {k: v for k, v in os.environ.items() if not k.startswith('RA_')}
     env.update(RA_DS_GLUED='1', RA_DS_LR='1e-4', RA_DS_EVAL_N='400', PYTHONIOENCODING='utf-8')
+    env.update({k: v for k, v in os.environ.items() if k.startswith('RA_DS_')})   # 14.10: explicit overrides pass through
     say('waiting for free GPU; stop on plateau; daytime pause until 21:00')
     try:
         while not (run / 'STOP').exists():

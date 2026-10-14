@@ -354,8 +354,11 @@ def stream(seed, q, test=False):
             continue
         if s.starts:
             srcs.append(s)
-    weights = [math.sqrt(len(s.starts)) * (3.0 if s.ident is not None and s.d.parent.parent.name == 'sam31_door' else 1.0)
-               for s in srcs]
+    door_w = float(os.environ.get('RA_DS_DOOR_W', 3.0))            # 14.10: owner-checked door stretches (crowds) weigh more
+    focus = set(filter(None, os.environ.get('RA_DS_FOCUS', '').split(',')))
+    focus_w = float(os.environ.get('RA_DS_FOCUS_W', 4.0))
+    weights = [math.sqrt(len(s.starts)) * (door_w if s.ident is not None and s.d.parent.parent.name == 'sam31_door' else 1.0)
+               * (focus_w if s.d.parent.name in focus else 1.0) for s in srcs]
     last = None
     while True:
         src = rng.choices(srcs, weights)[0]

@@ -153,6 +153,19 @@ def start_door():
     door_live_ctl.start(until=plan().get('door_hours', '10:00-21:00').split('-')[1])
 
 
+def start_door_seg():
+    """14.10 owner: the live door on the new system (door_live_seg.py: doorseg_c + the owner's zones), not SAM"""
+    py = os.path.join(HOME, 'cctv_ai', 'venv_sam3', 'Scripts', 'python.exe')
+    env = {k: v for k, v in os.environ.items() if not k.startswith('RA_')}
+    env.update(PYTHONIOENCODING='utf-8', RA_ROLE_DEVICE='cpu', RA_ROLE_THREADS='3')
+    until = plan().get('door_hours', '10:00-21:00').split('-')[1]
+    out = open(os.path.join(ROOT, 'data', 'live', 'door_live_seg.out'), 'a', encoding='utf-8')
+    p = subprocess.Popen([py, '-X', 'faulthandler', os.path.join(ROOT, 'door_live_seg.py'), '--until', until], cwd=ROOT, env=env,
+                         stdout=out, stderr=subprocess.STDOUT, creationflags=0x00000008 | 0x00000200)
+    with open(os.path.join(ROOT, 'data', 'live', 'door_live_seg.pid'), 'w') as f:
+        f.write(str(p.pid))
+
+
 def door_hours(now):
     a, b = plan().get('door_hours', '10:00-21:00').split('-')
     return a <= now.strftime('%H:%M') < b
@@ -412,6 +425,8 @@ def main():
                 ensure('live counter', 'run_live.py', start_live)
             if p.get('door') and door_hours(datetime.now()) and camera_up():
                 ensure('live door', 'door_live.py', start_door)
+            if p.get('door_seg') and door_hours(datetime.now()) and camera_up():    # 14.10: the new live door
+                ensure('live door (doorseg_c)', 'door_live_seg.py', start_door_seg)
             # 09.10: the crossings -> the Refloor CRM, all day (cards that did not go are retried until they do)
             if p.get('crm'):
                 import door_live_ctl

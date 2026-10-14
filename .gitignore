@@ -37,3 +37,12 @@ amodal_lab/data/
 amodal_lab/runs/
 amodal_lab/*.zip
 amodal_lab/*.log
+
+# zone_lab data (copies of machine data)
+multicam/zone_lab/*.json.gz
+multicam/zone_lab/*.npy
+multicam/zone_lab/*.pkl
+multicam/zone_lab/dsc_cache/
+multicam/zone_lab/rowcache/
+multicam/zone_lab/results.jsonl
+multicam/zone_lab/*.log

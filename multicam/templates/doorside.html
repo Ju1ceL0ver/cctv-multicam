@@ -36,6 +36,8 @@ kbd{background:#333;border-radius:3px;padding:0 4px}
   <div id="side">
     <h3>Выбран: <span id="sel" class="mut">никто</span></h3>
     <div id="help">
+      <kbd>K</kbd> своя линия · <kbd>G</kbd> область (вершины, <kbd>Enter</kbd>/двойной щелчок — замкнуть) · <kbd>J</kbd> удалить последнюю<br>
+      Точки тянуть мышью · квадратик на ребре — тянуть, добавится точка · правый щелчок по точке — удалить · <kbd>Alt</kbd>+тянуть — сдвинуть фигуру<br>
       Щелчок по человеку — выбрать. По пустому месту — человек без контура.<br>
       <kbd>1</kbd> с этого кадра <b style="color:var(--in)">внутри</b> · <kbd>2</kbd> <b style="color:var(--out)">снаружи</b><br>
       <kbd>Backspace</kbd> убрать ближайшую отметку выбранного · <kbd>Del</kbd>, кнопка или правый щелчок — удалить точку<br>
@@ -62,6 +64,17 @@ const COL={in:'#00e676',out:'#ff2bd6',none:'#9e9e9e'};
 const msg=t=>{$('#msg').textContent=t;clearTimeout(msg.h);msg.h=setTimeout(()=>$('#msg').textContent='',2500)};
 const now=()=>v.currentTime;
 const kNow=()=>Math.round(now()*FPS);
+let LINES2=[],l2Pts=null,l2Kind='line',drag=null,dragged=false;
+const SHP=l=>l.pts||[l.p1,l.p2];
+fetch('/api/doorside/lines').then(r=>r.json()).then(j=>{LINES2=(j.lines||[]).map(l=>({name:l.name||'',kind:l.kind||'line',pts:SHP(l)}))});
+async function saveShapes(m){const j=await api('/api/doorside/lines',{lines:LINES2});LINES2=j.lines;if(m)msg(m)}
+function cxy(ev){const r=c.getBoundingClientRect();return [(ev.clientX-r.left)*1280/r.width,(ev.clientY-r.top)*720/r.height]}
+function hitVertex(x,y){for(let i=LINES2.length-1;i>=0;i--){const ps=LINES2[i].pts;for(let j=0;j<ps.length;j++)if(Math.hypot(ps[j][0]-x,ps[j][1]-y)<14)return [i,j]}return null}
+function hitMid(x,y){for(let i=LINES2.length-1;i>=0;i--){const l=LINES2[i];if(l.kind!='poly')continue;const ps=l.pts;for(let j=0;j<ps.length;j++){const a=ps[j],b=ps[(j+1)%ps.length];
+  if(Math.hypot((a[0]+b[0])/2-x,(a[1]+b[1])/2-y)<12)return [i,j]}}return null}
+function inPoly(x,y,ps){let o=false;for(let i=0,j=ps.length-1;i<ps.length;j=i++){const [xi,yi]=ps[i],[xj,yj]=ps[j];if((yi>y)!=(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)o=!o}return o}
+function nearSeg(x,y,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/L2));return Math.hypot(a[0]+t*dx-x,a[1]+t*dy-y)}
+function hitBody(x,y){for(let i=LINES2.length-1;i>=0;i--){const l=LINES2[i],ps=l.pts;if(l.kind=='poly'?inPoly(x,y,ps):nearSeg(x,y,ps[0],ps[1])<10)return i}return null}
 let mergeMode=false,selPiece=null,LINE=null,lineMode=0,linePts=[];
 fetch('/api/doorside/line').then(r=>r.json()).then(j=>{if(j.p1)LINE=j});
 function lineSide(x,y){const [x1,y1]=LINE.p1,[x2,y2]=LINE.p2;return Math.sign((x2-x1)*(y-y1)-(y2-y1)*(x-x1))}
@@ -109,6 +122,13 @@ function draw(){
   if(LINE){const [x1,y1]=LINE.p1,[x2,y2]=LINE.p2,dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ex=dx/L*2000,ey=dy/L*2000;
     g.setLineDash([14,8]);g.lineWidth=3;g.strokeStyle='#00e5ff';g.beginPath();g.moveTo(x1-ex,y1-ey);g.lineTo(x2+ex,y2+ey);g.stroke();g.setLineDash([]);
     g.fillStyle='#00e5ff';g.beginPath();g.arc(LINE.inside[0],LINE.inside[1],8,0,7);g.fill();g.font='bold 18px system-ui';g.fillText('внутри',LINE.inside[0]+10,LINE.inside[1]+6)}
+  LINES2.forEach((l,i)=>{const col=['#ff9100','#76ff03','#ff4081','#ffff00','#18ffff'][i%5],ps=l.pts;g.lineWidth=4;g.strokeStyle=col;g.beginPath();
+    ps.forEach((q,j)=>j?g.lineTo(...q):g.moveTo(...q));if(l.kind=='poly'){g.closePath();g.fillStyle=col+'26';g.fill()}g.stroke();
+    for(const q of ps){g.fillStyle='#000';g.beginPath();g.arc(q[0],q[1],8,0,7);g.fill();g.fillStyle=col;g.beginPath();g.arc(q[0],q[1],6,0,7);g.fill()}
+    if(l.kind=='poly')ps.forEach((a,j)=>{const b=ps[(j+1)%ps.length];g.fillStyle=col;g.fillRect((a[0]+b[0])/2-4,(a[1]+b[1])/2-4,8,8)});
+    g.font='bold 20px system-ui';g.lineWidth=5;g.strokeStyle='#000';const tx=(i+1)+'. '+(l.name||'');g.strokeText(tx,ps[0][0]+10,ps[0][1]-12);g.fillStyle=col;g.fillText(tx,ps[0][0]+10,ps[0][1]-12)});
+  if(l2Pts){g.strokeStyle='#ff9100';g.lineWidth=3;g.setLineDash([8,6]);g.beginPath();l2Pts.forEach((q,j)=>j?g.lineTo(...q):g.moveTo(...q));g.stroke();g.setLineDash([]);
+    for(const [x,y] of l2Pts){g.fillStyle='#ff9100';g.beginPath();g.arc(x,y,7,0,7);g.fill()}}
   for(const [x,y] of linePts){g.fillStyle='#00e5ff';g.beginPath();g.arc(x,y,7,0,7);g.fill()}
   g.font='bold 22px system-ui';g.fillStyle='#fff';g.fillText(`${t.toFixed(2)} с · кадр ${kNow()}`+(lineMode?['','  · ЛИНИЯ: 1-я точка','  · ЛИНИЯ: 2-я точка','  · щёлкни по стороне ВНУТРИ'][lineMode]:''),12,30);
   drawCursor()}
@@ -128,6 +148,8 @@ async function send(b){try{const j=await api('/api/doorside/'+day,Object.assign(
   Object.assign(cur,j.stretch);cur.events=j.events;S[$('#tag').value]=cur;renderLists();draw();return j}catch(e){msg('ошибка: '+e.message)}}
 c.addEventListener('click',async ev=>{
   const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*1280/r.width,y=(ev.clientY-r.top)*720/r.height;
+  if(dragged){dragged=false;return}
+  if(l2Pts){l2Pts.push([x,y]);if(l2Kind=='line'&&l2Pts.length==2)await finishShape();draw();return}
   if(lineMode){linePts.push([x,y]);lineMode++;
     if(lineMode>3){const b={p1:linePts[0],p2:linePts[1],inside:linePts[2]};linePts=[];lineMode=0;
       const j=await api('/api/doorside/line',b);LINE=j;msg('линия магазина сохранена')}draw();return}
@@ -161,6 +183,11 @@ document.addEventListener('keydown',async e=>{
     await send({act:'cut',person:piece,t:now()});sel=root(eff(piece));$('#sel').textContent=label(sel);msg('трек T'+piece+' разрезан: с этого кадра другой человек ('+label(sel)+')');return}
   if(code=='KeyW'||k=='w'||k=='ц'){if(sel==null){msg('сначала выбери человека');return}const was=(cur.staff||[]).includes(root(sel));
     await send({act:'staff',person:root(sel)});msg(label(root(sel))+(was?' — не сотрудник':' — СОТРУДНИК'));return}
+  if(code=='KeyK'||k=='k'||k=='л'){v.pause();l2Pts=[];l2Kind='line';msg('новая линия: щёлкни два конца');return}
+  if(code=='KeyG'||k=='g'||k=='п'){v.pause();l2Pts=[];l2Kind='poly';msg('новая область: щёлкай вершины, Enter или двойной щелчок — замкнуть, Esc — отмена');return}
+  if(l2Pts&&code=='Enter'){e.preventDefault();await finishShape();draw();return}
+  if(l2Pts&&code=='Escape'){l2Pts=null;msg('отменено');draw();return}
+  if((code=='KeyJ'||k=='j'||k=='о')&&LINES2.length){if(confirm('Удалить последнюю фигуру «'+(LINES2[LINES2.length-1].name||LINES2.length)+'»?')){LINES2.pop();saveShapes('удалено').then(draw)}return}
   if(code=='KeyL'||k=='l'||k=='д'){v.pause();lineMode=1;linePts=[];msg('линия: щёлкни два конца, потом сторону ВНУТРИ магазина');return}
   if(code=='KeyT'||k=='t'||k=='е'){const r=(cur.role||'test')=='train'?'test':'train';await send({act:'role',role:r});msg(r=='train'?'отрезок — ОБУЧЕНИЕ':'отрезок — ТЕСТ');renderLists();return}
   if(code=='KeyU'||k=='u'||k=='г'){if(sel!=null){await send({act:'unmerge',person:root(sel)});msg('расклеено')}return}
@@ -173,8 +200,24 @@ $('#day').onchange=()=>loadDay($('#day').value);
 $('#done').onclick=()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'d',code:'KeyD'}));
 async function delPoint(pid){await send({act:'unpoint',person:pid});if(String(sel)===String(pid)){sel=null;$('#sel').textContent='никто'}msg(label(pid)+' удалена')}
 $('#delpt').onclick=()=>{if(sel&&String(sel).startsWith('x'))delPoint(sel);else msg('сначала щёлкни по точке')};
+async function finishShape(){const kind=l2Kind,pts=l2Pts;l2Pts=null;if(pts.length<(kind=='poly'?3:2)){msg('мало точек');return}
+  const name=prompt('Название '+(kind=='poly'?'области':'линии')+' '+(LINES2.length+1)+' (что она значит)','')||'';
+  LINES2.push({name,kind,pts});await saveShapes((kind=='poly'?'область ':'линия ')+LINES2.length+' сохранена')}
+c.addEventListener('mousedown',ev=>{if(ev.button!==0||l2Pts||lineMode)return;const [x,y]=cxy(ev);
+  let h=hitVertex(x,y);
+  if(!h){const m=hitMid(x,y);if(m){LINES2[m[0]].pts.splice(m[1]+1,0,[x,y]);h=[m[0],m[1]+1]}}
+  if(h){drag={i:h[0],j:h[1]};ev.preventDefault();v.pause();return}
+  if(ev.altKey||ev.ctrlKey||ev.metaKey){const b=hitBody(x,y);if(b!=null){drag={i:b,j:-1,x,y};ev.preventDefault();v.pause()}}});
+window.addEventListener('mousemove',ev=>{if(!drag)return;const [x,y]=cxy(ev),l=LINES2[drag.i];dragged=true;
+  if(drag.j>=0)l.pts[drag.j]=[Math.max(0,Math.min(1280,x)),Math.max(0,Math.min(720,y))];
+  else{const dx=x-drag.x,dy=y-drag.y;l.pts=l.pts.map(([a,b])=>[a+dx,b+dy]);drag.x=x;drag.y=y}draw()});
+window.addEventListener('mouseup',async ev=>{if(!drag)return;drag=null;if(dragged)await saveShapes('сохранено');setTimeout(()=>{dragged=false},0)});
+c.addEventListener('dblclick',async ev=>{if(l2Pts&&l2Kind=='poly'){l2Pts.pop();await finishShape();draw()}});
 c.addEventListener('contextmenu',ev=>{                      // right click on a point: delete it
   const r=c.getBoundingClientRect(),x=(ev.clientX-r.left)*1280/r.width,y=(ev.clientY-r.top)*720/r.height;
+  const hv=hitVertex(x,y);if(hv){ev.preventDefault();const l=LINES2[hv[0]];
+    if(l.kind=='poly'&&l.pts.length>3){l.pts.splice(hv[1],1);saveShapes('точка удалена')}
+    else if(confirm('Удалить «'+(l.name||hv[0]+1)+'» целиком?')){LINES2.splice(hv[0],1);saveShapes('удалено')}draw();return}
   for(const [pid,[px,py]] of Object.entries(cur.points||{}))if(Math.hypot(px-x,py-y)<18){ev.preventDefault();delPoint(pid);return}});
 function loop(){if(cur)draw();requestAnimationFrame(loop)}
 const days=['20260919','20260918','20260917'];$('#day').innerHTML=days.map(d=>`<option>${d}</option>`).join('');

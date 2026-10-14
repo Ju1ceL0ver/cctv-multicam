@@ -223,7 +223,14 @@ def serve():
     if dev == 'cpu':
         import torch
         torch.set_num_threads(int(os.environ.get('RA_ROLE_THREADS', '8')))
-    embed = T.teachers(dev)
+    backend = os.environ.get('RA_ROLE_BACKEND', 'torch')
+    if backend == 'onnx':
+        from door_role_onnx import teachers
+        embed = teachers(require_provenance=True)
+    elif backend == 'torch':
+        embed = T.teachers(dev)
+    else:
+        raise ValueError('Unknown RA_ROLE_BACKEND: ' + backend)
     print(json.dumps({'ready': float(getattr(clf, 'threshold', 0.45))}), flush=True)
     for line in sys.stdin:
         try:

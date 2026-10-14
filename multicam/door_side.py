@@ -285,6 +285,12 @@ def register(app, root=None):
         if not re.fullmatch(r'\d{8}', day):
             abort(400)
 
+    try:                                               # 13.10: /zonecheck (disputed door moments as GIFs)
+        import zone_check
+        zone_check.register(app)
+    except Exception as exc:
+        print('zonecheck not registered:', exc)
+
     @app.get('/doorside')
     def doorside_page():
         return render_template('doorside.html')
@@ -322,6 +328,30 @@ def register(app, root=None):
     def doorside_line_get():
         import door_line
         return jsonify(door_line.load() or {})
+
+    LINES2 = ROOT / 'data' / 'door_v2' / 'door_lines_owner.json'      # 13.10: the owner's extra lines (not used live)
+
+    @app.get('/api/doorside/lines')
+    def doorside_lines_get():
+        return jsonify(json.load(open(LINES2, encoding='utf-8')) if LINES2.exists() else {'lines': []})
+
+    @app.post('/api/doorside/lines')
+    def doorside_lines_set():
+        from storage import atomic_json
+        b = request.get_json(force=True) or {}
+        try:
+            lines = []
+            for x in b.get('lines', []):
+                kind = 'poly' if x.get('kind') == 'poly' else 'line'
+                pts = [[round(float(q[0]), 1), round(float(q[1]), 1)] for q in (x.get('pts') or [x['p1'], x['p2']])]
+                if len(pts) < (3 if kind == 'poly' else 2):
+                    raise ValueError
+                lines.append({'name': str(x.get('name', ''))[:60], 'kind': kind, 'pts': pts if kind == 'poly' else pts[:2]})
+        except (KeyError, TypeError, ValueError, IndexError):
+            return jsonify({'error': 'lines: [{name, kind, pts}]'}), 400
+        out = {'lines': lines, 'at': time.strftime('%Y-%m-%dT%H:%M:%S')}
+        atomic_json(LINES2, out)
+        return jsonify(out)
 
     @app.post('/api/doorside/line')
     def doorside_line_set():

@@ -1,0 +1,44 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Проверка двери</title>
+<style>
+:root{--bg:#111;--fg:#eee;--mut:#999;--ok:#4caf50;--no:#e53935;--q:#ffb300}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px system-ui}
+main{max-width:1000px;margin:0 auto;padding:12px 16px}
+#q{font-size:22px;font-weight:600;margin:8px 0}
+#g{width:100%;max-width:960px;background:#000;display:block}
+.btn{display:inline-block;padding:10px 16px;margin:6px 6px 0 0;border-radius:6px;border:0;font-size:16px;cursor:pointer;color:#fff}
+#list{margin-top:14px;font-size:13px;color:var(--mut);line-height:1.8}
+#list span{cursor:pointer;margin-right:8px;padding:2px 6px;border-radius:4px;background:#222}
+#list span.cur{outline:2px solid var(--q)} #list .a1{background:#1b5e20} #list .a2{background:#7f1d1d} #list .a0{background:#555} #list .a3{background:#8d6e00}
+kbd{background:#333;border-radius:3px;padding:1px 5px}
+a{color:#7cc4ff}
+</style></head><body><main>
+<div id="top"></div><div id="q"></div><div id="note" style="color:var(--mut)"></div>
+<img id="g" alt="момент">
+<div>
+<button class="btn" style="background:var(--ok)" onclick="ans(1)"><kbd>1</kbd> событие было</button>
+<button class="btn" style="background:var(--no)" onclick="ans(2)"><kbd>2</kbd> не было</button>
+<button class="btn" style="background:#8d6e00" onclick="ans(3)"><kbd>3</kbd> серая зона — не считать</button>
+<button class="btn" style="background:#555" onclick="ans(0)"><kbd>0</kbd> не понять</button>
+<span style="color:var(--mut)">· <kbd>←</kbd>/<kbd>→</kbd> листать · <kbd>Z</kbd> снять ответ</span>
+</div>
+<div id="list"></div>
+<p id="leg" style="color:var(--mut);font-size:13px">Человек, о котором вопрос, обведён жёлтым; заливка — сторона системы: <b style='color:#6c6'>зелёный — внутри</b>, <b style='color:#c6c'>фиолетовый — снаружи</b>. Над каждым человеком — как его сейчас считает система (ВНУТРИ / СНАРУЖИ); над тем, о ком вопрос, ещё и твоя разметка («ты: …»). Красная рамка — момент события. Гифка: −5…+5 с.</p>
+</main><script>
+let D={items:[],answers:{}},i=0;
+const $=s=>document.querySelector(s);
+async function load(){D=await (await fetch('/api/zonecheck')).json();const j=D.items.findIndex(x=>!D.answers[x.id]);i=j<0?0:j;show()}
+function show(){const it=D.items[i];if(!it)return;
+  const a=D.answers[it.id];
+  $('#top').innerHTML=`${i+1} / ${D.items.length} · отвечено ${Object.keys(D.answers).length} · <a href="/doorside?day=${it.day}&tag=${it.tag}" target="_blank">открыть в /doorside</a> (${it.tag}, ${it.t.toFixed(1)} с)`+(a?` · ответ: <b>${['не понять','было','не было','серая зона'][a.v]}</b>`:'');
+  $('#q').textContent=it.q;$('#leg').style.display=it.nosys?'none':'';$('#note').textContent=it.note||'';
+  $('#g').src=it.gif?'/api/zonecheck/gif/'+it.id+'.gif':'';
+  $('#list').innerHTML=D.items.map((x,j)=>`<span class="${j==i?'cur ':''}${D.answers[x.id]?'a'+D.answers[x.id].v:''}" onclick="i=${j};show()">${j+1}</span>`).join('')}
+async function ans(v){const it=D.items[i];D.answers=await (await fetch('/api/zonecheck/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:it.id,v})})).json();
+  if(i<D.items.length-1)i++;show()}
+document.addEventListener('keydown',async e=>{
+  if(e.key=='1')ans(1);else if(e.key=='3')ans(3);else if(e.key=='2')ans(2);else if(e.key=='0')ans(0);
+  else if(e.key=='ArrowRight'){i=Math.min(D.items.length-1,i+1);show()}else if(e.key=='ArrowLeft'){i=Math.max(0,i-1);show()}
+  else if(e.code=='KeyZ'){const it=D.items[i];D.answers=await (await fetch('/api/zonecheck/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:it.id,v:'clear'})})).json();show()}});
+load();
+</script></body></html>
