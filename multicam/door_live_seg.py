@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / 'zone_lab'))
 LIVE = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live')
 CK = ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt'
 TICK, LAG, KEEP_S = 0.08, 4.0, 90.0
+CONT = 0.5                                             # detections the tracker sees (the previous-mask channel keeps 0.4)
 CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1)    # 14.10 owner: his rules above the model (train 0.915 -> 0.921)
 
 
@@ -46,7 +47,7 @@ def main(until='21:00', source=None):
     net.yolo.eval(); net.off.eval(); net.yolo.fuse(verbose=False)
     M = Net(net, 'eager')
     asm = F.GPUChannels(S.background(time.strftime('%Y%m%d'), 'cam1'))
-    tracker, zones = Tracker(Config(max_gap=25)), Zones()
+    tracker, zones = Tracker(Config(max_gap=15)), Zones()      # 15.10 night sweep: gap 15, continuation 0.5 (train 0.921 -> 0.927)
     day = time.strftime('%Y%m%d')
     bank = door_role.Bank(LIVE / 'views_seg' / day)
     roles = door_role.Roles(bank, None, threshold=.45)
@@ -117,7 +118,7 @@ def main(until='21:00', source=None):
             pred = M.predict(asm(ctx, prev))
         prev = F.previous_union([p for p in pred if p[2] >= .4])
         pred = [p for p in pred if not on_poster(p[0][:180])]          # 14.10 owner: the advertising stand is not a person
-        out = [(pid, p[0][:180]) for pid, p in tracker.update(k, pred) if p[0][:180].any()]
+        out = [(pid, p[0][:180]) for pid, p in tracker.update(k, [p for p in pred if p[2] >= CONT]) if p[0][:180].any()]
         stream.put(k, fk, out)
         tape.put(tk, fk, out)
         if k % 3 == 0 and out:
