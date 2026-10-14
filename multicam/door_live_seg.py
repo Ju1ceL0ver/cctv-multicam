@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / 'zone_lab'))
 LIVE = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live')
 CK = ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt'
 TICK, LAG, KEEP_S = 0.08, 4.0, 90.0
-CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3.)
+CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1)    # 14.10 owner: his rules above the model (train 0.915 -> 0.921)
 
 
 def log(msg):

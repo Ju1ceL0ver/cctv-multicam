@@ -69,6 +69,15 @@ def events(rows, c):
             if r[R.DOOR] >= c['door_px']:
                 door_t = t
             v = 1 if q >= c['thr'] else (0 if q <= 1 - c['thr'] else None)
+            if c.get('rules_first'):     # 14.10 owner: his rules above the classifier, the model only where they are silent
+                if r[R.SHOP] >= c['rules_first']:
+                    v = 1
+                elif r[R.SHOP] == 0 and r[R.FOOT] == 'gallery':
+                    v = 0
+                elif r[R.SHOP] == 0 and v == 1:
+                    v = None
+            if v == 1 and c.get('shop_veto') and r[R.SHOP] == 0:     # 14.10 owner: inside only with a pixel in the shop
+                v = 0 if c['shop_veto'] == 'out' else None
             if v is None or v == cur:
                 pend, n = None, 0
             else:
@@ -85,6 +94,17 @@ def events(rows, c):
                     cur, pend, n = v, None, 0
             sides[(p, r[R.K])] = cur
         end[p] = (cur, s[-1][R.FX], s[-1][R.FY])
+    if c.get('foot_s'):          # 14.10 owner: passers-by behind the glass -- an entry must stand in the shop after, an exit before
+        ok = []
+        for e in ev:
+            s = seq.get(e['w'], [])
+            lo, hi = (e['t'], e['t'] + c['foot_s']) if e['kind'] == 'in' else (e['t'] - c['foot_s'], e['t'])
+            win = [r for r in s if lo <= r[R.K] / FPS <= hi]
+            shop = sum(r[R.FOOT] == 'shop' for r in win)
+            gal = sum(r[R.FOOT] == 'gallery' for r in win)
+            if shop >= c.get('foot_n', 1) and not (c.get('foot_gal') and gal > shop):
+                ok.append(e)
+        ev = ok
     if c['pair_s']:
         ev = R.cancel_pairs(ev, c['pair_s'])
     return ev, sides
