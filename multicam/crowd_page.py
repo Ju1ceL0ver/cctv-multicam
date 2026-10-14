@@ -49,6 +49,7 @@ async function open_(){cnt.textContent=`Готово ${L.items.filter(x=>x.done)
  if(j>=L.items.length){where.textContent='Всё размечено, спасибо!';cx.clearRect(0,0,cv.width,cv.height);return}
  const it=L.items[j];where.textContent=`${it.kind==='in'?'Вход':'Выход'} ${it.clock.slice(11)} · кадр ${it.at>0?'+':''}${it.at} с · ${j+1}/${L.items.length}`;
  F=await (await fetch(`/api/crowd/model?day=${day}&key=${it.key}&i=${it.i}`)).json();drop=new Set();added=[];hist=[];
+ fetch('/api/crowd/warm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day,key:it.key,i:it.i})});
  img.onload=()=>{cv.width=img.width;cv.height=img.height;draw()};img.src=`/api/crowd/frame?day=${day}&key=${it.key}&i=${it.i}`}
 function path(poly){cx.beginPath();poly.forEach((p,k)=>k?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1]));cx.closePath()}
 function inside(poly,x,y){let c=false;for(let a=0,b=poly.length-1;a<poly.length;b=a++){const[xi,yi]=poly[a],[xj,yj]=poly[b];if((yi>y)!=(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c}
@@ -176,6 +177,20 @@ def register(app, root):
         s = segmenter()
         s.encode('crowd', (day, key, i), img)
         return s.mask('crowd', points, labels_)
+
+    @app.post('/api/crowd/warm')
+    def crowd_warm():
+        """encode the frame the owner has just opened, so his first click is instant"""
+        import cv2
+        b = request.get_json(force=True)
+        day, key = ok_day(str(b.get('day', ''))), ok_key(str(b.get('key', '')))
+        img = cv2.imread(str(crowd(day) / key / ('%04d.jpg' % int(b['i']))))
+        if img is not None and LOCK.acquire(timeout=0.1):
+            try:
+                segmenter().encode('crowd', (day, key, int(b['i'])), img)
+            finally:
+                LOCK.release()
+        return jsonify({'ok': True})
 
     @app.post('/api/crowd/click')
     def crowd_click():
