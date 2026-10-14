@@ -166,6 +166,16 @@ def start_door_seg():
         f.write(str(p.pid))
 
 
+def raw_hours(now):
+    """15.10 owner: record both cameras only an hour or two a day, the busiest (plan 'raw_hours', e.g. '15:00-17:00');
+    no 'raw_hours' -> all day, as before."""
+    h = plan().get('raw_hours')
+    if not h:
+        return True
+    a, b = h.split('-')
+    return a <= now.strftime('%H:%M') < b
+
+
 def door_hours(now):
     a, b = plan().get('door_hours', '10:00-21:00').split('-')
     return a <= now.strftime('%H:%M') < b
@@ -415,7 +425,7 @@ def main():
         try:
             beat()
             p = plan()
-            if p['raw']:
+            if p['raw'] and raw_hours(datetime.now()):       # 15.10 owner: raw only in the busy hours (raw_hours)
                 ensure_recorders()
             else:
                 stop_recorders()
