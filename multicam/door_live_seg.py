@@ -72,6 +72,9 @@ def main(until='21:00', source=None):
     stream = Stream(LIVE / 'stream')
     stream.shop = zones.m['shop']
     stream.start()
+    import door_clips_seg as DC                        # 14.10 owner: a video of every event
+    tape = DC.Tape(LIVE / 'clips_seg', log)
+    tape.start()
     q = queue.Queue()
     src = source or DLV.camera_url()
     g = DLV.Grabber(src, q, None)
@@ -116,6 +119,7 @@ def main(until='21:00', source=None):
         pred = [p for p in pred if not on_poster(p[0][:180])]          # 14.10 owner: the advertising stand is not a person
         out = [(pid, p[0][:180]) for pid, p in tracker.update(k, pred) if p[0][:180].any()]
         stream.put(k, fk, out)
+        tape.put(tk, fk, out)
         if k % 3 == 0 and out:
             rr = zones.rows(k, out)
             rows += rr
@@ -168,6 +172,7 @@ def main(until='21:00', source=None):
                 with open(events_path, 'a', encoding='utf-8') as fo:
                     fo.write(json.dumps({x: v for x, v in ev.items() if x != 'tick'}) + '\n')
                 role_q.put(ev)
+                tape.ask(dict(ev), LE.key_of(ev))
                 stream.events.append((time.time(), ev))
                 log('event %s %s (track %s)' % (ev['kind'], ev['clock'][11:], ev['w']))
             told = [x for x in told if x['tick'] >= k_cut]
