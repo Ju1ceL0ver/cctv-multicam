@@ -2,13 +2,13 @@
 tracker and the zone rules. Own previous mask at 0.4 as live; detections kept from 0.2 (low ones for continuation).
 -> data/door_v2/dsc_cache/<tag>.npz: det rows [tick, score, x1, y1, x2, y2, opx, opy, onx, ony, mx0, my0, mw, mh, off]
 and bits (packed masks of each detection's 1/4-res crop)."""
-import json, sys
+import json, os, sys
 from pathlib import Path
 import numpy as np, cv2
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-OUT = ROOT / 'data/door_v2/dsc_cache'
-CK = ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt'
+OUT = Path(os.environ.get('RA_CACHE_OUT') or ROOT / 'data/door_v2/dsc_cache')          # 14.10: other checkpoints into other folders
+CK = Path(os.environ.get('RA_CACHE_CK') or ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt')
 
 
 def main():

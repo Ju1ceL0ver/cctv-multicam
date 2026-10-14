@@ -19,11 +19,12 @@ for t, v in d['tags'].items():
             X.append([(r[RR.X1] + r[RR.X2]) / 2, r[RR.Y1]]); Y.append(r[RR.X2] - r[RR.X1])
 WK = KNeighborsRegressor(25).fit(np.array(X), np.array(Y))
 RR.WIDTH = lambda r: float(WK.predict([[(r[RR.X1] + r[RR.X2]) / 2, r[RR.Y1]]])[0])
-os.makedirs('rowcache', exist_ok=True)
+RC = os.environ.get('ZL_ROWCACHE', 'rowcache')      # 14.10: one per predictions cache
+os.makedirs(RC, exist_ok=True)
 
 def rows_for(tr):
     key = hashlib.md5(json.dumps(tr, sort_keys=True).encode()).hexdigest()[:10]
-    p = os.path.join('rowcache', key + '.pkl')
+    p = os.path.join(RC, key + '.pkl')
     if os.path.exists(p):
         return pickle.load(open(p, 'rb'))
     cfg = Config(**{k: v for k, v in tr.items() if k in ('max_gap', 'max_cost', 'ambiguity', 'max_step', 'centre_gate', 'gap_growth')})
