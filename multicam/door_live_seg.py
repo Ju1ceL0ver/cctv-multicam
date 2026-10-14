@@ -166,7 +166,7 @@ def main(until='21:00', source=None):
                 ev = {'kind': e['kind'], 't': float(tw), 'w': str(e['w']), 'tracks': [str(e['w'])], 'tick': ke,
                       'clock': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tw)), 'engine': 'doorseg_c+zones'}
                 try:
-                    ev['photo'], ev['crop'] = snapshot(ev, recent, boxes)
+                    ev['photo'], ev['crop'] = snapshot(ev, recent, boxes, t_of)
                 except Exception as exc:
                     log('snapshot failed: %s' % str(exc)[:200]); ev['photo'] = ev['crop'] = ''
                 told.append(dict(ev, w=str(e['w'])))
@@ -279,15 +279,17 @@ class Stream(threading.Thread):
                 time.sleep(1)
 
 
-def snapshot(ev, recent, boxes):
+def snapshot(ev, recent, boxes, t_of=None):
     """the frame nearest to the crossing with the person boxed -> data/live/snapshots/<day>/<key>_full.jpg, the person -> _crop.jpg"""
     import live_events as LE
     ke, pid = ev['tick'], ev['w']
-    cand = [(abs(k - ke), b) for (k, p), b in boxes.items() if str(p) == pid and abs(k - ke) <= 40]
+    cand = [(abs(k - ke), b, k - ke) for (k, p), b in boxes.items() if str(p) == pid and abs(k - ke) <= 40]
     if not cand or not recent:
         return '', ''
-    b = min(cand, key=lambda x: x[0])[1]
-    t, fr = min(recent, key=lambda x: abs(x[0] - ev['t']))
+    kb = min(cand, key=lambda x: x[0])
+    b = kb[1]
+    tb = (t_of or {}).get(ke + kb[2], ev['t'])        # 15.10: the frame of the box's own tick, not of the event (empty boxes)
+    t, fr = min(recent, key=lambda x: abs(x[0] - tb))
     fr = fr.copy()
     x1, y1, x2, y2 = (int(v) for v in b)
     day = time.strftime('%Y%m%d', time.localtime(ev['t']))

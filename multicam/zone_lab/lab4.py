@@ -94,6 +94,13 @@ def events(rows, c):
                     cur, pend, n = v, None, 0
             sides[(p, r[R.K])] = cur
         end[p] = (cur, s[-1][R.FX], s[-1][R.FY])
+    if c.get('door_near') is not None:   # 15.10 owner: an event far from the door is false -- touch the doorway at the flip itself
+        ok = []
+        for e in ev:
+            s = seq.get(e['w'], [])
+            if any(abs(r[R.K] / FPS - e['t']) <= c['door_near'] and r[R.DOOR] >= c['door_px'] for r in s):
+                ok.append(e)
+        ev = ok
     if c.get('foot_s'):          # 14.10 owner: passers-by behind the glass -- an entry must stand in the shop after, an exit before
         ok = []
         for e in ev:
