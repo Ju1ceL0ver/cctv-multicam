@@ -1,7 +1,7 @@
 """14.10 owner: a short video of every live door event -- the owner labels who is who on it, and visit videos
 are later cut from the same tape.
 
-Tape: a thread keeps the last TAPE_S seconds of processed ticks of camera 1 at 640 x 360 (JPEG in memory, ~12 MB)
+Tape: a thread keeps the last TAPE_S seconds of processed ticks of camera 1 at 1280 x 720 (JPEG in memory, ~40 MB)
 with every person's mask (1/4 of 1280 x 720, packed bits) and number. The count loop only hands it references.
 An event asks for [t - BEFORE, t + AFTER]; once the tape has reached t + AFTER the clip is drawn (the event's person
 bright and numbered, the others dim) and encoded to H.264 by ffmpeg at low priority
@@ -15,6 +15,7 @@ import cv2
 TAPE_S, BEFORE, AFTER = 30.0, 10.0, 8.0                # 15.10 owner: longer clips (crowds need the whole passage)
 W, H = 640, 360
 FPS = 12.5
+CROWD_S = 3.0                                          # people counted within +-3 s of the crossing
 FFMPEG = os.environ.get('RA_FFMPEG') or r'C:\Users\ArykovAA\AppData\Local\miniconda3\envs\cctv_base\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe'
 
 
@@ -42,8 +43,7 @@ class Tape(threading.Thread):
         while True:
             try:
                 t, fr, out = self.inbox.get(timeout=1.0)
-                small = cv2.resize(fr, (W, H), interpolation=cv2.INTER_AREA)
-                jpg = cv2.imencode('.jpg', small, [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tobytes()
+                jpg = cv2.imencode('.jpg', fr, [cv2.IMWRITE_JPEG_QUALITY, 88])[1].tobytes()   # 15.10: full 1280x720 for crowd frames
                 masks = [(p, np.packbits(m.astype(bool)), m.shape) for p, m in out]
                 self.tape.append((t, jpg, masks))
                 while self.tape and self.tape[0][0] < t - TAPE_S:
@@ -84,7 +84,7 @@ class Tape(threading.Thread):
         col = (60, 220, 60) if ev['kind'] == 'in' else (30, 150, 255)
         title = '%s  %s  #%s' % ('ВХОД' if ev['kind'] == 'in' else 'ВЫХОД', ev['clock'][11:], me)
         for t, jpg, masks in part:
-            img = cv2.imdecode(np.frombuffer(jpg, np.uint8), cv2.IMREAD_COLOR)
+            img = cv2.resize(cv2.imdecode(np.frombuffer(jpg, np.uint8), cv2.IMREAD_COLOR), (W, H), interpolation=cv2.INTER_AREA)
             for pid, packed, shape in masks:
                 m = np.unpackbits(packed)[:shape[0] * shape[1]].reshape(shape)
                 big = cv2.resize(m, (W, H), interpolation=cv2.INTER_NEAREST)
@@ -107,6 +107,26 @@ class Tape(threading.Thread):
             self.log('clip %s: ffmpeg %s' % (key, err[-200:]))
             return
         os.replace(tmp, path)
+        crowd = max((len(m) for t, _, m in part if abs(t - ev['t']) <= CROWD_S), default=0)
+        if crowd >= 2:
+            self.keep_crowd(ev, key, part, day, crowd)
+
+    def keep_crowd(self, ev, key, part, day, crowd):
+        """15.10 owner: two or more people at the door -> the raw frames (1280x720) and the model's masks of the whole
+        passage, for his click labels and for training -> data/live/crowd/<day>/<key>/{NNNN.jpg, masks.npz, meta.json}"""
+        import json
+        out = self.dir.parent / 'crowd' / day / key
+        out.mkdir(parents=True, exist_ok=True)
+        meta = {'event': {k: ev[k] for k in ('kind', 't', 'w', 'clock') if k in ev}, 'crowd': crowd, 'frames': []}
+        arrays = {}
+        for i, (t, jpg, masks) in enumerate(part):
+            (out / ('%04d.jpg' % i)).write_bytes(jpg)
+            meta['frames'].append({'i': i, 't': round(t, 3), 'pids': [p for p, _, _ in masks]})
+            for j, (p, packed, shape) in enumerate(masks):
+                arrays['f%04d_%d' % (i, j)] = packed
+                meta.setdefault('shape', list(shape))
+        np.savez_compressed(out / 'masks.npz', **arrays)
+        (out / 'meta.json').write_text(json.dumps(meta), encoding='utf-8')
 
 
 _FONT = None
