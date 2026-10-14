@@ -21,7 +21,7 @@ LIVE = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live')
 CK = ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt'
 TICK, LAG, KEEP_S = 0.08, 4.0, 90.0
 CONT = 0.5                                             # detections the tracker sees (the previous-mask channel keeps 0.4)
-CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1)    # 14.10 owner: his rules above the model (train 0.915 -> 0.921)
+CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1, door_near=1.5, door_px=1)    # 14.10 owner rules above the model (0.915 -> 0.921); 15.10 doorway touched within 1.5 s of the flip (train same, cuts far-from-door events)
 
 
 def log(msg):
