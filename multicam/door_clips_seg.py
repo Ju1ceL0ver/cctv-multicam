@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import cv2
 
-TAPE_S, BEFORE, AFTER = 30.0, 6.0, 5.0
+TAPE_S, BEFORE, AFTER = 30.0, 10.0, 8.0                # 15.10 owner: longer clips (crowds need the whole passage)
 W, H = 640, 360
 FPS = 12.5
 FFMPEG = os.environ.get('RA_FFMPEG') or r'C:\Users\ArykovAA\AppData\Local\miniconda3\envs\cctv_base\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe'
