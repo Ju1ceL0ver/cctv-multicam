@@ -275,6 +275,8 @@ def read_urls():
                 continue
             for u in re.findall(r'https://[a-z0-9-]+\.trycloudflare\.com',
                                 open(c, encoding='utf-8', errors='replace').read()):
+                if u == 'https://api.trycloudflare.com':      # 26.10: cloudflared's own API in its errors, not a tunnel
+                    continue
                 if u not in seen:
                     seen.add(u); cands.append((os.path.getmtime(c), u))
         for _, u in sorted(cands, reverse=True):

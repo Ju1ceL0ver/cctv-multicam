@@ -40,6 +40,7 @@
 | виды событий | `door_live_seg.event_views` | 8 лучших кадров трека копируются в `data/live/event_views/<день>/<key>/` в момент события (неизменяемо) |
 | сравнение счёта | `door_count_compare.py ДЕНЬ` | смотритель после 21:40: сырой счёт (как в CRM) против счёта по визитам + вердикты по ответам владельца → `data/door_identity/<день>/compare.json` |
 | смотритель | `keeper.py` | план `data/keeper_plan.json`: `door_seg: true`, `door: false`, `crm: true`, `raw: true`; запись по `customer_recording.py` (старый `raw_hours` в плане сохранён, больше не используется), часы двери 09:50–21:00; поднимает упавшее |
+| **проверка ID** | `id_check_page.py` `/idcheck?day=…` | только сомнительные события (неуверенная связка, выход без пары, непосчитанный повтор), одна клавиша → `data/door_identity/<день>/idcheck.json` |
 | страницы владельца | `visit_pairs_page.py` `/visitpairs`, `crowd_page.py` `/crowdmasks` | кто есть кто по событиям дня (N/цифра/X/S; крупное фото, увеличенное на человека, 8 кадров, видео кнопкой) → `data/visits/<день>/people_answers.json`; маски толп кликами (SAM 2.1 tiny на процессоре) → `data/live/crowd_labels/` |
 | старая дверь (выключена) | `door_live.py` | SAM 3.1 micro, 230 мс/кадр; вернуть: `door: true, door_seg: false` и остановить `door_live_seg.py`; копии — `data/quality_backups/20261014_seg_live/` |
 

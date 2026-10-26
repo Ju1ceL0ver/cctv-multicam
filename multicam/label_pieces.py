@@ -615,6 +615,9 @@ register_visit_pairs(app, lambda: ROOT)
 from crowd_page import register as register_crowd
 register_crowd(app, lambda: ROOT)
 
+from id_check_page import register as register_id_check     # 26.10: only the door events the visit IDs doubt
+register_id_check(app, lambda: ROOT)
+
 from visit_whole_page import register as register_wholevisits
 register_wholevisits(app, lambda: ROOT)
 
