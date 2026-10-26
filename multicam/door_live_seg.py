@@ -21,7 +21,10 @@ LIVE = Path(os.environ.get('RA_LIVE_OUT') or ROOT / 'data' / 'live')
 CK = ROOT / 'data/quality_backups/doorseg_c_kaggle_final_20261010/step14604_ce9b0a8498d3.pt'
 TICK, LAG, KEEP_S = 0.08, 4.0, 90.0
 CONT = 0.5                                             # detections the tracker sees (the previous-mask channel keeps 0.4)
-CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1, door_near=1.5, door_px=1)    # 14.10 owner rules above the model (0.915 -> 0.921); 15.10 doorway touched within 1.5 s of the flip (train same, cuts far-from-door events)
+# 14.10 owner rules above the model (0.915 -> 0.921); 15.10 doorway touched within 1.5 s of the flip (train same, cuts
+# far-from-door events); 22.10 owner: the feet (within 5 px) cross the doorway -- passers-by behind the glass (0.927 -> 0.943)
+CFG = dict(SM=0., thr=.6, inh_overlap=.3, door_s=2., pair_s=3., rules_first=1, door_near=1.5, door_px=1,
+           door_foot=['door'], door_foot_tol=5)
 
 
 def log(msg):
@@ -169,6 +172,10 @@ def main(until='21:00', source=None):
                     ev['photo'], ev['crop'] = snapshot(ev, recent, boxes, t_of)
                 except Exception as exc:
                     log('snapshot failed: %s' % str(exc)[:200]); ev['photo'] = ev['crop'] = ''
+                try:
+                    event_views(ev, bank)
+                except Exception as exc:
+                    log('event views failed: %s' % str(exc)[:200])
                 told.append(dict(ev, w=str(e['w'])))
                 with open(events_path, 'a', encoding='utf-8') as fo:
                     fo.write(json.dumps({x: v for x, v in ev.items() if x != 'tick'}) + '\n')
@@ -303,6 +310,25 @@ def snapshot(ev, recent, boxes, t_of=None):
     cv2.imwrite(str(full), fr, [cv2.IMWRITE_JPEG_QUALITY, 90])
     cv2.imwrite(str(cp), crop, [cv2.IMWRITE_JPEG_QUALITY, 92])
     return str(full), str(cp)
+
+
+def event_views(ev, bank):
+    """20.10: the event's own best views, copied at the crossing -> data/live/event_views/<day>/<key>/ + manifest.json.
+    views_seg is keyed by track numbers that restart; these copies are what the entry/exit identity reads."""
+    import hashlib, shutil
+    import live_events as LE
+    from storage import atomic_json
+    day = time.strftime('%Y%m%d', time.localtime(ev['t']))
+    folder = LIVE / 'event_views' / day / LE.key_of(ev)
+    folder.mkdir(parents=True, exist_ok=True)
+    views = []
+    for i, (s, p, b) in enumerate(bank.best([str(t) for t in ev['tracks']])):
+        dst = folder / ('view_%02d.jpg' % i)
+        shutil.copyfile(p, dst)
+        views.append({'path': dst.name, 'sha256': hashlib.sha256(dst.read_bytes()).hexdigest(), 'box': b,
+                      'score': s, 'variant': 'raw'})
+    atomic_json(folder / 'manifest.json', {'event': {k: ev.get(k) for k in ('kind', 't', 'clock', 'w')},
+                                           'source': 'live_bank_v1', 'views': views})
 
 
 if __name__ == '__main__':

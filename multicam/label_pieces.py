@@ -562,6 +562,9 @@ register_day_movie(app, lambda: ROOT)
 from door_review import register as register_door
 register_door(app, lambda: ROOT)
 
+from door_check import register as register_doorcheck
+register_doorcheck(app, lambda: ROOT)
+
 from seg_compare import register as register_segcompare
 register_segcompare(app, lambda: ROOT)
 
@@ -576,6 +579,18 @@ register_inout(app, lambda: ROOT)
 from staff import register as register_staff
 register_staff(app, lambda: ROOT)
 
+from staff_blind import register as register_staff_blind
+register_staff_blind(app, lambda: ROOT)
+from door_mark import register as register_doormark
+register_doormark(app)
+from door_side import register as register_doorside
+register_doorside(app)
+from keep import register as register_keep
+register_keep(app, lambda: ROOT)
+
+from keep2 import register as register_keep2
+register_keep2(app, lambda: ROOT)
+
 from xcam import register as register_xcam
 register_xcam(app, lambda: ROOT)
 
@@ -583,6 +598,28 @@ register_xcam(app, lambda: ROOT)
 from sam31_jobs import register as register_sam31_jobs
 register_sam31_jobs(app, lambda: ROOT)
 
+from floorpair import register as register_floorpair
+register_floorpair(app, lambda: ROOT)
+
+from train_page import register as register_train_page
+register_train_page(app, lambda: ROOT)
+
+from fix import register as register_fix
+register_fix(app, lambda: ROOT)
+from live_events import register as register_live_events
+register_live_events(app)
+
+from visit_pairs_page import register as register_visit_pairs
+register_visit_pairs(app, lambda: ROOT)
+
+from crowd_page import register as register_crowd
+register_crowd(app, lambda: ROOT)
+
+from visit_whole_page import register as register_wholevisits
+register_wholevisits(app, lambda: ROOT)
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5070, threaded=True)
+
+
 

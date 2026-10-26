@@ -95,8 +95,13 @@ def ensure_recorders():
             pid = int(open(pf).read().strip())
         except Exception:
             pid = 0
-        if pid and pid_alive(pid):
+        # 21.10: the pid alone is not enough -- after a stop Windows gave 25152 to rudesktop.exe and cam1 was never
+        # started again (19-20.10). The pid must belong to a running _raw_recorder.py.
+        if pid and any(l.split('|')[0].strip() == str(pid) for l in running('_raw_recorder.py')):
             continue
+        stopfile = os.path.join(HOME, '_raw_recorder_%s.stop' % cam)
+        if os.path.exists(stopfile):
+            os.remove(stopfile)
         spawn('raw_%s' % cam, [os.path.join(HOME, '_raw_recorder.py')],
               env={'RA_RAW_CAMERA': cam, 'RA_RAW_DAYS': '3650', 'RA_RAW_MANAGED': '1',
                    'RA_RAW_FREE_GB': str(FREE_FLOOR_GB)}, cwd=HOME)
@@ -115,8 +120,10 @@ def stop_recorders():
             continue
         if not any(l.split('|')[0].strip() == str(pid) for l in running('_raw_recorder.py')):
             continue
-        os.system('taskkill /PID %d /F > nul 2>&1' % pid)
-        log('plan: raw recording switched off, stopped recorder %s (pid %d)' % (cam, pid))
+        stopfile = os.path.join(HOME, '_raw_recorder_%s.stop' % cam)
+        if not os.path.exists(stopfile):
+            open(stopfile, 'w').close()
+            log('raw: requested clean stop of recorder %s (pid %d)' % (cam, pid))
 
 
 def stop_live():
@@ -164,6 +171,22 @@ def start_door_seg():
                          stdout=out, stderr=subprocess.STDOUT, creationflags=0x00000008 | 0x00000200)
     with open(os.path.join(ROOT, 'data', 'live', 'door_live_seg.pid'), 'w') as f:
         f.write(str(p.pid))
+
+
+IDENTITY_HOURS = ('09:50', '21:40')     # 20.10 owner: the visit ID of every door event, every day
+
+
+def start_identity():
+    """20.10: door_event_feats.py -- features of each event's views, entry/exit -> one visit ID once a minute
+    (data/live/records/identity_<day>.json). Processor, 3 threads, below normal; the CRM is not touched."""
+    py = os.path.join(HOME, 'cctv_ai', 'venv_rfdetr', 'Scripts', 'python.exe')
+    env = {k: v for k, v in os.environ.items() if not k.startswith('RA_')}
+    env.update(PYTHONIOENCODING='utf-8', RA_ID_THREADS='3')
+    day = datetime.now().strftime('%Y%m%d')
+    os.makedirs(os.path.join(ROOT, 'data', 'door_identity'), exist_ok=True)
+    out = open(os.path.join(ROOT, 'data', 'door_identity', 'event_feats_%s.log' % day), 'a', encoding='utf-8')
+    subprocess.Popen([py, os.path.join(ROOT, 'door_event_feats.py'), day, '--loop', IDENTITY_HOURS[1]], cwd=ROOT, env=env,
+                     stdout=out, stderr=subprocess.STDOUT, creationflags=0x00000008 | 0x00000200 | 0x00004000)
 
 
 def raw_hours(now):
@@ -264,6 +287,26 @@ def read_urls():
         if updated != old:
             atomic_json(URLS, updated)
             log('addresses now:', json.dumps(updated))
+            notify_urls(updated)
+
+
+def notify_urls(urls):
+    """21.10 owner: after a reboot the new tunnel addresses reach his phone (ntfy.sh, a private random topic in
+    data/logs/notify_topic.txt; no file -> nothing is sent). Addresses only: no site key, no Jupyter token."""
+    import urllib.request
+    tf = os.path.join(LOGS, 'notify_topic.txt')
+    if not os.path.exists(tf):
+        return
+    topic = open(tf).read().strip()
+    text = 'Новые адреса машины магазина (%s):\nсайт: %s/visitpairs\njupyter: %s' % (
+        datetime.now().strftime('%d.%m %H:%M'), urls.get('labeler', '?'), urls.get('jupyter', '?'))
+    try:
+        req = urllib.request.Request('https://ntfy.sh/' + topic, data=text.encode('utf-8'),
+                                     headers={'Title': 'cctv: tunnels'})
+        urllib.request.urlopen(req, timeout=15)
+        log('addresses sent to ntfy')
+    except Exception as exc:
+        log('ntfy failed: %s' % str(exc)[:200])
 
 
 # ---------------------------------------------------------------- night work
@@ -372,11 +415,32 @@ def in_night(now):
     return now.time() >= a or now.time() < b
 
 
+def authorized_visit_worker(pid, now=None):
+    """Owner-approved night visits are separate from disabled legacy teachers."""
+    now = now or datetime.now()
+    h = now.strftime('%H:%M')
+    if not (h >= '21:05' or h < '09:30'):
+        return False
+    try:
+        import psutil
+        worker = psutil.Process(pid)
+        if worker.environ().get('RA_VISITS_NIGHT') != '1':
+            return False
+        return any(any(os.path.basename(arg) == 'night_visits.py' for arg in parent.cmdline())
+                   and os.path.normcase(parent.cwd()) == os.path.normcase(ROOT)
+                   for parent in worker.parents())
+    except (OSError, ValueError, psutil.Error):
+        return False
+
+
 def stop_teachers():
     stopped = []
     for pat in ('auto_label.py', 'detect_raw.py'):   # only what holds the card; cutting pictures is free
         for l in running(pat):
-            os.system('taskkill /PID %s /F /T > nul 2>&1' % l.split('|')[0].strip())
+            pid = int(l.split('|')[0].strip())
+            if pat == 'detect_raw.py' and authorized_visit_worker(pid):
+                continue
+            os.system('taskkill /PID %d /F /T > nul 2>&1' % pid)
             stopped.append(pat)
     if stopped:
         log('shop hours: teachers stopped, the card is the counter\'s')
@@ -425,7 +489,10 @@ def main():
         try:
             beat()
             p = plan()
-            if p['raw'] and raw_hours(datetime.now()):       # 15.10 owner: raw only in the busy hours (raw_hours)
+            from customer_recording import load_state
+            capture = load_state(ROOT)
+            atomic_json(os.path.join(ROOT, 'data', 'live', 'recording_state.json'), capture)
+            if p['raw'] and door_hours(datetime.now()) and capture['record']:
                 ensure_recorders()
             else:
                 stop_recorders()
@@ -437,6 +504,20 @@ def main():
                 ensure('live door', 'door_live.py', start_door)
             if p.get('door_seg') and door_hours(datetime.now()) and camera_up():    # 14.10: the new live door
                 ensure('live door (doorseg_c)', 'door_live_seg.py', start_door_seg)
+            # 20.10 owner: one visit ID per door event, 09:50-21:40 ('identity': false in the plan switches it off)
+            if p.get('identity', True) and IDENTITY_HOURS[0] <= datetime.now().strftime('%H:%M') < IDENTITY_HOURS[1]:
+                ensure('visit IDs', 'door_event_feats.py', start_identity)
+            # 21.10 owner: after the visit IDs stop, the raw door count against the count by visit, once a day
+            today = datetime.now().strftime('%Y%m%d')
+            if p.get('identity', True) and datetime.now().strftime('%H:%M') >= IDENTITY_HOURS[1] and \
+                    not running('door_event_feats.py') and \
+                    not os.path.exists(os.path.join(ROOT, 'data', 'door_identity', today, 'compare.json')):
+                try:
+                    subprocess.run([sys.executable.replace('pythonw.exe', 'python.exe'), os.path.join(ROOT, 'door_count_compare.py'),
+                                    today], cwd=ROOT, timeout=120, capture_output=True, creationflags=0x08000000)
+                    log('door count compared for %s' % today)
+                except Exception as exc:
+                    log('door count compare failed: %s' % str(exc)[:200])
             # 09.10: the crossings -> the Refloor CRM, all day (cards that did not go are retried until they do)
             if p.get('crm'):
                 import door_live_ctl
@@ -505,6 +586,10 @@ def main():
                     log('shop hours: student training stopped')
 
             if time.time() - last_disk > 1800:
+                from visit_media import prune_media
+                removed = prune_media(ROOT, datetime.now())
+                if removed:
+                    log('expired visit media: %d files older than 30 days' % removed)
                 prune_raw(); last_disk = time.time()
         except Exception:
             import traceback

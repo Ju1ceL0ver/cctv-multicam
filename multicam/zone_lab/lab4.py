@@ -86,7 +86,8 @@ def events(rows, c):
                 n += 1
                 if n >= c['conf']:
                     if cur is not None and (t0 - door_t) <= c['door_s'] + c['SM']:
-                        ev.append({'kind': 'in' if v == 1 else 'out', 't': t0, 'w': p})
+                        ev.append({'kind': 'in' if v == 1 else 'out', 't': t0, 'w': p,
+                                   'x': r[R.FX], 'y': r[R.FY], 'h': max(1, r[R.Y2] - r[R.Y1])})   # 21.10: where, for burst_s
                         if c.get('group_w') and R.WIDTH is not None:
                             exp = R.WIDTH(r)
                             if exp and (r[R.X2] - r[R.X1]) > c['group_w'] * exp:
@@ -98,8 +99,20 @@ def events(rows, c):
         ok = []
         for e in ev:
             s = seq.get(e['w'], [])
-            if any(abs(r[R.K] / FPS - e['t']) <= c['door_near'] and r[R.DOOR] >= c['door_px'] for r in s):
-                ok.append(e)
+            near = [r for r in s if abs(r[R.K] / FPS - e['t']) <= c['door_near']]
+            if any(r[R.DOOR] >= c['door_px'] for r in near):
+                # 22.10 owner: a passer-by behind the glass touches the doorway only with his picture -- the feet
+                # (or, hidden, the feet from the head) must stand in one of the door_foot zones near the flip
+                zf = c.get('door_foot')
+                tol = c.get('door_foot_tol', 0)      # 22.10: the doorway is a thin strip; rows come every 0.24 s
+                def in_door(r):
+                    if not tol:
+                        return False
+                    import cv2
+                    return cv2.pointPolygonTest(L.POLY['door'], (float(r[R.FX]), float(r[R.FY])), True) >= -tol
+                if not zf or any(r[R.FOOT] in zf or in_door(r) or
+                                 (c.get('door_vfoot') and len(r) > R.VFOOT and r[R.VFOOT] in zf) for r in near):
+                    ok.append(e)
         ev = ok
     if c.get('foot_s'):          # 14.10 owner: passers-by behind the glass -- an entry must stand in the shop after, an exit before
         ok = []
@@ -114,6 +127,8 @@ def events(rows, c):
         ev = ok
     if c['pair_s']:
         ev = R.cancel_pairs(ev, c['pair_s'])
+    if c.get('burst_s'):         # 21.10 owner: someone lingering in the doorway -- new track numbers, no new crossings
+        ev = R.cancel_bursts(ev, c['burst_s'], c.get('burst_px', 1.0), c.get('burst_dup', 0))
     return ev, sides
 
 

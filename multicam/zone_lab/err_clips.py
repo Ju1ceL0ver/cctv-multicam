@@ -24,8 +24,15 @@ for t in TAGS:
     rows = L.rows_of(tracks)
     ev, sides = Q.events(rows, CFG)
     ev, tr = dg(t, ev), dg(t, truth[t])
-    errs = [('missed', x) for x in tr if not any(abs(e['t'] - x['t']) <= 6 and e['kind'] == x['kind'] for e in ev)]
-    errs += [('false', e) for e in ev if not any(abs(e['t'] - x['t']) <= 6 and e['kind'] == x['kind'] for x in tr)]
+    errs = []
+    for kind in ('in', 'out'):                       # one to one, as rules.match: a group of two is two crossings
+        P = [e for e in ev if e['kind'] == kind]; T = [x for x in tr if x['kind'] == kind]
+        pairs = sorted((abs(a['t'] - b['t']), i, j) for i, a in enumerate(P) for j, b in enumerate(T) if abs(a['t'] - b['t']) <= 6)
+        ui, uj = set(), set()
+        for _, i, j in pairs:
+            if i in ui or j in uj: continue
+            ui.add(i); uj.add(j)
+        errs += [('false', P[i]) for i in range(len(P)) if i not in ui] + [('missed', T[j]) for j in range(len(T)) if j not in uj]
     if not errs:
         continue
     cap = cv2.VideoCapture(os.path.join('..', 'data', 'sam31_door', t, 'cam1', 'video.mp4'))

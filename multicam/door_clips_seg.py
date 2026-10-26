@@ -13,7 +13,7 @@ import numpy as np
 import cv2
 
 TAPE_S, BEFORE, AFTER = 30.0, 10.0, 8.0                # 15.10 owner: longer clips (crowds need the whole passage)
-W, H = 640, 360
+W, H = 1280, 720                                       # 21.10 owner: 640x360 was too blurry to label
 FPS = 12.5
 CROWD_S = 3.0                                          # people counted within +-3 s of the crossing
 FFMPEG = os.environ.get('RA_FFMPEG') or r'C:\Users\ArykovAA\AppData\Local\miniconda3\envs\cctv_base\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe'
@@ -90,15 +90,15 @@ class Tape(threading.Thread):
                 big = cv2.resize(m, (W, H), interpolation=cv2.INTER_NEAREST)
                 cn, _ = cv2.findContours(big, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 if pid == me:
-                    img[big > 0] = (0.55 * img[big > 0] + 0.45 * np.array(col)).astype(np.uint8)
-                    cv2.drawContours(img, cn, -1, col, 2)
+                    img[big > 0] = (0.85 * img[big > 0] + 0.15 * np.array(col)).astype(np.uint8)   # light tint: the face stays
+                    cv2.drawContours(img, cn, -1, col, 3)
                     ys, xs = np.nonzero(big)
                     cv2.putText(img, '#' + pid, (int(xs.min()), max(14, int(ys.min()) - 4)), cv2.FONT_HERSHEY_SIMPLEX, .6, col, 2)
                 else:
                     cv2.drawContours(img, cn, -1, (150, 150, 150), 1)
             mark = abs(t - ev['t']) < 0.6                # the moment of the crossing
-            cv2.rectangle(img, (0, 0), (W, 26), (0, 0, 0), -1)
-            cv2.putText(img, '%+.1f s' % (t - ev['t']), (W - 90, 19), cv2.FONT_HERSHEY_SIMPLEX, .55, (255, 255, 255), 1)
+            cv2.rectangle(img, (0, 0), (W, 34), (0, 0, 0), -1)
+            cv2.putText(img, '%+.1f s' % (t - ev['t']), (W - 120, 25), cv2.FONT_HERSHEY_SIMPLEX, .8, (255, 255, 255), 2)
             put_text(img, title, (8, 3), col if mark else (230, 230, 230))
             p.stdin.write(img.tobytes())
         p.stdin.close()
@@ -139,12 +139,12 @@ def put_text(img, text, xy, col):
     if _FONT is None:
         for f in ('arialbd.ttf', 'arial.ttf'):
             try:
-                _FONT = ImageFont.truetype(f, 18); break
+                _FONT = ImageFont.truetype(f, 26); break
             except OSError:
                 pass
         _FONT = _FONT or ImageFont.load_default()
     x, y = xy
     w = int(_FONT.getlength(text)) + 4
-    roi = img[y:y + 22, x:x + w]
+    roi = img[y:y + 32, x:x + w]
     im = Image.fromarray(roi[:, :, ::-1].copy()); ImageDraw.Draw(im).text((2, 0), text, fill=tuple(int(c) for c in col[::-1]), font=_FONT)
-    img[y:y + 22, x:x + w] = np.asarray(im)[:, :, ::-1]
+    img[y:y + 32, x:x + w] = np.asarray(im)[:, :, ::-1]

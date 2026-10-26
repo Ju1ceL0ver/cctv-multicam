@@ -2,10 +2,12 @@
 the visits pass over the day's recording (night_visits.py).
 Waits for 21:05; log data/night_1015/crowd_compare.log."""
 import os, subprocess, time
+from datetime import datetime
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / 'data' / 'night_1015'; OUT.mkdir(parents=True, exist_ok=True)
-while not (time.strftime('%H:%M') >= '21:05' or time.strftime('%H:%M') < '09:30'):
+while not (datetime.now() >= datetime(2026, 10, 15, 21, 5) and
+           (time.strftime('%H:%M') >= '21:05' or time.strftime('%H:%M') < '09:30')):
     time.sleep(30)
 with open(OUT / 'crowd_compare.log', 'w', encoding='utf-8') as f:
     subprocess.run([r'C:\Users\ArykovAA\cctv_ai\venv_sam3\Scripts\python.exe', 'crowd_compare.py', 'teacher'], cwd=str(ROOT),

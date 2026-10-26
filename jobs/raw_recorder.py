@@ -17,7 +17,8 @@ without either losing frames (both got 301/301 frames over 12 s), so the live
 service is not disturbed.
 """
 
-import os, sys, json, time, shutil, signal, subprocess
+import os, sys, json, time, shutil, signal, subprocess, threading
+from collections import deque
 from datetime import datetime, timedelta
 
 HOME = r'C:\Users\ArykovAA'
@@ -29,6 +30,11 @@ CAMERA = os.environ.get('RA_RAW_CAMERA', 'cam1')
 OUT = os.path.join(ROOT, 'runs', 'raw', CAMERA)
 LOG = os.path.join(HOME, '_raw_recorder_%s.log' % CAMERA)
 PIDFILE = os.path.join(HOME, '_raw_recorder_%s.pid' % CAMERA)
+STOPFILE = os.path.join(HOME, '_raw_recorder_%s.stop' % CAMERA)
+
+
+def stop_requested():
+    return MANAGED_RETENTION and os.path.exists(STOPFILE)
 
 HOURS = (10, 21)              # same trading window as the live service
 SEGMENT_SECONDS = 900         # 15-minute files: small enough to copy/inspect
@@ -135,7 +141,7 @@ def record_one_day(ff, url, day_end):
     os.makedirs(day_dir, exist_ok=True)
     attempt = 0
     disk_paused = False
-    while datetime.now() < day_end:
+    while datetime.now() < day_end and not stop_requested():
         if not capture_has_space():
             if not disk_paused:
                 log('RAW PAUSED: less than %.0f GiB free; preserving unprocessed footage and live counter' % MANAGED_FREE_FLOOR_GB)
@@ -157,29 +163,37 @@ def record_one_day(ff, url, day_end):
         attempt += 1
         log('ffmpeg start (attempt %d), %d s remaining in window' % (attempt, remaining))
         started = time.time()
-        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        # Drain while ffmpeg runs; a full stderr pipe otherwise freezes capture.
+        errors = deque(maxlen=32)
+        def drain():
+            for line in iter(proc.stderr.readline, b''):
+                errors.append(line)
+        reader = threading.Thread(target=drain, daemon=True); reader.start()
         last_check = time.time()
         while proc.poll() is None:
             time.sleep(5)
-            if datetime.now() >= day_end or not capture_has_space():
+            if stop_requested() or datetime.now() >= day_end or not capture_has_space():
                 log('window closed or disk reserve reached; stopping ffmpeg cleanly')
-                proc.terminate()
                 try:
-                    proc.wait(timeout=20)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
+                    proc.stdin.write(b'q\n'); proc.stdin.flush()
+                    proc.wait(timeout=20)    # q closes the MP4 index, unlike TerminateProcess
+                except (OSError, subprocess.TimeoutExpired):
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        proc.kill(); proc.wait()
                 break
             if time.time() - last_check > 300:
                 last_check = time.time()
                 enforce_disk_cap()
                 log('recording, %.1f GB on disk' % (tree_size(OUT) / 1e9))
-        err = b''
-        try:
-            err = proc.stderr.read() or b''
-        except Exception:
-            pass
+        reader.join(timeout=2)
+        err = b''.join(errors)
+        proc.stdin.close(); proc.stderr.close()
         ran = time.time() - started
-        if datetime.now() >= day_end:
+        if stop_requested() or datetime.now() >= day_end:
             break
         log('ffmpeg exited after %.0f s: %s' % (ran, err.decode('utf-8', 'replace')[-300:]))
         # A stream drop should not spin: back off, but stay responsive.
@@ -220,11 +234,15 @@ def main():
     log('retention:', 'keeper managed; reserve %.0f GiB' % MANAGED_FREE_FLOOR_GB if MANAGED_RETENTION else 'legacy per-camera cap')
 
     for day in range(RECORD_DAYS):
+        if stop_requested():
+            break
         if not within_hours():
             start = next_window_start()
             log('waiting until %s' % start.isoformat(timespec='seconds'))
-            while datetime.now() < start:
+            while datetime.now() < start and not stop_requested():
                 time.sleep(30)
+        if stop_requested():
+            break
         day_end = datetime.now().replace(hour=HOURS[1], minute=0, second=0, microsecond=0)
         log('day %d/%d: recording until %s' % (day + 1, RECORD_DAYS,
                                                day_end.strftime('%H:%M')))

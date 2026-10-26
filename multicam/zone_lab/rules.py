@@ -155,6 +155,33 @@ def cancel_pairs(ev, T):
     return [e for i, e in enumerate(ev) if i not in drop]
 
 
+def cancel_bursts(ev, T, near, dup=0):
+    """21.10 owner: one person lingering in the doorway keeps getting new track numbers, and each piece flips a side.
+    An in and an out (any tracks) within T s and within `near` body heights of each other never crossed: both go.
+    dup > 0: a second event of the same kind within dup s at the same place is the same crossing counted twice."""
+    ev = sorted(ev, key=lambda e: e['t'])
+    def close(a, b):
+        if 'x' not in a or 'x' not in b:
+            return a['w'] == b['w']
+        return ((a['x'] - b['x']) ** 2 + (a['y'] - b['y']) ** 2) ** .5 <= near * max(a['h'], b['h'])
+    drop = set()
+    for i, e in enumerate(ev):
+        if i in drop:
+            continue
+        for j in range(i + 1, len(ev)):
+            f = ev[j]
+            if f['t'] - e['t'] > max(T, dup):
+                break
+            if j in drop or not close(e, f):
+                continue
+            if f['kind'] != e['kind'] and f['t'] - e['t'] <= T:
+                drop |= {i, j}
+                break
+            if dup and f['kind'] == e['kind'] and f['t'] - e['t'] <= dup:
+                drop.add(j)
+    return [e for i, e in enumerate(ev) if i not in drop]
+
+
 def alternate(ev, window=None):
     out, lastk = [], {}
     for e in sorted(ev, key=lambda e: e['t']):

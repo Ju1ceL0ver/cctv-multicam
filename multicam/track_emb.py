@@ -61,6 +61,7 @@ def teachers(dev='cuda'):
             v2 = torch.cat([cs(b[k:k + 32]) for k in range(0, len(b), 32)]).float()
         n = lambda v: torch.nn.functional.normalize(v.float(), dim=1).cpu().numpy()
         return n(v1), n(v2)
+    embed.models = (tr, cs)  # CPU ONNX export reuses the exact loaded teachers
     return embed
 
 

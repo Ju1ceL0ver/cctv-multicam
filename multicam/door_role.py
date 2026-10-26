@@ -46,7 +46,8 @@ class Bank:
         self.folder.mkdir(parents=True, exist_ok=True)
         self.keep = keep
         self.views = {}                                   # key -> [(score, path, box_1280)]
-        self.n = 0
+        # 20.10: continue the day's numbering after a restart -- starting at 1 overwrote earlier people's views
+        self.n = max([int(p.stem) for p in self.folder.glob('*.jpg') if p.stem.isdigit()] + [0])
 
     def wants(self, key, s):
         v = self.views.get(key, [])
